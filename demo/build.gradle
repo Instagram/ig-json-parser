@@ -1,0 +1,46 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath group: 'com.android.tools.build', name: 'gradle', version: '0.9.0+'
+  }
+}
+
+apply plugin: 'android'
+
+dependencies {
+  compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.2.3+'
+  compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
+  compile project(':demo:igmodel')
+}
+
+android {
+  compileSdkVersion 19
+  buildToolsVersion "19.1"
+
+  defaultConfig {
+    minSdkVersion 10
+    targetSdkVersion 19
+  }
+
+  sourceSets {
+    main {
+      manifest {
+        srcFile 'AndroidManifest.xml'
+      }
+      java {
+        srcDir 'src/java/main'
+      }
+      res {
+        srcDir 'src/main/res'
+      }
+    }
+  }
+
+  packagingOptions {
+    exclude 'META-INF/LICENSE'
+    exclude 'META-INF/NOTICE'
+  }
+}

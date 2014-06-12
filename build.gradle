@@ -1,0 +1,16 @@
+buildscript {
+}
+
+apply plugin: 'groovy'
+jar {
+    from files( { project(':javawriter').sourceSets.main.output.classesDir } )
+    from files( { project(':common').sourceSets.main.output.classesDir } )
+    from files( { project(':util').sourceSets.main.output.classesDir } )
+    from files( { project(':processor').sourceSets.main.output.classesDir } )
+}
+
+subprojects {
+  repositories {
+    mavenCentral()
+  }
+}

@@ -1,0 +1,12 @@
+apply plugin: 'java'
+
+compileJava {
+  options.compilerArgs += [
+                       '-processor',
+                       'com.instagram.common.json.annotation.util.TestAnnotationProcessor'
+  ]
+}
+dependencies {
+  compile group: 'com.google.guava', name: 'guava', version: '10.0.1+'
+  compile project(':util:testprocessor')
+}
