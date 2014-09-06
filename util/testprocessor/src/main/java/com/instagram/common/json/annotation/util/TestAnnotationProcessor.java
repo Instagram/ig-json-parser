@@ -194,9 +194,10 @@ public class TestAnnotationProcessor extends AbstractProcessor {
     TypeGathererClassData injector = mState.mClassElementToInjectorMap.get(enclosingElement);
 
     FieldData data = injector.getOrCreateRecord(element.getSimpleName().toString());
-    if (data.mIsList = mTypeUtils.isListType(type)) {
+    if (data.mIsList =
+        (mTypeUtils.getCollectionType(type) != TypeUtils.CollectionType.NOT_A_COLLECTION)) {
       // inspect the inner type.
-      type = mTypeUtils.getListParameterizedType(type);
+      type = mTypeUtils.getCollectionParameterizedType(type);
     }
 
     data.mParseType = mTypeUtils.getParseType(type, MarkedTypes.class);

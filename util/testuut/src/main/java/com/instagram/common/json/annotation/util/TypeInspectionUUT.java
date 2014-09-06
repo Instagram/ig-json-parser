@@ -3,6 +3,7 @@
 package com.instagram.common.json.annotation.util;
 
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Basic class that contains all the supported types.
@@ -111,6 +112,13 @@ class TypeInspectionUUT {
   boolean integerList__IsList;
   String integerList__ParseType;
   String integerList__ParseTypeGeneratedClass;
+
+  @TypeTesting
+  Queue<Integer> integerQueue;
+
+  boolean integerQueue__IsList;
+  String integerQueue__ParseType;
+  String integerQueue__ParseTypeGeneratedClass;
 
   @TypeTesting
   InheritedExtendsSpecifiesType integerInheritedList;

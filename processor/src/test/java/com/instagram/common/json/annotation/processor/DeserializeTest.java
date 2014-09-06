@@ -4,7 +4,9 @@ package com.instagram.common.json.annotation.processor;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Queue;
 
 import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
 
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.junit.Test;
@@ -30,6 +33,7 @@ public class DeserializeTest {
     final float floatObjValue = 2.0f;
     final String stringValue = "hello world\r\n\'\"";
     final List<Integer> integerList = Lists.newArrayList(1, 2, 3, 4);
+    final Queue<Integer> integerQueue = Queues.newArrayDeque(Arrays.asList(1, 2, 3, 4));
     final int subIntValue = 30;
 
     StringWriter stringWriter = new StringWriter();
@@ -52,6 +56,17 @@ public class DeserializeTest {
             }
           })
           .endArray()
+        .key(SimpleParseUUT.INTEGER_QUEUE_FIELD_NAME)
+        .array()
+        .extend(new ExtensibleJSONWriter.Extender() {
+          @Override
+          public void extend(ExtensibleJSONWriter writer) throws JSONException {
+            for (Integer integer : integerQueue) {
+              writer.value(integer);
+            }
+          }
+        })
+        .endArray()
         .key(SimpleParseUUT.SUBOBJECT_FIELD_NAME)
           .object()
             .key(SimpleParseUUT.SubobjectParseUUT.INT_FIELD_NAME).value(subIntValue)
@@ -69,6 +84,9 @@ public class DeserializeTest {
     assertEquals(Float.valueOf(floatObjValue), uut.FloatField);
     assertEquals(stringValue, uut.stringField);
     assertEquals(integerList, uut.integerListField);
+    // NOTE: this is because ArrayDeque hilariously does not implement .equals()/.hashcode().
+    assertEquals(Lists.newArrayList(integerQueue),
+        Lists.newArrayList(uut.integerQueueField));
     assertSame(subIntValue, uut.subobjectField.intField);
   }
 
@@ -334,5 +352,23 @@ public class DeserializeTest {
     assertEquals(1, uut.integerListField.get(0).intValue());
     assertEquals(3, uut.integerListField.get(1).intValue());
     assertEquals(4, uut.integerListField.get(2).intValue());
+  }
+
+  @Test
+  public void nullString() throws IOException, JSONException {
+    StringWriter stringWriter = new StringWriter();
+    ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
+
+    writer.object()
+        .key(SimpleParseUUT.STRING_FIELD_NAME)
+        .value(null)
+        .endObject();
+
+    String inputString = stringWriter.toString();
+    JsonParser jp = new JsonFactory().createParser(inputString);
+    jp.nextToken();
+    SimpleParseUUT uut = SimpleParseUUT__JsonHelper.parseFromJson(jp);
+
+    assertNull(uut.stringField);
   }
 }

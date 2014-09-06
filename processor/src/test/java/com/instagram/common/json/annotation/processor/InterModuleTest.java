@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import com.instagram.common.json.annotation.processor.dependent.SubclassUUT;
 import com.instagram.common.json.annotation.processor.dependent.SubclassUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.dependent.SubclassWithAbstractParentUUT;
+import com.instagram.common.json.annotation.processor.dependent.SubclassWithAbstractParentUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.dependent.WrapperClassUUT;
 import com.instagram.common.json.annotation.processor.dependent.WrapperClassUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.parent.ParentUUT;
@@ -38,6 +40,31 @@ public class InterModuleTest {
     String serialized = SubclassUUT__JsonHelper.serializeToJson(uut);
 
     SubclassUUT parsed = SubclassUUT__JsonHelper.parseFromJson(serialized);
+
+    assertEquals(uut.parentInt, parsed.parentInt);
+    assertEquals(uut.parentString, parsed.parentString);
+    assertEquals(uut.subclassInt, parsed.subclassInt);
+  }
+
+  /**
+   * Subclasses an abstract java object in a different class.
+   */
+  @Test
+  public void abstractSubclassingTest() throws IOException, JSONException {
+    final int intValue = 25;
+    final String stringValue = "hello world\r\n\'\"";
+    final int subIntValue = 30;
+
+    SubclassWithAbstractParentUUT uut = new SubclassWithAbstractParentUUT();
+    uut.parentInt = intValue;
+    uut.subclassInt = subIntValue;
+    uut.parentString = stringValue;
+
+    // serialize it
+    String serialized = SubclassWithAbstractParentUUT__JsonHelper.serializeToJson(uut);
+
+    SubclassWithAbstractParentUUT parsed =
+        SubclassWithAbstractParentUUT__JsonHelper.parseFromJson(serialized);
 
     assertEquals(uut.parentInt, parsed.parentInt);
     assertEquals(uut.parentString, parsed.parentString);

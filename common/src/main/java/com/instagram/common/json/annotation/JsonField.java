@@ -24,7 +24,7 @@ public @interface JsonField {
    * If a {@link TypeMapping#COERCED} mapping is requested, we will do our best to coerce it into
    * the proper type.
    */
-  public enum TypeMapping { EXACT, COERCED };
+  public enum TypeMapping { EXACT, COERCED }
 
   /**
    * This is the field name in json.

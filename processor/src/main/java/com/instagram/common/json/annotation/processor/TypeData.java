@@ -14,7 +14,7 @@ class TypeData {
   private String mValueExtractFormatter;
   private String mAssignmentFormatter;
   private String mSerializeCodeFormatter;
-  private boolean mInCollection;
+  private TypeUtils.CollectionType mCollectionType;
   private TypeUtils.ParseType mParseType;
   private String mParsableType;
   private String mParsableTypeParserClass;
@@ -59,12 +59,12 @@ class TypeData {
     mSerializeCodeFormatter = serializeCodeFormatter;
   }
 
-  boolean isInCollection() {
-    return mInCollection;
+  TypeUtils.CollectionType getCollectionType() {
+    return mCollectionType;
   }
 
-  void setInCollection(boolean inCollection) {
-    mInCollection = inCollection;
+  void setCollectionType(TypeUtils.CollectionType collectionType) {
+    mCollectionType = collectionType;
   }
 
   TypeUtils.ParseType getParseType() {

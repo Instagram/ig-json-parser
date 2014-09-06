@@ -2,9 +2,9 @@
 
 package com.instagram.common.json.annotation.util;
 
-import com.google.common.collect.Maps;
-
 import javax.annotation.processing.Messager;
+
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -50,7 +50,7 @@ abstract public class ProcessorClassData<AnnotationKeyType, AnnotationRecordType
     mClassName = className;
     mInjectedClassName = injectedClassName;
     mFactory = factory;
-    mData = Maps.newHashMap();
+    mData = new HashMap<AnnotationKeyType, AnnotationRecordType>();
   }
 
   /**

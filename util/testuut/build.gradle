@@ -7,6 +7,6 @@ compileJava {
   ]
 }
 dependencies {
-  compile group: 'com.google.guava', name: 'guava', version: '10.0.1+'
+  compile group: 'com.google.guava', name: 'guava', version: '12.0.1+'
   compile project(':util:testprocessor')
 }

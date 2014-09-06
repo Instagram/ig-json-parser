@@ -38,6 +38,12 @@ public class TypeUtils {
     ENUM_OBJECT,
   };
 
+  public enum CollectionType {
+    NOT_A_COLLECTION,
+    LIST,
+    QUEUE,
+  }
+
   private static final String JAVA_LANG_STRING = "java.lang.String";
   private static final String JAVA_LANG_BOOLEAN = "java.lang.Boolean";
   private static final String JAVA_LANG_INTEGER = "java.lang.Integer";
@@ -46,6 +52,8 @@ public class TypeUtils {
   private static final String JAVA_LANG_DOUBLE = "java.lang.Double";
   private static final String JAVA_UTIL_LIST = "java.util.List<?>";
   private static final String JAVA_UTIL_LIST_UNTYPED = "java.util.List";
+  private static final String JAVA_UTIL_QUEUE = "java.util.Queue<?>";
+  private static final String JAVA_UTIL_QUEUE_UNTYPED = "java.util.Queue";
   private static final String JAVA_LANG_ENUM = "java.lang.Enum<?>";
 
   private final Types mTypes;
@@ -108,8 +116,14 @@ public class TypeUtils {
     return ParseType.UNSUPPORTED;
   }
 
-  public boolean isListType(TypeMirror typeMirror) {
-    return JAVA_UTIL_LIST_UNTYPED.equals(mTypes.erasure(typeMirror).toString());
+  public CollectionType getCollectionType(TypeMirror typeMirror) {
+    String erasedType = mTypes.erasure(typeMirror).toString();
+    if (JAVA_UTIL_LIST_UNTYPED.equals(erasedType)) {
+      return CollectionType.LIST;
+    } else if (JAVA_UTIL_QUEUE_UNTYPED.equals(erasedType)) {
+      return CollectionType.QUEUE;
+    }
+    return CollectionType.NOT_A_COLLECTION;
   }
 
   /**
@@ -119,7 +133,7 @@ public class TypeUtils {
    * Returns null if {@code typeMirror} does not represent a list type or if we cannot divine the
    * type of the contents.
    */
-  public TypeMirror getListParameterizedType(TypeMirror typeMirror) {
+  public TypeMirror getCollectionParameterizedType(TypeMirror typeMirror) {
     if (!(typeMirror instanceof DeclaredType)) {
       return null;
     }
@@ -131,10 +145,11 @@ public class TypeUtils {
     TypeElement typeElement = (TypeElement) element;
     List<? extends TypeParameterElement> typeParameterElements = typeElement.getTypeParameters();
 
-    if (JAVA_UTIL_LIST.equals(getCanonicalTypeName(declaredType))) {
+    if (JAVA_UTIL_QUEUE.equals(getCanonicalTypeName(declaredType)) ||
+        JAVA_UTIL_LIST.equals(getCanonicalTypeName(declaredType))) {
       // sanity check.
       if (typeParameterElements.size() != 1) {
-        throw new IllegalStateException("java list is not expected generic type");
+        throw new IllegalStateException("java list/queue is not expected generic type");
       }
 
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();

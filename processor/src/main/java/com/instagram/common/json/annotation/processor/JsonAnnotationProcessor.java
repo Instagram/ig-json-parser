@@ -22,6 +22,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -33,11 +34,8 @@ import com.instagram.common.json.annotation.util.Console;
 import com.instagram.common.json.annotation.util.ProcessorClassData;
 import com.instagram.common.json.annotation.util.TypeUtils;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
-
 import static javax.lang.model.element.ElementKind.CLASS;
-import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.*;
 
 /**
  * This annotation processor is run at compile time to find classes annotated with {@link JsonType}.
@@ -53,7 +51,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     private Map<TypeElement, JsonParserClassData> mClassElementToInjectorMap;
 
     State() {
-      mClassElementToInjectorMap = Maps.newHashMap();
+      mClassElementToInjectorMap = new HashMap<TypeElement, JsonParserClassData>();
     }
   }
   private State mState;
@@ -141,6 +139,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
    * class is public and creates an {@link ProcessorClassData} for it.
    */
   private void processClassAnnotation(Element element) {
+    boolean abstractClass = false;
     TypeElement typeElement = (TypeElement) element;
 
     // Verify containing class visibility is not private.
@@ -149,6 +148,9 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
           JsonType.class.getSimpleName(), typeElement.getQualifiedName(),
           element.getSimpleName());
       return;
+    }
+    if (element.getModifiers().contains(ABSTRACT)) {
+      abstractClass = true;
     }
 
     JsonParserClassData injector = mState.mClassElementToInjectorMap.get(typeElement);
@@ -187,6 +189,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
               return new TypeData();
             }
           },
+          abstractClass,
           annotation.postprocessingEnabled(),
           parentGeneratedClassName);
       mState.mClassElementToInjectorMap.put(typeElement, injector);
@@ -236,11 +239,12 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     data.setValueExtractFormatter(annotation.valueExtractFormatter());
     data.setAssignmentFormatter(annotation.fieldAssignmentFormatter());
     data.setSerializeCodeFormatter(annotation.serializeCodeFormatter());
+    TypeUtils.CollectionType collectionType = mTypeUtils.getCollectionType(type);
+    data.setCollectionType(collectionType);
 
-    if (mTypeUtils.isListType(type)) {
+    if (collectionType != TypeUtils.CollectionType.NOT_A_COLLECTION) {
       // inspect the inner type.
-      data.setInCollection(true);
-      type = mTypeUtils.getListParameterizedType(type);
+      type = mTypeUtils.getCollectionParameterizedType(type);
     }
 
     data.setParseType(mTypeUtils.getParseType(type, JsonType.class));
@@ -257,8 +261,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       data.setParsableTypeParserClass(packageName + "." + parserClassName);
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
-      if (Strings.isNullOrEmpty(annotation.valueExtractFormatter()) ||
-          Strings.isNullOrEmpty(annotation.serializeCodeFormatter())) {
+      if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter()) ||
+          StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter())) {
         error(element,
             "%s: enums must have both value extract formatters and serialize code formatters",
             enclosingElement);

@@ -2,9 +2,9 @@
 
 package com.instagram.common.json.annotation.processor;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
 /**
@@ -16,7 +16,7 @@ class StrFormat {
 
   StrFormat(String formatString) {
     mFormatString = formatString;
-    mInternalMap = Maps.newHashMap();
+    mInternalMap = new HashMap<String, String>();
   }
 
   StrFormat addParam(String variableName, String replacementText) {

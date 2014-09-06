@@ -3,6 +3,7 @@
 package com.instagram.common.json.annotation.processor;
 
 import java.util.List;
+import java.util.Queue;
 
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
@@ -18,6 +19,7 @@ public class SimpleParseUUT {
   public static final String FLOAT_OBJ_FIELD_NAME = "Float";
   public static final String STRING_FIELD_NAME = "String";
   public static final String INTEGER_LIST_FIELD_NAME = "IntegerList";
+  public static final String INTEGER_QUEUE_FIELD_NAME = "IntegerQueue";
   public static final String SUBOBJECT_FIELD_NAME = "Subobject";
 
   @JsonField(fieldName = INT_FIELD_NAME)
@@ -37,6 +39,9 @@ public class SimpleParseUUT {
 
   @JsonField(fieldName = INTEGER_LIST_FIELD_NAME)
   public List<Integer> integerListField;
+
+  @JsonField(fieldName = INTEGER_QUEUE_FIELD_NAME)
+  public Queue<Integer> integerQueueField;
 
   @JsonField(fieldName = SUBOBJECT_FIELD_NAME)
   public SubobjectParseUUT subobjectField;
