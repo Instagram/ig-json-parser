@@ -2,15 +2,49 @@ buildscript {
 }
 
 apply plugin: 'groovy'
-jar {
-    from files( { project(':javawriter').sourceSets.main.output.classesDir } )
-    from files( { project(':common').sourceSets.main.output.classesDir } )
-    from files( { project(':util').sourceSets.main.output.classesDir } )
-    from files( { project(':processor').sourceSets.main.output.classesDir } )
-}
 
 subprojects {
   repositories {
     mavenCentral()
   }
+}
+
+task processorJar(type: Jar, dependsOn: classes) {
+    from files( { project(':javawriter').sourceSets.main.output.classesDir } )
+    from files( { project(':common').sourceSets.main.output.classesDir } )
+    from files( { project(':util').sourceSets.main.output.classesDir } )
+    from files( { project(':processor').sourceSets.main.output.classesDir } )
+    baseName 'processor'
+}
+
+task runtimeJar(type: Jar, dependsOn: classes) {
+    from files( { project(':common').sourceSets.main.output.classesDir } )
+    baseName 'runtime'
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from files( { project(':javawriter').sourceSets.main.allSource } )
+    from files( { project(':common').sourceSets.main.allSource } )
+    from files( { project(':util').sourceSets.main.allSource } )
+    from files( { project(':processor').sourceSets.main.allSource } )
+}
+
+task myJavadocs(type: Javadoc) {
+    source files( { project(':javawriter').sourceSets.main.allSource } )
+    source files( { project(':common').sourceSets.main.allSource } )
+    source files( { project(':util').sourceSets.main.allSource } )
+    source files( { project(':processor').sourceSets.main.allSource } )
+}
+
+task javadocJar(type: Jar, dependsOn: myJavadocs) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives processorJar
+    archives runtimeJar
+    archives sourcesJar
+    archives javadocJar
 }

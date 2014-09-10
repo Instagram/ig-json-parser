@@ -3,4 +3,3 @@ apply plugin: 'java'
 dependencies {
   compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
 }
-
