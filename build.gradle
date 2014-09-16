@@ -9,7 +9,8 @@ subprojects {
   }
 }
 
-task processorJar(type: Jar, dependsOn: classes) {
+task processorJar(type: Jar,
+        dependsOn:["javawriter:build","common:build","util:build","processor:build"]) {
     from files( { project(':javawriter').sourceSets.main.output.classesDir } )
     from files( { project(':common').sourceSets.main.output.classesDir } )
     from files( { project(':util').sourceSets.main.output.classesDir } )
@@ -17,34 +18,57 @@ task processorJar(type: Jar, dependsOn: classes) {
     baseName 'processor'
 }
 
-task runtimeJar(type: Jar, dependsOn: classes) {
+task runtimeJar(type: Jar,
+        dependsOn: "common:build") {
     from files( { project(':common').sourceSets.main.output.classesDir } )
     baseName 'runtime'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
+task runtimeSourcesJar(type: Jar) {
     classifier = 'sources'
+    baseName 'runtime'
+    from files( { project(':common').sourceSets.main.allSource } )
+}
+
+task processorSourcesJar(type: Jar) {
+    classifier = 'sources'
+    baseName 'processor'
     from files( { project(':javawriter').sourceSets.main.allSource } )
     from files( { project(':common').sourceSets.main.allSource } )
     from files( { project(':util').sourceSets.main.allSource } )
     from files( { project(':processor').sourceSets.main.allSource } )
 }
 
-task myJavadocs(type: Javadoc) {
+task runtimeJavadoc(type: Javadoc) {
+    source files( { project(':common').sourceSets.main.allSource } )
+    destinationDir = new File("${project.docsDir}", "runtime-javadoc")
+}
+
+task runtimeJavadocJar(type: Jar, dependsOn: runtimeJavadoc) {
+    classifier = 'javadoc'
+    baseName 'runtime'
+    from runtimeJavadoc.destinationDir
+}
+
+task processorJavadoc(type: Javadoc) {
     source files( { project(':javawriter').sourceSets.main.allSource } )
     source files( { project(':common').sourceSets.main.allSource } )
     source files( { project(':util').sourceSets.main.allSource } )
     source files( { project(':processor').sourceSets.main.allSource } )
+    destinationDir = new File("${project.docsDir}", "processor-javadoc")
 }
 
-task javadocJar(type: Jar, dependsOn: myJavadocs) {
+task processorJavadocJar(type: Jar, dependsOn: processorJavadoc) {
     classifier = 'javadoc'
-    from javadoc.destinationDir
+    baseName 'processor'
+    from processorJavadoc.destinationDir
 }
 
 artifacts {
     archives processorJar
     archives runtimeJar
-    archives sourcesJar
-    archives javadocJar
+    archives runtimeSourcesJar
+    archives processorSourcesJar
+    archives runtimeJavadocJar
+    archives processorJavadocJar
 }
