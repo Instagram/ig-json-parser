@@ -1,5 +1,8 @@
 apply plugin: 'java'
 
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
 dependencies {
   compile group: 'org.json', name: 'json', version: '20090211'
 }
