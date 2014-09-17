@@ -11,6 +11,10 @@ sourceSets {
   main {
     java {
       srcDir 'src/main/java'
+    }
+  }
+  gensrc {
+    java {
       srcDir 'gen-src/main/java'
     }
   }
