@@ -19,11 +19,11 @@ To use this library, add this to your build.gradle file:
     ext {
       generatedSourcesDir = file("gen-src/main/java")
     }
-    
+
     repositories {
       mavenCentral()
     }
-    
+
     sourceSets {
       main {
         java {
@@ -36,7 +36,7 @@ To use this library, add this to your build.gradle file:
         }
       }
     }
-    
+
     compileJava {
       doFirst {
         // Directory should exists before compilation started.
@@ -109,6 +109,14 @@ If a json field is another dictionary, it can be represented by another
 model class.  That model class must also have the `@JsonType` annotation.
 
 Lists of objects are supported either as Java Lists or Queues.
+
+Proguard
+===============
+
+Add the following lines to your proguard-rules file:
+
+    -dontwarn sun.misc.Unsafe
+    -dontwarn javax.annotation.**
 
 Advanced features
 =================
