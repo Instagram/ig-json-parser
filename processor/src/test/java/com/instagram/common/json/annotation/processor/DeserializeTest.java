@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
 
@@ -15,6 +16,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
+import com.google.common.collect.Sets;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.junit.Test;
@@ -34,6 +36,7 @@ public class DeserializeTest {
     final String stringValue = "hello world\r\n\'\"";
     final List<Integer> integerList = Lists.newArrayList(1, 2, 3, 4);
     final Queue<Integer> integerQueue = Queues.newArrayDeque(Arrays.asList(1, 2, 3, 4));
+    final Set<Integer> integerSet = Sets.newHashSet(1, 2, 3, 4);
     final int subIntValue = 30;
 
     StringWriter stringWriter = new StringWriter();
@@ -67,6 +70,17 @@ public class DeserializeTest {
           }
         })
         .endArray()
+        .key(SimpleParseUUT.INTEGER_SET_FIELD_NAME)
+        .array()
+        .extend(new ExtensibleJSONWriter.Extender() {
+          @Override
+          public void extend(ExtensibleJSONWriter writer) throws JSONException {
+            for (Integer integer : integerSet) {
+              writer.value(integer);
+            }
+          }
+        })
+        .endArray()
         .key(SimpleParseUUT.SUBOBJECT_FIELD_NAME)
           .object()
             .key(SimpleParseUUT.SubobjectParseUUT.INT_FIELD_NAME).value(subIntValue)
@@ -87,6 +101,7 @@ public class DeserializeTest {
     // NOTE: this is because ArrayDeque hilariously does not implement .equals()/.hashcode().
     assertEquals(Lists.newArrayList(integerQueue),
         Lists.newArrayList(uut.integerQueueField));
+    assertEquals(integerSet, uut.integerSetField);
     assertSame(subIntValue, uut.subobjectField.intField);
   }
 
@@ -352,6 +367,30 @@ public class DeserializeTest {
     assertEquals(1, uut.integerListField.get(0).intValue());
     assertEquals(3, uut.integerListField.get(1).intValue());
     assertEquals(4, uut.integerListField.get(2).intValue());
+  }
+
+  @Test
+  public void testAlternateFieldNames() throws Exception {
+    testAlternateFieldNameHelper(AlternateFieldUUT.FIELD_NAME, "value1");
+    testAlternateFieldNameHelper(AlternateFieldUUT.ALTERNATE_FIELD_NAME_1, "value2");
+    testAlternateFieldNameHelper(AlternateFieldUUT.ALTERNATE_FIELD_NAME_2, "value3");
+  }
+
+  private void testAlternateFieldNameHelper(String fieldName, String value) throws Exception {
+    StringWriter stringWriter = new StringWriter();
+    ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
+
+    writer.object()
+        .key(fieldName)
+        .value(value)
+        .endObject();
+
+    String inputString = stringWriter.toString();
+    JsonParser jp = new JsonFactory().createParser(inputString);
+    jp.nextToken();
+    AlternateFieldUUT uut = AlternateFieldUUT__JsonHelper.parseFromJson(jp);
+
+    assertEquals(value, uut.nameField);
   }
 
   @Test

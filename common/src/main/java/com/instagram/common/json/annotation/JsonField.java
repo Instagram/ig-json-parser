@@ -32,6 +32,12 @@ public @interface JsonField {
   String fieldName();
 
   /**
+   * Alternate field names which should be parsed to the same field. Only used during
+   * deserialization.
+   */
+  String [] alternateFieldNames() default {};
+
+  /**
    * This controls how we deal with type mismatches.  Note that this is ignored if
    * {@link #valueExtractFormatter()} is specified.
    * @see TypeMapping

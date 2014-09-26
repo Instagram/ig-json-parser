@@ -36,12 +36,13 @@ public class TypeUtils {
     STRING,
     PARSABLE_OBJECT,
     ENUM_OBJECT,
-  };
+  }
 
   public enum CollectionType {
     NOT_A_COLLECTION,
     LIST,
     QUEUE,
+    SET,
   }
 
   private static final String JAVA_LANG_STRING = "java.lang.String";
@@ -54,6 +55,8 @@ public class TypeUtils {
   private static final String JAVA_UTIL_LIST_UNTYPED = "java.util.List";
   private static final String JAVA_UTIL_QUEUE = "java.util.Queue<?>";
   private static final String JAVA_UTIL_QUEUE_UNTYPED = "java.util.Queue";
+  private static final String JAVA_UTIL_SET = "java.util.Set<?>";
+  private static final String JAVA_UTIL_SET_UNTYPED = "java.util.Set";
   private static final String JAVA_LANG_ENUM = "java.lang.Enum<?>";
 
   private final Types mTypes;
@@ -122,6 +125,8 @@ public class TypeUtils {
       return CollectionType.LIST;
     } else if (JAVA_UTIL_QUEUE_UNTYPED.equals(erasedType)) {
       return CollectionType.QUEUE;
+    } else if (JAVA_UTIL_SET_UNTYPED.equals(erasedType)) {
+      return CollectionType.SET;
     }
     return CollectionType.NOT_A_COLLECTION;
   }
@@ -146,10 +151,12 @@ public class TypeUtils {
     List<? extends TypeParameterElement> typeParameterElements = typeElement.getTypeParameters();
 
     if (JAVA_UTIL_QUEUE.equals(getCanonicalTypeName(declaredType)) ||
-        JAVA_UTIL_LIST.equals(getCanonicalTypeName(declaredType))) {
+        JAVA_UTIL_LIST.equals(getCanonicalTypeName(declaredType)) ||
+        JAVA_UTIL_SET.equals(getCanonicalTypeName(declaredType))) {
       // sanity check.
       if (typeParameterElements.size() != 1) {
-        throw new IllegalStateException("java list/queue is not expected generic type");
+        throw new IllegalStateException(
+            String.format("%s is not expected generic type", declaredType));
       }
 
       List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();

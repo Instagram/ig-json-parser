@@ -34,9 +34,13 @@ import static javax.lang.model.element.Modifier.STATIC;
 public class TypeGathererClassData extends ProcessorClassData<String, FieldData> {
   private TypeGathererClassData mParentClassData;
 
-  public TypeGathererClassData(String classPackage, String className, String injectedClassName,
+  public TypeGathererClassData(
+      String classPackage,
+      String qualifiedClassName,
+      String simpleClassName,
+      String injectedClassName,
       AnnotationRecordFactory<String, FieldData> factory) {
-    super(classPackage, className, injectedClassName, factory);
+    super(classPackage, qualifiedClassName, simpleClassName, injectedClassName, factory);
   }
 
   @Override
@@ -48,7 +52,7 @@ public class TypeGathererClassData extends ProcessorClassData<String, FieldData>
       writer.emitPackage(mClassPackage)
           .beginType(mInjectedClassName, "class", EnumSet.of(PUBLIC, FINAL))
             .beginMethod("void", "injectTypeData", EnumSet.of(PUBLIC, FINAL, STATIC),
-                mClassName, "instance")
+                mSimpleClassName, "instance")
               .emitWithGenerator(new JavaWriter.JavaGenerator() {
                 @Override
                 public void emitJava(JavaWriter writer) throws IOException {

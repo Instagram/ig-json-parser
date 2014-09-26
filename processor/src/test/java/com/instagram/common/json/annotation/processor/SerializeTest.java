@@ -4,12 +4,17 @@ package com.instagram.common.json.annotation.processor;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
+import com.google.common.collect.Sets;
 import org.json.JSONException;
 import org.junit.Test;
 
@@ -27,6 +32,8 @@ public class SerializeTest {
     final int integerValue = 37;
     final String stringValue = "hello world\r\n\'\"";
     final List<Integer> integerList = Lists.newArrayList(1, 2, 3, 4);
+    final Queue<Integer> integerQueue = Queues.newArrayDeque(Arrays.asList(1, 2, 3, 4));
+    final Set<Integer> integerSet = Sets.newHashSet(1, 2, 3, 4);
     final int subIntValue = 30;
 
     SimpleParseUUT source = new SimpleParseUUT();
@@ -34,6 +41,8 @@ public class SerializeTest {
     source.integerField = integerValue;
     source.stringField = stringValue;
     source.integerListField = integerList;
+    source.integerQueueField = integerQueue;
+    source.integerSetField = integerSet;
     source.subobjectField = new SimpleParseUUT.SubobjectParseUUT();
     source.subobjectField.intField = subIntValue;
 
@@ -52,6 +61,10 @@ public class SerializeTest {
     assertEquals(source.integerField, parsed.integerField);
     assertEquals(source.stringField, parsed.stringField);
     assertEquals(source.integerListField, parsed.integerListField);
+    // NOTE: this is because ArrayDeque hilariously does not implement .equals()/.hashcode().
+    assertEquals(Lists.newArrayList(source.integerQueueField),
+        Lists.newArrayList(parsed.integerQueueField));
+    assertEquals(source.integerSetField, parsed.integerSetField);
     assertSame(source.subobjectField.intField, parsed.subobjectField.intField);
   }
 
@@ -61,6 +74,8 @@ public class SerializeTest {
     final int integerValue = 37;
     final String stringValue = "hello world\r\n\'\"";
     final List<Integer> integerList = Lists.newArrayList(1, 2, 3, 4);
+    final Queue<Integer> integerQueue = Queues.newArrayDeque(Arrays.asList(1, 2, 3, 4));
+    final Set<Integer> integerSet = Sets.newHashSet(1, 2, 3, 4);
     final int subIntValue = 30;
 
     SimpleParseUUT source = new SimpleParseUUT();
@@ -68,6 +83,8 @@ public class SerializeTest {
     source.integerField = integerValue;
     source.stringField = stringValue;
     source.integerListField = integerList;
+    source.integerQueueField = integerQueue;
+    source.integerSetField = integerSet;
     source.subobjectField = new SimpleParseUUT.SubobjectParseUUT();
     source.subobjectField.intField = subIntValue;
 
@@ -78,6 +95,10 @@ public class SerializeTest {
     assertEquals(source.integerField, parsed.integerField);
     assertEquals(source.stringField, parsed.stringField);
     assertEquals(source.integerListField, parsed.integerListField);
+    // NOTE: this is because ArrayDeque hilariously does not implement .equals()/.hashcode().
+    assertEquals(Lists.newArrayList(source.integerQueueField),
+        Lists.newArrayList(parsed.integerQueueField));
+    assertEquals(source.integerSetField, parsed.integerSetField);
     assertSame(source.subobjectField.intField, parsed.subobjectField.intField);
   }
 

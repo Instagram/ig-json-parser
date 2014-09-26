@@ -180,6 +180,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       injector = new JsonParserClassData(
           packageName,
           typeElement.getQualifiedName().toString(),
+          mTypeUtils.getClassName(typeElement, packageName),
           mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName) +
               JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX,
           new ProcessorClassData.AnnotationRecordFactory<String, TypeData>() {
@@ -235,6 +236,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     JsonField annotation = element.getAnnotation(JsonField.class);
 
     data.setFieldName(annotation.fieldName());
+    data.setAlternateFieldNames(annotation.alternateFieldNames());
     data.setMapping(annotation.mapping());
     data.setValueExtractFormatter(annotation.valueExtractFormatter());
     data.setAssignmentFormatter(annotation.fieldAssignmentFormatter());
@@ -254,11 +256,11 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       TypeElement typeElement = (TypeElement) declaredType.asElement();
 
       String packageName = mTypeUtils.getPackageName(mElements, typeElement);
-      String className = mTypeUtils.getClassName(typeElement, packageName);
-      String parserClassName = mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName);
 
-      data.setParsableType(packageName + "." + className);
-      data.setParsableTypeParserClass(packageName + "." + parserClassName);
+      data.setPackageName(packageName);
+      data.setParsableType(mTypeUtils.getClassName(typeElement, packageName));
+      data.setParsableTypeParserClass(
+          mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName));
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
       if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter()) ||

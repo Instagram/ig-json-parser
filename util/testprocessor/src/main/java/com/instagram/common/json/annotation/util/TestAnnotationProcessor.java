@@ -154,6 +154,7 @@ public class TestAnnotationProcessor extends AbstractProcessor {
       injector = new TypeGathererClassData(
           packageName,
           typeElement.getQualifiedName().toString(),
+          mTypeUtils.getClassName(typeElement, packageName),
           mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName) + TYPE_DATA_SUFFIX,
           new ProcessorClassData.AnnotationRecordFactory<String, FieldData>() {
 

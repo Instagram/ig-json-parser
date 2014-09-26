@@ -30,7 +30,8 @@ abstract public class ProcessorClassData<AnnotationKeyType, AnnotationRecordType
   }
 
   protected final String mClassPackage;
-  protected final String mClassName;
+  protected final String mQualifiedClassName;
+  protected final String mSimpleClassName;
   protected final String mInjectedClassName;
   private final AnnotationRecordFactory<AnnotationKeyType, AnnotationRecordType> mFactory;
   private Map<AnnotationKeyType, AnnotationRecordType> mData;
@@ -38,16 +39,24 @@ abstract public class ProcessorClassData<AnnotationKeyType, AnnotationRecordType
   /**
    * Creates a ProcessorClassData.
    * @param classPackage the package of the class being inspected.
-   * @param className the simple class name of the class being inspected.  See
-   * {@link Class#getSimpleName()}.
+   * @param qualifiedClassName the fully-qualified class name of the class being inspected.  See
+   * {@link Class#getQualifiedName()}.
+   * @param simpleClassName the simple class name of the class being inspected. See
+   * {@link Class#getSimpleName()}. This may be a partially-qualified name if the class is an
+   * inner class.
    * @param injectedClassName the simple class name of the class this injector will write its
    * generated code to.  See {@link Class#getSimpleName()}.
    * @param factory creates data records.
    */
-  protected ProcessorClassData(String classPackage, String className, String injectedClassName,
+  protected ProcessorClassData(
+      String classPackage,
+      String qualifiedClassName,
+      String simpleClassName,
+      String injectedClassName,
       AnnotationRecordFactory<AnnotationKeyType, AnnotationRecordType> factory) {
     mClassPackage = classPackage;
-    mClassName = className;
+    mQualifiedClassName = qualifiedClassName;
+    mSimpleClassName = simpleClassName;
     mInjectedClassName = injectedClassName;
     mFactory = factory;
     mData = new HashMap<AnnotationKeyType, AnnotationRecordType>();
