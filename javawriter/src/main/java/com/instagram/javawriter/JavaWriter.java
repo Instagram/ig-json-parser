@@ -1,5 +1,5 @@
 // Copyright 2013 Square, Inc.
-package com.squareup.javawriter;
+package com.instagram.javawriter;
 
 import java.io.Closeable;
 import java.io.IOException;

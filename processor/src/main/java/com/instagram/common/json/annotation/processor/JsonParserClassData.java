@@ -28,7 +28,7 @@ import com.instagram.common.json.annotation.util.TypeUtils;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.squareup.javawriter.JavaWriter;
+import com.instagram.javawriter.JavaWriter;
 
 import static javax.lang.model.element.Modifier.*;
 
