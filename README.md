@@ -50,7 +50,7 @@ To use this library, add this to your build.gradle file:
       ]
     }
     dependencies {
-      compile group: 'com.instagram', name: 'ig-json-parser-processor', version: '0.0.3+'
+      compile group: 'com.instagram', name: 'ig-json-parser-processor', version: '0.0.4+'
     }
 
 
