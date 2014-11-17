@@ -3,6 +3,7 @@
 package com.instagram.common.json.annotation.processor;
 
 import javax.annotation.processing.Messager;
+import javax.lang.model.element.Modifier;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -24,11 +25,11 @@ import com.instagram.common.json.annotation.JsonType;
 import com.instagram.common.json.annotation.util.Console;
 import com.instagram.common.json.annotation.util.ProcessorClassData;
 import com.instagram.common.json.annotation.util.TypeUtils;
+import com.instagram.javawriter.JavaWriter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.instagram.javawriter.JavaWriter;
 
 import static javax.lang.model.element.Modifier.*;
 
@@ -40,6 +41,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
   private final boolean mAbstractClass;
   private final boolean mPostprocessingEnabled;
+  private final String mValueExtractFormatter;
   private final String mParentInjectedClassName;
 
   public JsonParserClassData(
@@ -50,10 +52,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       AnnotationRecordFactory<String, TypeData> factory,
       boolean abstractClass,
       boolean postprocessingEnabled,
+      String valueExtractFormatter,
       String parentInjectedClassName) {
     super(classPackage, qualifiedClassName, simpleClassName, injectedClassName, factory);
     mAbstractClass = abstractClass;
     mPostprocessingEnabled = postprocessingEnabled;
+    mValueExtractFormatter = valueExtractFormatter;
     mParentInjectedClassName = parentInjectedClassName;
   }
 
@@ -71,7 +75,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           ArrayList.class,
           ArrayDeque.class,
           HashSet.class,
+          HashMap.class,
           List.class,
+          Map.class,
           Queue.class,
           Set.class,
           JsonGenerator.class,
@@ -83,20 +89,21 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       Set<String> typeImports = new HashSet<String>();
       for (Map.Entry<String, TypeData> entry : getIterator()) {
         TypeData typeData = entry.getValue();
-        if (typeData.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-          if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
+          if (typeData.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
+            if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
+                !typeData.getPackageName().equals(mClassPackage)) {
+              typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
+              typeImports.add(
+                  typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
+                      JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
+            }
+          } else if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
               !typeData.getPackageName().equals(mClassPackage)) {
-            typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
             typeImports.add(
                 typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
                     JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
+            typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
           }
-        } else if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
-            !typeData.getPackageName().equals(mClassPackage)) {
-          typeImports.add(
-              typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
-                  JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
-        }
       }
       writer.emitImports(typeImports);
       writer.emitEmptyLine();
@@ -112,7 +119,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               .beginMethod(
                   mSimpleClassName,
                   "parseFromJson",
-                  EnumSet.of(PUBLIC, STATIC),
+                  EnumSet.of(getParseMethodVisibility(), STATIC),
                   Arrays.asList("JsonParser", "jp"),
                   Arrays.asList("IOException"))
                 .emitStatement("%s instance = new %s()", mSimpleClassName, mSimpleClassName)
@@ -142,7 +149,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           .beginMethod(
               "boolean",
               "processSingleField",
-              EnumSet.of(PUBLIC, STATIC),
+              EnumSet.of(getParseMethodVisibility(), STATIC),
               Arrays.asList(mSimpleClassName, "instance", "String", "fieldName", "JsonParser", "jp"),
               Arrays.asList("IOException"))
           .emitWithGenerator(
@@ -169,7 +176,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               .beginMethod(
                   mSimpleClassName,
                   "parseFromJson",
-                  EnumSet.of(PUBLIC, STATIC),
+                  EnumSet.of(getParseMethodVisibility(), STATIC),
                   Arrays.asList("String", "inputString"),
                   Arrays.asList("IOException"))
               .emitStatement(
@@ -252,51 +259,60 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       TypeData data = entry.getValue();
 
-      String condition = "\"" + data.getFieldName() + "\".equals(fieldName)";
+        String condition = "\"" + data.getFieldName() + "\".equals(fieldName)";
 
-      for (String alternateFieldName : data.getAlternateFieldNames()) {
-        condition += "|| \"" + alternateFieldName + "\".equals(fieldName)";
-      }
-
-      if (firstEntry) {
-        writer.beginControlFlow("if (" + condition + ")");
-      } else {
-        writer.nextControlFlow("else if (" + condition + ")");
-      }
-
-      if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-        generateArrayParser(messager, writer, data);
-        String assignmentFormatter = data.getAssignmentFormatter();
-        if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
-          assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
+        for (String alternateFieldName : data.getAlternateFieldNames()) {
+          condition += "|| \"" + alternateFieldName + "\".equals(fieldName)";
         }
-        writer.emitStatement(
-            StrFormat.createStringFormatter(assignmentFormatter)
-                .addParam("object_varname", "instance")
-                .addParam("field_varname", entry.getKey())
-                .addParam("extracted_value", "results")
-                .format());
-      } else {
-        String rValue = generateExtractRvalue(data);
-        String assignmentFormatter = data.getAssignmentFormatter();
-        if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
-          assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
+
+        if (firstEntry) {
+          writer.beginControlFlow("if (" + condition + ")");
+        } else {
+          writer.nextControlFlow("else if (" + condition + ")");
         }
-        writer.emitStatement(
-            StrFormat.createStringFormatter(assignmentFormatter)
-                .addParam("object_varname", "instance")
-                .addParam("field_varname", entry.getKey())
-                .addParam("extracted_value", rValue)
-                .format());
+
+        if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
+          generateCollectionParser(messager, writer, data);
+          String assignmentFormatter = data.getAssignmentFormatter();
+          if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
+            assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
+          }
+          writer.emitStatement(
+              StrFormat.createStringFormatter(assignmentFormatter)
+                  .addParam("object_varname", "instance")
+                  .addParam("field_varname", entry.getKey())
+                  .addParam("extracted_value", "results")
+                  .format());
+        } else {
+          String rValue = generateExtractRvalue(data);
+          String assignmentFormatter = data.getAssignmentFormatter();
+          if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
+            assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
+          }
+          writer.emitStatement(
+              StrFormat.createStringFormatter(assignmentFormatter)
+                  .addParam("object_varname", "instance")
+                  .addParam("field_varname", entry.getKey())
+                  .addParam("extracted_value", rValue)
+                  .format());
+        }
+
+        writer.emitStatement("return true");
+
+        firstEntry = false;
       }
 
-      writer.emitStatement("return true");
+      if (firstEntry == false) {
+        writer.endControlFlow();
+      }
+  }
 
-      firstEntry = false;
-    }
-
-    if (firstEntry == false) {
-      writer.endControlFlow();
+  private void generateCollectionParser(Messager messager, JavaWriter writer, TypeData data)
+      throws IOException {
+    if (TypeUtils.isMapType(data.getCollectionType())) {
+      generateMapParser(messager, writer, data);
+    } else {
+      generateArrayParser(messager, writer, data);
     }
   }
 
@@ -321,27 +337,58 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           .endControlFlow();
   }
 
+  private void generateMapParser(Messager messager, JavaWriter writer, TypeData valueTypeData)
+      throws IOException {
+    TypeData keyTypeData = new TypeData();
+    keyTypeData.setParseType(TypeUtils.ParseType.STRING);
+
+    String keyType = getJavaType(messager, keyTypeData);
+    String valueType = getJavaType(messager, valueTypeData);
+
+    String interfaceType = mapCollectionTypeToInterfaceType(valueTypeData.getCollectionType());
+    String concreteType = mapCollectionTypeToConcreteType(valueTypeData.getCollectionType());
+
+    writer.emitStatement("%s<%s, %s> results = null", interfaceType, keyType, valueType)
+          .beginControlFlow("if (jp.getCurrentToken() == JsonToken.START_OBJECT)")
+            .emitStatement("results = new %s<%s, %s>()", concreteType, keyType, valueType)
+            .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
+              .emitStatement("%s parsedKey = jp.getText()", keyType)
+              .emitStatement("jp.nextToken()")
+              .beginControlFlow("if (jp.getCurrentToken() == JsonToken.VALUE_NULL)")
+                .emitStatement("results.put(parsedKey, null)")
+              .nextControlFlow("else")
+                .emitStatement(
+                    "%s parsedValue = %s",
+                    valueType,
+                    generateExtractRvalue(valueTypeData))
+              .beginControlFlow("if (parsedValue != null)")
+                .emitStatement("results.put(parsedKey, parsedValue)")
+              .endControlFlow()
+              .endControlFlow()
+            .endControlFlow()
+          .endControlFlow();
+  }
+
   /**
    * We allow consumers of this library to override how we interact with the jackson to get the
    * value.  This generates the code to generate the rvalue expression.
    */
   private String generateExtractRvalue(TypeData data) {
     String valueExtractFormatter = data.getValueExtractFormatter();
+
     if (StringUtil.isNullOrEmpty(valueExtractFormatter)) {
-      if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
-        valueExtractFormatter = PARSABLE_OBJECT_VALUE_EXTRACT_FORMATTER;
-      } else {
-        if (data.getMapping() == JsonField.TypeMapping.EXACT) {
-          valueExtractFormatter = sExactFormatters.get(data.getParseType());
-        } else if (data.getMapping() == JsonField.TypeMapping.COERCED) {
-          valueExtractFormatter = sCoercedFormatters.get(data.getParseType());
-        }
+      if (data.getMapping() == JsonField.TypeMapping.EXACT) {
+        valueExtractFormatter = sExactFormatters.get(data.getParseType());
+      } else if (data.getMapping() == JsonField.TypeMapping.COERCED) {
+        valueExtractFormatter = sCoercedFormatters.get(data.getParseType());
       }
     }
 
     return StrFormat.createStringFormatter(valueExtractFormatter)
         .addParam("parser_object", "jp")
-        .addParam("subobject_helper_class",
+        .addParam("subobject_class", data.getParsableType())
+        .addParam(
+            "subobject_helper_class",
             data.getParsableTypeParserClass() +
                 JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
         .format();
@@ -365,8 +412,6 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   // These are all the default formatters.
   private static String DEFAULT_ASSIGNMENT_FORMATTER =
       "${object_varname}.${field_varname} = ${extracted_value}";
-  private static String PARSABLE_OBJECT_VALUE_EXTRACT_FORMATTER =
-      "${subobject_helper_class}.parseFromJson(${parser_object})";
 
   private static Map<TypeUtils.ParseType, String> sExactFormatters =
       new HashMap<TypeUtils.ParseType, String>();
@@ -438,38 +483,82 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       String serializeCode = data.getSerializeCodeFormatter();
 
       if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-        if (StringUtil.isNullOrEmpty(serializeCode)) {
-          if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
-            serializeCode = PARSABLE_OBJECT_ARRAY_SERIALIZE_CALL;
-          } else {
-            serializeCode = mArraySerializeCalls.get(data.getParseType());
+
+        if (!TypeUtils.isMapType(data.getCollectionType())) {
+
+          if (StringUtil.isNullOrEmpty(serializeCode)) {
+            if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
+              serializeCode = PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL;
+            } else {
+              serializeCode = mCollectionSerializeCalls.get(data.getParseType());
+            }
           }
-        }
 
         // needed to do a typecast for erased types
-        String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
-        String listType = getJavaType(messager, entry.getValue());
-
-        writer
-            .beginControlFlow("if (object." + entry.getKey() + " != null)")
+          String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
+          String listType = getJavaType(messager, entry.getValue());
+          writer
+              .beginControlFlow("if (object." + entry.getKey() + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", data.getFieldName())
               .emitStatement("generator.writeStartArray()")
               .beginControlFlow("for (" + listType +
-                  " element : (" + interfaceType + "<" + listType + ">)" +
-                  "object." + entry.getKey() + ")")
-                .beginControlFlow("if (element != null)")
-                  .emitStatement(
-                      StrFormat.createStringFormatter(serializeCode)
-                        .addParam("generator_object", "generator")
-                        .addParam("iterator", "element")
-                        .addParam("subobject_helper_class",
-                            data.getParsableTypeParserClass() +
-                                JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
-                        .format())
-                .endControlFlow()
+                      " element : (" + interfaceType + "<" + listType + ">)" +
+                      "object." + entry.getKey() + ")")
+              .beginControlFlow("if (element != null)")
+              .emitStatement(StrFormat.createStringFormatter(serializeCode)
+                      .addParam("generator_object", "generator")
+                      .addParam("iterator", "element")
+                      .addParam(
+                          "subobject_helper_class",
+                          data.getParsableTypeParserClass() +
+                              JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                      .format())
+              .endControlFlow()
               .endControlFlow()
               .emitStatement("generator.writeEndArray()")
-            .endControlFlow();
+              .endControlFlow();
+        } else {
+          // map type
+          TypeData keyTypeData = new TypeData();
+          keyTypeData.setParseType(TypeUtils.ParseType.STRING);
+          TypeData valueTypeData = data;
+
+          String keyType = getJavaType(messager, keyTypeData);
+          String valueType = getJavaType(messager, valueTypeData);
+
+          String valueSerializeCode = valueTypeData.getSerializeCodeFormatter();
+          if (StringUtil.isNullOrEmpty(valueSerializeCode)) {
+            if (valueTypeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
+              valueSerializeCode = PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL;
+            } else {
+              valueSerializeCode = mCollectionSerializeCalls.get(valueTypeData.getParseType());
+            }
+          }
+
+          writer
+              .beginControlFlow("if (object." + entry.getKey() + " != null)")
+                .emitStatement("generator.writeFieldName(\"%s\")", valueTypeData.getFieldName())
+                .emitStatement("generator.writeStartObject()")
+                .beginControlFlow("for (Map.Entry<" + keyType + ", " + valueType + "> entry : " +
+                      "object." + entry.getKey() + ".entrySet())")
+                  .emitStatement("generator.writeFieldName(entry.getKey().toString())")
+                  .beginControlFlow("if (entry.getValue() == null)")
+                    .emitStatement("generator.writeNull()")
+                  .nextControlFlow("else")
+                    .emitStatement(StrFormat.createStringFormatter(valueSerializeCode)
+                          .addParam("generator_object", "generator")
+                          .addParam("iterator", "entry.getValue()")
+                          .addParam(
+                              "subobject_helper_class",
+                              valueTypeData.getParsableTypeParserClass() +
+                                  JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                          .format())
+                  .endControlFlow()
+                .endControlFlow()
+                .emitStatement("generator.writeEndObject()")
+              .endControlFlow();
+      }
+
       } else {
         if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
           if (StringUtil.isNullOrEmpty(serializeCode)) {
@@ -526,12 +615,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
    */
   private static final String PARSABLE_OBJECT_SERIALIZE_CALL =
       "${subobject_helper_class}.serializeToJson(${generator_object}, ${object_varname}.${field_varname}, true)";
-  private static final String PARSABLE_OBJECT_ARRAY_SERIALIZE_CALL =
+  private static final String PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL =
       "${subobject_helper_class}.serializeToJson(${generator_object}, ${iterator}, true)";
 
-  private static Map<TypeUtils.ParseType, String> mScalarSerializeCalls =
+  private static final Map<TypeUtils.ParseType, String> mScalarSerializeCalls =
       new HashMap<TypeUtils.ParseType, String>();
-  private static Map<TypeUtils.ParseType, String> mArraySerializeCalls =
+  private static final Map<TypeUtils.ParseType, String> mCollectionSerializeCalls =
       new HashMap<TypeUtils.ParseType, String>();
   static {
     mScalarSerializeCalls.put(TypeUtils.ParseType.BOOLEAN,
@@ -557,27 +646,27 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     mScalarSerializeCalls.put(TypeUtils.ParseType.STRING,
         "${generator_object}.writeStringField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
 
-    mArraySerializeCalls.put(TypeUtils.ParseType.BOOLEAN,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.BOOLEAN,
         "${generator_object}.writeBoolean(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.BOOLEAN_OBJECT,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.BOOLEAN_OBJECT,
         "${generator_object}.writeBoolean(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.INTEGER,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.INTEGER,
         "${generator_object}.writeNumber(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.INTEGER_OBJECT,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.INTEGER_OBJECT,
         "${generator_object}.writeNumber(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.LONG,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.LONG,
         "${generator_object}.writeNumber(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.LONG_OBJECT,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.LONG_OBJECT,
         "${generator_object}.writeNumber(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.FLOAT,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.FLOAT,
         "${generator_object}.writeNumber(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.FLOAT_OBJECT,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.FLOAT_OBJECT,
         "${generator_object}.writeNumber(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.DOUBLE,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.DOUBLE,
         "${generator_object}.writeNumber(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.DOUBLE_OBJECT,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.DOUBLE_OBJECT,
         "${generator_object}.writeNumber(${iterator})");
-    mArraySerializeCalls.put(TypeUtils.ParseType.STRING,
+    mCollectionSerializeCalls.put(TypeUtils.ParseType.STRING,
         "${generator_object}.writeString(${iterator})");
 
   }
@@ -586,6 +675,10 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     switch (collectionType) {
       case LIST:
         return "List";
+      case ARRAYLIST:
+        return "ArrayList";
+      case HASHMAP:
+        return "HashMap";
       case QUEUE:
         return "Queue";
       case SET:
@@ -597,12 +690,21 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   private String mapCollectionTypeToConcreteType(TypeUtils.CollectionType collectionType) {
     switch (collectionType) {
       case LIST:
+      case ARRAYLIST:
         return "ArrayList";
+      case HASHMAP:
+        return "HashMap";
       case QUEUE:
         return "ArrayDeque";
       case SET:
         return "HashSet";
     }
     throw new IllegalStateException("unknown collection type");
+  }
+
+  private Modifier getParseMethodVisibility() {
+    return JsonType.DEFAULT_VALUE_EXTRACT_FORMATTER.equals(mValueExtractFormatter) ?
+        PUBLIC :
+        PROTECTED;
   }
 }

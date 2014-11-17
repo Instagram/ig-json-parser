@@ -14,7 +14,6 @@ import javax.lang.model.util.Types;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Utility functions to get the declared types of fields.
@@ -41,6 +40,8 @@ public class TypeUtils {
   public enum CollectionType {
     NOT_A_COLLECTION,
     LIST,
+    ARRAYLIST,
+    HASHMAP,
     QUEUE,
     SET,
   }
@@ -53,6 +54,10 @@ public class TypeUtils {
   private static final String JAVA_LANG_DOUBLE = "java.lang.Double";
   private static final String JAVA_UTIL_LIST = "java.util.List<?>";
   private static final String JAVA_UTIL_LIST_UNTYPED = "java.util.List";
+  private static final String JAVA_UTIL_ARRAYLIST = "java.util.ArrayList<?>";
+  private static final String JAVA_UTIL_ARRAYLIST_UNTYPED = "java.util.ArrayList";
+  private static final String JAVA_UTIL_HASHMAP = "java.util.HashMap<?,?>";
+  private static final String JAVA_UTIL_HASHMAP_UNTYPED = "java.util.HashMap";
   private static final String JAVA_UTIL_QUEUE = "java.util.Queue<?>";
   private static final String JAVA_UTIL_QUEUE_UNTYPED = "java.util.Queue";
   private static final String JAVA_UTIL_SET = "java.util.Set<?>";
@@ -119,10 +124,18 @@ public class TypeUtils {
     return ParseType.UNSUPPORTED;
   }
 
+  public static boolean isMapType(CollectionType type) {
+    return type == CollectionType.HASHMAP;
+  }
+
   public CollectionType getCollectionType(TypeMirror typeMirror) {
     String erasedType = mTypes.erasure(typeMirror).toString();
     if (JAVA_UTIL_LIST_UNTYPED.equals(erasedType)) {
       return CollectionType.LIST;
+    } else if (JAVA_UTIL_ARRAYLIST_UNTYPED.equals(erasedType)) {
+      return CollectionType.ARRAYLIST;
+    } else if (JAVA_UTIL_HASHMAP_UNTYPED.equals(erasedType)) {
+      return CollectionType.HASHMAP;
     } else if (JAVA_UTIL_QUEUE_UNTYPED.equals(erasedType)) {
       return CollectionType.QUEUE;
     } else if (JAVA_UTIL_SET_UNTYPED.equals(erasedType)) {
@@ -149,25 +162,31 @@ public class TypeUtils {
     }
     TypeElement typeElement = (TypeElement) element;
     List<? extends TypeParameterElement> typeParameterElements = typeElement.getTypeParameters();
+    List<TypeMirror> typeArguments = (List<TypeMirror>) declaredType.getTypeArguments();
 
     if (JAVA_UTIL_QUEUE.equals(getCanonicalTypeName(declaredType)) ||
         JAVA_UTIL_LIST.equals(getCanonicalTypeName(declaredType)) ||
+        JAVA_UTIL_ARRAYLIST.equals(getCanonicalTypeName(declaredType)) ||
         JAVA_UTIL_SET.equals(getCanonicalTypeName(declaredType))) {
       // sanity check.
       if (typeParameterElements.size() != 1) {
         throw new IllegalStateException(
             String.format("%s is not expected generic type", declaredType));
       }
-
-      List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
-
-      if (typeArguments.size() == 1) {
-        return typeArguments.get(0);
-      } else {
-        return null;
+      return typeArguments.get(0);
+    } else if (JAVA_UTIL_HASHMAP.equals(getCanonicalTypeName(declaredType))) {
+      // sanity check.
+      if (typeParameterElements.size() != 2) {
+        throw new IllegalStateException(
+            String.format("%s is not expected generic type", declaredType));
       }
+      TypeMirror keyType = typeArguments.get(0);
+      TypeMirror valueType = typeArguments.get(1);
+      if (!JAVA_LANG_STRING.equals(keyType.toString())) {
+        throw new IllegalStateException("Only String keys are supported for map types");
+      }
+      return valueType;
     }
-
     return null;
   }
 

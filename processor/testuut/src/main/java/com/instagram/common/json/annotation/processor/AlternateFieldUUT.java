@@ -1,6 +1,6 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-package com.instagram.common.json.annotation.processor;
+package com.instagram.common.json.annotation.processor.uut;
 
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
@@ -16,4 +16,7 @@ public class AlternateFieldUUT {
       alternateFieldNames = {ALTERNATE_FIELD_NAME_1, ALTERNATE_FIELD_NAME_2})
   String nameField;
 
+  public String getNameField() {
+    return nameField;
+  }
 }

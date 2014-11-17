@@ -192,6 +192,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
           },
           abstractClass,
           annotation.postprocessingEnabled(),
+          annotation.valueExtractFormatter(),
           parentGeneratedClassName);
       mState.mClassElementToInjectorMap.put(typeElement, injector);
     }
@@ -261,6 +262,12 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       data.setParsableType(mTypeUtils.getClassName(typeElement, packageName));
       data.setParsableTypeParserClass(
           mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName));
+
+      if (StringUtil.isNullOrEmpty(data.getValueExtractFormatter())) {
+        // Use the parsable object's value extract formatter
+        data.setValueExtractFormatter(
+            typeElement.getAnnotation(JsonType.class).valueExtractFormatter());
+      }
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
       if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter()) ||

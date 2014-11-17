@@ -54,6 +54,11 @@ public @interface JsonField {
    *     <td>the instance of {@link JsonParser} being read from
    *   </tr>
    *   <tr>
+   *     <th>subobject_class</th>
+   *     <td>when parsing a subobject, this refers to the subobject type.
+   *     </td>
+   *   </tr>
+   *   <tr>
    *     <th>subobject_helper_class</th>
    *     <td>when parsing a subobject, this refers to the class responsible for parsing the
    *      subobject type.

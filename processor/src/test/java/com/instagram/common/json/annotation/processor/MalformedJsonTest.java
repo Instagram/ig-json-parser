@@ -7,6 +7,8 @@ import java.io.StringWriter;
 import java.util.List;
 
 import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
+import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT;
+import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT__JsonHelper;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;

@@ -21,6 +21,7 @@
       />
 
   <application
+      android:allowBackup="false"
       android:label="IgBenchmark"
       android:hardwareAccelerated="true"
       android:allowTaskReparenting="true"

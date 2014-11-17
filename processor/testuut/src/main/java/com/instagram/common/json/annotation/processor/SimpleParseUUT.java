@@ -1,7 +1,8 @@
 // Copyright 2004-present Facebook. All Rights Reserved.
 
-package com.instagram.common.json.annotation.processor;
+package com.instagram.common.json.annotation.processor.uut;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -20,6 +21,7 @@ public class SimpleParseUUT {
   public static final String FLOAT_OBJ_FIELD_NAME = "Float";
   public static final String STRING_FIELD_NAME = "String";
   public static final String INTEGER_LIST_FIELD_NAME = "IntegerList";
+  public static final String INTEGER_ARRAY_LIST_FIELD_NAME = "IntegerArrayList";
   public static final String INTEGER_QUEUE_FIELD_NAME = "IntegerQueue";
   public static final String INTEGER_SET_FIELD_NAME = "IntegerSet";
   public static final String SUBOBJECT_FIELD_NAME = "Subobject";
@@ -41,6 +43,9 @@ public class SimpleParseUUT {
 
   @JsonField(fieldName = INTEGER_LIST_FIELD_NAME)
   public List<Integer> integerListField;
+
+  @JsonField(fieldName = INTEGER_ARRAY_LIST_FIELD_NAME)
+  public ArrayList<Integer> integerArrayListField;
 
   @JsonField(fieldName = INTEGER_QUEUE_FIELD_NAME)
   public Queue<Integer> integerQueueField;

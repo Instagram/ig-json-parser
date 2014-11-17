@@ -5,14 +5,23 @@ package com.instagram.common.json.annotation.processor;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+
+import com.instagram.common.json.annotation.processor.uut.EnumUUT;
+import com.instagram.common.json.annotation.processor.uut.EnumUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.uut.MapUUT;
+import com.instagram.common.json.annotation.processor.uut.MapUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT;
+import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT__JsonHelper;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import org.json.JSONException;
@@ -25,6 +34,7 @@ import static org.junit.Assert.assertEquals;
  * Basic serialization tests.  It depends on deserialization working correctly but that's an
  * acceptable assumption since if deserialization is broken, {@link DeserializeTest} should fail.
  */
+
 public class SerializeTest {
   @Test
   public void simpleSerializeTest() throws IOException, JSONException {
@@ -193,5 +203,63 @@ public class SerializeTest {
       assertEquals(source.integerListField.get(ix), parsed.integerListField.get(ix));
     }
     assertSame(source.subobjectField.intField, parsed.subobjectField.intField);
+  }
+
+  @Test
+  public void mapTest() throws IOException {
+    int integerValue = 1000;
+    String stringValue = "hello world\r\n\'\"";
+
+    final HashMap<String, Integer> stringIntegerMap = Maps.newHashMap();
+    final HashMap<String, String> stringStringMap = Maps.newHashMap();
+    final HashMap<String, Long> stringLongMap = Maps.newHashMap();
+    final HashMap<String, Double> stringDoubleMap = Maps.newHashMap();
+    final HashMap<String, Float> stringFloatMap = Maps.newHashMap();
+    final HashMap<String, Boolean> stringBooleanMap = Maps.newHashMap();
+    final HashMap<String, MapUUT.MapObject> stringObjectMap = Maps.newHashMap();
+
+    stringIntegerMap.put(stringValue, integerValue);
+    stringIntegerMap.put("key_with_null_value", null);
+
+    stringStringMap.put("key", "100");
+
+    stringLongMap.put("max_long_key", Long.MAX_VALUE);
+    stringLongMap.put("min_long_key", Long.MIN_VALUE);
+
+    stringDoubleMap.put("max_double_key", Double.MAX_VALUE);
+    stringDoubleMap.put("min_double_key", Double.MIN_VALUE);
+    stringDoubleMap.put("nan_double_key", Double.NaN);
+    stringDoubleMap.put("neg_infinity", Double.NEGATIVE_INFINITY);
+    stringDoubleMap.put("pos_infinity", Double.POSITIVE_INFINITY);
+
+    stringFloatMap.put("max_float_key", Float.MAX_VALUE);
+    stringFloatMap.put("min_float_key", Float.MIN_VALUE);
+
+    stringBooleanMap.put("true", Boolean.TRUE);
+    stringBooleanMap.put("false", Boolean.FALSE);
+
+    MapUUT.MapObject uut = new MapUUT.MapObject();
+    uut.subclassInt = 5;
+    stringObjectMap.put("uut", uut);
+
+    MapUUT source = new MapUUT();
+    source.stringBooleanMapField = stringBooleanMap;
+    source.stringDoubleMapField = stringDoubleMap;
+    source.stringFloatMapField = stringFloatMap;
+    source.stringIntegerMapField = stringIntegerMap;
+    source.stringLongMapField = stringLongMap;
+    source.stringObjectMapField = stringObjectMap;
+    source.stringStringMapField = stringStringMap;
+
+    String serialized = MapUUT__JsonHelper.serializeToJson(source);
+    MapUUT parsed = MapUUT__JsonHelper.parseFromJson(serialized);
+
+    assertEquals(source.stringIntegerMapField, parsed.stringIntegerMapField);
+    assertEquals(source.stringStringMapField, parsed.stringStringMapField);
+    assertEquals(source.stringBooleanMapField, parsed.stringBooleanMapField);
+    assertEquals(source.stringDoubleMapField, parsed.stringDoubleMapField);
+    assertEquals(source.stringFloatMapField, parsed.stringFloatMapField);
+    assertEquals(source.stringLongMapField, parsed.stringLongMapField);
+    assertEquals(source.stringObjectMapField, parsed.stringObjectMapField);
   }
 }
