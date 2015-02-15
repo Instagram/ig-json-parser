@@ -41,6 +41,7 @@ task processorSourcesJar(type: Jar) {
 
 task runtimeJavadoc(type: Javadoc) {
     source files( { project(':common').sourceSets.main.allSource } )
+    classpath = files( { project(':common').sourceSets.main.compileClasspath } )
     destinationDir = new File("${project.docsDir}", "runtime-javadoc")
 }
 
@@ -55,6 +56,12 @@ task processorJavadoc(type: Javadoc) {
     source files( { project(':common').sourceSets.main.allSource } )
     source files( { project(':util').sourceSets.main.allSource } )
     source files( { project(':processor').sourceSets.main.allSource } )
+    classpath = files( [
+            project(':javawriter').sourceSets.main.compileClasspath,
+            project(':common').sourceSets.main.compileClasspath,
+            project(':util').sourceSets.main.compileClasspath,
+            project(':processor').sourceSets.main.compileClasspath
+            ])
     destinationDir = new File("${project.docsDir}", "processor-javadoc")
 }
 
