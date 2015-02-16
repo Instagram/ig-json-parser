@@ -30,27 +30,10 @@ To use this library, add this to your build.gradle file:
           srcDir 'src/main/java'
         }
       }
-      gensrc {
-        java {
-          srcDir 'gen-src/main/java'
-        }
-      }
     }
 
-    compileJava {
-      doFirst {
-        // Directory should exists before compilation started.
-        generatedSourcesDir.mkdirs()
-      }
-      options.compilerArgs += [
-                           '-processor',
-                           'com.instagram.common.json.annotation.processor.JsonAnnotationProcessor',
-                           '-s',
-                           generatedSourcesDir
-      ]
-    }
     dependencies {
-      compile group: 'com.instagram', name: 'ig-json-parser-processor', version: '0.0.5+'
+      compile group: 'com.instagram', name: 'ig-json-parser-processor', version: '0.0.6+'
     }
 
 

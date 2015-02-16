@@ -15,6 +15,7 @@ task processorJar(type: Jar,
     from files( { project(':common').sourceSets.main.output.classesDir } )
     from files( { project(':util').sourceSets.main.output.classesDir } )
     from files( { project(':processor').sourceSets.main.output.classesDir } )
+    from files( { project(':processor').sourceSets.main.output.resourcesDir } )
     baseName 'processor'
 }
 
@@ -27,20 +28,20 @@ task runtimeJar(type: Jar,
 task runtimeSourcesJar(type: Jar) {
     classifier = 'sources'
     baseName 'runtime'
-    from files( { project(':common').sourceSets.main.allSource } )
+    from files( { project(':common').sourceSets.main.allJava } )
 }
 
 task processorSourcesJar(type: Jar) {
     classifier = 'sources'
     baseName 'processor'
-    from files( { project(':javawriter').sourceSets.main.allSource } )
-    from files( { project(':common').sourceSets.main.allSource } )
-    from files( { project(':util').sourceSets.main.allSource } )
-    from files( { project(':processor').sourceSets.main.allSource } )
+    from files( { project(':javawriter').sourceSets.main.allJava } )
+    from files( { project(':common').sourceSets.main.allJava } )
+    from files( { project(':util').sourceSets.main.allJava } )
+    from files( { project(':processor').sourceSets.main.allJava } )
 }
 
 task runtimeJavadoc(type: Javadoc) {
-    source files( { project(':common').sourceSets.main.allSource } )
+    source files( { project(':common').sourceSets.main.allJava } )
     destinationDir = new File("${project.docsDir}", "runtime-javadoc")
 }
 
@@ -51,10 +52,10 @@ task runtimeJavadocJar(type: Jar, dependsOn: runtimeJavadoc) {
 }
 
 task processorJavadoc(type: Javadoc) {
-    source files( { project(':javawriter').sourceSets.main.allSource } )
-    source files( { project(':common').sourceSets.main.allSource } )
-    source files( { project(':util').sourceSets.main.allSource } )
-    source files( { project(':processor').sourceSets.main.allSource } )
+    source files( { project(':javawriter').sourceSets.main.allJava } )
+    source files( { project(':common').sourceSets.main.allJava } )
+    source files( { project(':util').sourceSets.main.allJava } )
+    source files( { project(':processor').sourceSets.main.allJava } )
     destinationDir = new File("${project.docsDir}", "processor-javadoc")
 }
 
