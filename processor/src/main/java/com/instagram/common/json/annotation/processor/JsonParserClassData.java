@@ -89,21 +89,21 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       Set<String> typeImports = new HashSet<String>();
       for (Map.Entry<String, TypeData> entry : getIterator()) {
         TypeData typeData = entry.getValue();
-          if (typeData.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-            if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
-                !typeData.getPackageName().equals(mClassPackage)) {
-              typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
-              typeImports.add(
-                  typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
-                      JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
-            }
-          } else if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
+        if (typeData.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
+          if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
               !typeData.getPackageName().equals(mClassPackage)) {
+            typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
             typeImports.add(
                 typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
                     JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
-            typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
           }
+        } else if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
+            !typeData.getPackageName().equals(mClassPackage)) {
+          typeImports.add(
+              typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
+                  JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
+          typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
+        }
       }
       writer.emitImports(typeImports);
       writer.emitEmptyLine();
@@ -116,33 +116,33 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
       if (!mAbstractClass) {
         writer
-              .beginMethod(
-                  mSimpleClassName,
-                  "parseFromJson",
-                  EnumSet.of(getParseMethodVisibility(), STATIC),
-                  Arrays.asList("JsonParser", "jp"),
-                  Arrays.asList("IOException"))
-                .emitStatement("%s instance = new %s()", mSimpleClassName, mSimpleClassName)
-                .emitEmptyLine()
-                .emitSingleLineComment("validate that we're on the right token")
-                .beginControlFlow("if (jp.getCurrentToken() != JsonToken.START_OBJECT)")
-                  .emitStatement("jp.skipChildren()")
-                  .emitStatement("return null")
-                .endControlFlow()
-                .emitEmptyLine()
-                .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
-                  .emitStatement("String fieldName = jp.getCurrentName()")
-                  .emitStatement("jp.nextToken()")
-                  .emitStatement("processSingleField(instance, fieldName, jp)")
-                  // always skip children.  if we expected an array or an object, we would have
-                  // consumed the START_ARRAY or START_OBJECT.  therefore, we would only skip
-                  // forward if we're seeing something unexpected.
-                  .emitStatement("jp.skipChildren()")
-                .endControlFlow()
-                .emitEmptyLine()
-                .emitStatement("return %s", returnValue)
-              .endMethod()
-              .emitEmptyLine();
+            .beginMethod(
+                mSimpleClassName,
+                "parseFromJson",
+                EnumSet.of(getParseMethodVisibility(), STATIC),
+                Arrays.asList("JsonParser", "jp"),
+                Arrays.asList("IOException"))
+            .emitStatement("%s instance = new %s()", mSimpleClassName, mSimpleClassName)
+            .emitEmptyLine()
+            .emitSingleLineComment("validate that we're on the right token")
+            .beginControlFlow("if (jp.getCurrentToken() != JsonToken.START_OBJECT)")
+            .emitStatement("jp.skipChildren()")
+            .emitStatement("return null")
+            .endControlFlow()
+            .emitEmptyLine()
+            .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
+            .emitStatement("String fieldName = jp.getCurrentName()")
+            .emitStatement("jp.nextToken()")
+            .emitStatement("processSingleField(instance, fieldName, jp)")
+                // always skip children.  if we expected an array or an object, we would have
+                // consumed the START_ARRAY or START_OBJECT.  therefore, we would only skip
+                // forward if we're seeing something unexpected.
+            .emitStatement("jp.skipChildren()")
+            .endControlFlow()
+            .emitEmptyLine()
+            .emitStatement("return %s", returnValue)
+            .endMethod()
+            .emitEmptyLine();
       }
 
       writer
@@ -173,51 +173,51 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
       if (!mAbstractClass) {
         writer
-              .beginMethod(
-                  mSimpleClassName,
-                  "parseFromJson",
-                  EnumSet.of(getParseMethodVisibility(), STATIC),
-                  Arrays.asList("String", "inputString"),
-                  Arrays.asList("IOException"))
-              .emitStatement(
-                  "JsonParser jp = JsonFactoryHolder.APP_FACTORY.createParser(inputString)")
-              .emitStatement("jp.nextToken()")
-              .emitStatement("return parseFromJson(jp)")
-              .endMethod()
-              .emitEmptyLine();
+            .beginMethod(
+                mSimpleClassName,
+                "parseFromJson",
+                EnumSet.of(getParseMethodVisibility(), STATIC),
+                Arrays.asList("String", "inputString"),
+                Arrays.asList("IOException"))
+            .emitStatement(
+                "JsonParser jp = JsonFactoryHolder.APP_FACTORY.createParser(inputString)")
+            .emitStatement("jp.nextToken()")
+            .emitStatement("return parseFromJson(jp)")
+            .endMethod()
+            .emitEmptyLine();
       }
 
       writer
-            .beginMethod(
-                "void",
-                "serializeToJson",
-                EnumSet.of(PUBLIC, STATIC),
-                Arrays.asList("JsonGenerator", "generator",
-                    mSimpleClassName, "object",
-                    "boolean", "writeStartAndEnd"),
-                Arrays.asList("IOException"))
-              .beginControlFlow("if (writeStartAndEnd)")
-                .emitStatement("generator.writeStartObject()")
-              .endControlFlow()
-              .emitWithGenerator(
-                  new JavaWriter.JavaGenerator() {
-                    @Override
-                    public void emitJava(JavaWriter writer) throws IOException {
-                      JsonParserClassData.this.writeSerializeCalls(messager, writer);
+          .beginMethod(
+              "void",
+              "serializeToJson",
+              EnumSet.of(PUBLIC, STATIC),
+              Arrays.asList("JsonGenerator", "generator",
+                  mSimpleClassName, "object",
+                  "boolean", "writeStartAndEnd"),
+              Arrays.asList("IOException"))
+          .beginControlFlow("if (writeStartAndEnd)")
+          .emitStatement("generator.writeStartObject()")
+          .endControlFlow()
+          .emitWithGenerator(
+              new JavaWriter.JavaGenerator() {
+                @Override
+                public void emitJava(JavaWriter writer) throws IOException {
+                  JsonParserClassData.this.writeSerializeCalls(messager, writer);
 
-                      // if we have a superclass, we need to call its serialize method.
-                      if (mParentInjectedClassName != null) {
-                        writer.emitStatement(mParentInjectedClassName +
-                                ".serializeToJson(generator, object, false)");
-                      }
+                  // if we have a superclass, we need to call its serialize method.
+                  if (mParentInjectedClassName != null) {
+                    writer.emitStatement(mParentInjectedClassName +
+                        ".serializeToJson(generator, object, false)");
+                  }
 
-                    }
-                  })
-              .beginControlFlow("if (writeStartAndEnd)")
-                .emitStatement("generator.writeEndObject()")
-              .endControlFlow()
-            .endMethod()
-            .emitEmptyLine();
+                }
+              })
+          .beginControlFlow("if (writeStartAndEnd)")
+          .emitStatement("generator.writeEndObject()")
+          .endControlFlow()
+          .endMethod()
+          .emitEmptyLine();
 
       if (!mAbstractClass) {
         writer
@@ -259,52 +259,52 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       TypeData data = entry.getValue();
 
-        String condition = "\"" + data.getFieldName() + "\".equals(fieldName)";
+      String condition = "\"" + data.getFieldName() + "\".equals(fieldName)";
 
-        for (String alternateFieldName : data.getAlternateFieldNames()) {
-          condition += "|| \"" + alternateFieldName + "\".equals(fieldName)";
-        }
-
-        if (firstEntry) {
-          writer.beginControlFlow("if (" + condition + ")");
-        } else {
-          writer.nextControlFlow("else if (" + condition + ")");
-        }
-
-        if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-          generateCollectionParser(messager, writer, data);
-          String assignmentFormatter = data.getAssignmentFormatter();
-          if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
-            assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
-          }
-          writer.emitStatement(
-              StrFormat.createStringFormatter(assignmentFormatter)
-                  .addParam("object_varname", "instance")
-                  .addParam("field_varname", entry.getKey())
-                  .addParam("extracted_value", "results")
-                  .format());
-        } else {
-          String rValue = generateExtractRvalue(data);
-          String assignmentFormatter = data.getAssignmentFormatter();
-          if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
-            assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
-          }
-          writer.emitStatement(
-              StrFormat.createStringFormatter(assignmentFormatter)
-                  .addParam("object_varname", "instance")
-                  .addParam("field_varname", entry.getKey())
-                  .addParam("extracted_value", rValue)
-                  .format());
-        }
-
-        writer.emitStatement("return true");
-
-        firstEntry = false;
+      for (String alternateFieldName : data.getAlternateFieldNames()) {
+        condition += "|| \"" + alternateFieldName + "\".equals(fieldName)";
       }
 
-      if (firstEntry == false) {
-        writer.endControlFlow();
+      if (firstEntry) {
+        writer.beginControlFlow("if (" + condition + ")");
+      } else {
+        writer.nextControlFlow("else if (" + condition + ")");
       }
+
+      if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
+        generateCollectionParser(messager, writer, data);
+        String assignmentFormatter = data.getAssignmentFormatter();
+        if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
+          assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
+        }
+        writer.emitStatement(
+            StrFormat.createStringFormatter(assignmentFormatter)
+                .addParam("object_varname", "instance")
+                .addParam("field_varname", entry.getKey())
+                .addParam("extracted_value", "results")
+                .format());
+      } else {
+        String rValue = generateExtractRvalue(data);
+        String assignmentFormatter = data.getAssignmentFormatter();
+        if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
+          assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
+        }
+        writer.emitStatement(
+            StrFormat.createStringFormatter(assignmentFormatter)
+                .addParam("object_varname", "instance")
+                .addParam("field_varname", entry.getKey())
+                .addParam("extracted_value", rValue)
+                .format());
+      }
+
+      writer.emitStatement("return true");
+
+      firstEntry = false;
+    }
+
+    if (firstEntry == false) {
+      writer.endControlFlow();
+    }
   }
 
   private void generateCollectionParser(Messager messager, JavaWriter writer, TypeData data)
@@ -326,15 +326,15 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     String concreteType = mapCollectionTypeToConcreteType(data.getCollectionType());
 
     writer.emitStatement("%s<%s> results = null", interfaceType, innerType)
-          .beginControlFlow("if (jp.getCurrentToken() == JsonToken.START_ARRAY)")
-            .emitStatement("results = new %s<%s>()", concreteType, innerType)
-            .beginControlFlow("while (jp.nextToken() != JsonToken.END_ARRAY)")
-              .emitStatement("%s parsed = %s", innerType, generateExtractRvalue(data))
-              .beginControlFlow("if (parsed != null)")
-                .emitStatement("results.add(parsed)")
-              .endControlFlow()
-            .endControlFlow()
-          .endControlFlow();
+        .beginControlFlow("if (jp.getCurrentToken() == JsonToken.START_ARRAY)")
+        .emitStatement("results = new %s<%s>()", concreteType, innerType)
+        .beginControlFlow("while (jp.nextToken() != JsonToken.END_ARRAY)")
+        .emitStatement("%s parsed = %s", innerType, generateExtractRvalue(data))
+        .beginControlFlow("if (parsed != null)")
+        .emitStatement("results.add(parsed)")
+        .endControlFlow()
+        .endControlFlow()
+        .endControlFlow();
   }
 
   private void generateMapParser(Messager messager, JavaWriter writer, TypeData valueTypeData)
@@ -349,24 +349,24 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     String concreteType = mapCollectionTypeToConcreteType(valueTypeData.getCollectionType());
 
     writer.emitStatement("%s<%s, %s> results = null", interfaceType, keyType, valueType)
-          .beginControlFlow("if (jp.getCurrentToken() == JsonToken.START_OBJECT)")
-            .emitStatement("results = new %s<%s, %s>()", concreteType, keyType, valueType)
-            .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
-              .emitStatement("%s parsedKey = jp.getText()", keyType)
-              .emitStatement("jp.nextToken()")
-              .beginControlFlow("if (jp.getCurrentToken() == JsonToken.VALUE_NULL)")
-                .emitStatement("results.put(parsedKey, null)")
-              .nextControlFlow("else")
-                .emitStatement(
-                    "%s parsedValue = %s",
-                    valueType,
-                    generateExtractRvalue(valueTypeData))
-              .beginControlFlow("if (parsedValue != null)")
-                .emitStatement("results.put(parsedKey, parsedValue)")
-              .endControlFlow()
-              .endControlFlow()
-            .endControlFlow()
-          .endControlFlow();
+        .beginControlFlow("if (jp.getCurrentToken() == JsonToken.START_OBJECT)")
+        .emitStatement("results = new %s<%s, %s>()", concreteType, keyType, valueType)
+        .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
+        .emitStatement("%s parsedKey = jp.getText()", keyType)
+        .emitStatement("jp.nextToken()")
+        .beginControlFlow("if (jp.getCurrentToken() == JsonToken.VALUE_NULL)")
+        .emitStatement("results.put(parsedKey, null)")
+        .nextControlFlow("else")
+        .emitStatement(
+            "%s parsedValue = %s",
+            valueType,
+            generateExtractRvalue(valueTypeData))
+        .beginControlFlow("if (parsedValue != null)")
+        .emitStatement("results.put(parsedKey, parsedValue)")
+        .endControlFlow()
+        .endControlFlow()
+        .endControlFlow()
+        .endControlFlow();
   }
 
   /**
@@ -399,6 +399,10 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       return type.getParsableType();
     }
 
+    if (type.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
+      return type.getEnumType();
+    }
+
     String javaType = sJavaTypes.get(type.getParseType());
     if (javaType != null) {
       return javaType;
@@ -424,7 +428,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     sExactFormatters.put(TypeUtils.ParseType.BOOLEAN, "${parser_object}.getBooleanValue()");
     sExactFormatters.put(TypeUtils.ParseType.BOOLEAN_OBJECT,
         "((${parser_object}.getCurrentToken() == JsonToken.VALUE_TRUE || " +
-          "${parser_object}.getCurrentToken() == JsonToken.VALUE_FALSE) ? " +
+            "${parser_object}.getCurrentToken() == JsonToken.VALUE_FALSE) ? " +
             "Boolean.valueOf(${parser_object}.getValueAsBoolean()) : null)");
     sExactFormatters.put(TypeUtils.ParseType.INTEGER, "${parser_object}.getIntValue()");
     sExactFormatters.put(TypeUtils.ParseType.INTEGER_OBJECT,
@@ -437,7 +441,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     sExactFormatters.put(TypeUtils.ParseType.FLOAT, "${parser_object}.getFloatValue()");
     sExactFormatters.put(TypeUtils.ParseType.FLOAT_OBJECT,
         "((${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_FLOAT || " +
-          "${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_INT) ? " +
+            "${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_INT) ? " +
             "new Float(${parser_object}.getValueAsDouble()) : null)");
     sExactFormatters.put(TypeUtils.ParseType.DOUBLE, "${parser_object}.getDoubleValue()");
     sExactFormatters.put(TypeUtils.ParseType.DOUBLE_OBJECT,
@@ -494,7 +498,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
             }
           }
 
-        // needed to do a typecast for erased types
+          // needed to do a typecast for erased types
           String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
           String listType = getJavaType(messager, entry.getValue());
           writer
@@ -502,17 +506,17 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               .emitStatement("generator.writeFieldName(\"%s\")", data.getFieldName())
               .emitStatement("generator.writeStartArray()")
               .beginControlFlow("for (" + listType +
-                      " element : (" + interfaceType + "<" + listType + ">)" +
-                      "object." + entry.getKey() + ")")
+                  " element : (" + interfaceType + "<" + listType + ">)" +
+                  "object." + entry.getKey() + ")")
               .beginControlFlow("if (element != null)")
               .emitStatement(StrFormat.createStringFormatter(serializeCode)
-                      .addParam("generator_object", "generator")
-                      .addParam("iterator", "element")
-                      .addParam(
-                          "subobject_helper_class",
-                          data.getParsableTypeParserClass() +
-                              JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
-                      .format())
+                  .addParam("generator_object", "generator")
+                  .addParam("iterator", "element")
+                  .addParam(
+                      "subobject_helper_class",
+                      data.getParsableTypeParserClass() +
+                          JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                  .format())
               .endControlFlow()
               .endControlFlow()
               .emitStatement("generator.writeEndArray()")
@@ -537,27 +541,27 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
           writer
               .beginControlFlow("if (object." + entry.getKey() + " != null)")
-                .emitStatement("generator.writeFieldName(\"%s\")", valueTypeData.getFieldName())
-                .emitStatement("generator.writeStartObject()")
-                .beginControlFlow("for (Map.Entry<" + keyType + ", " + valueType + "> entry : " +
-                      "object." + entry.getKey() + ".entrySet())")
-                  .emitStatement("generator.writeFieldName(entry.getKey().toString())")
-                  .beginControlFlow("if (entry.getValue() == null)")
-                    .emitStatement("generator.writeNull()")
-                  .nextControlFlow("else")
-                    .emitStatement(StrFormat.createStringFormatter(valueSerializeCode)
-                          .addParam("generator_object", "generator")
-                          .addParam("iterator", "entry.getValue()")
-                          .addParam(
-                              "subobject_helper_class",
-                              valueTypeData.getParsableTypeParserClass() +
-                                  JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
-                          .format())
-                  .endControlFlow()
-                .endControlFlow()
-                .emitStatement("generator.writeEndObject()")
+              .emitStatement("generator.writeFieldName(\"%s\")", valueTypeData.getFieldName())
+              .emitStatement("generator.writeStartObject()")
+              .beginControlFlow("for (Map.Entry<" + keyType + ", " + valueType + "> entry : " +
+                  "object." + entry.getKey() + ".entrySet())")
+              .emitStatement("generator.writeFieldName(entry.getKey().toString())")
+              .beginControlFlow("if (entry.getValue() == null)")
+              .emitStatement("generator.writeNull()")
+              .nextControlFlow("else")
+              .emitStatement(StrFormat.createStringFormatter(valueSerializeCode)
+                  .addParam("generator_object", "generator")
+                  .addParam("iterator", "entry.getValue()")
+                  .addParam(
+                      "subobject_helper_class",
+                      valueTypeData.getParsableTypeParserClass() +
+                          JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                  .format())
+              .endControlFlow()
+              .endControlFlow()
+              .emitStatement("generator.writeEndObject()")
               .endControlFlow();
-      }
+        }
 
       } else {
         if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
@@ -566,16 +570,16 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           }
           writer
               .beginControlFlow("if (object." + entry.getKey() + " != null)")
-                .emitStatement("generator.writeFieldName(\"%s\")", data.getFieldName())
-                .emitStatement(
-                    StrFormat.createStringFormatter(serializeCode)
-                        .addParam("generator_object", "generator")
-                        .addParam("object_varname", "object")
-                        .addParam("field_varname", entry.getKey())
-                        .addParam("subobject_helper_class",
-                            data.getParsableTypeParserClass() +
-                                JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
-                        .format())
+              .emitStatement("generator.writeFieldName(\"%s\")", data.getFieldName())
+              .emitStatement(
+                  StrFormat.createStringFormatter(serializeCode)
+                      .addParam("generator_object", "generator")
+                      .addParam("object_varname", "object")
+                      .addParam("field_varname", entry.getKey())
+                      .addParam("subobject_helper_class",
+                          data.getParsableTypeParserClass() +
+                              JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                      .format())
               .endControlFlow();
         } else {
           if (StringUtil.isNullOrEmpty(serializeCode)) {

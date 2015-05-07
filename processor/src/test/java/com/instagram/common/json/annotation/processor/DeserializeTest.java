@@ -65,6 +65,9 @@ public class DeserializeTest {
     final Queue<Integer> integerQueue = Queues.newArrayDeque(Arrays.asList(1, 2, 3, 4));
     final Set<Integer> integerSet = Sets.newHashSet(1, 2, 3, 4);
     final int subIntValue = 30;
+    final SimpleParseUUT.SubenumUUT subEnum = SimpleParseUUT.SubenumUUT.A;
+    final List<SimpleParseUUT.SubenumUUT> subEnumList = Lists.newArrayList(
+        SimpleParseUUT.SubenumUUT.A, SimpleParseUUT.SubenumUUT.B);
 
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
@@ -123,7 +126,19 @@ public class DeserializeTest {
           .object()
             .key(SimpleParseUUT.SubobjectParseUUT.INT_FIELD_NAME).value(subIntValue)
           .endObject()
-      .endObject();
+        .key(SimpleParseUUT.SUBENUM_FIELD_NAME).value(subEnum.toString())
+        .key(SimpleParseUUT.SUBENUM_LIST_FIELD_NAME)
+        .array()
+        .extend(new ExtensibleJSONWriter.Extender() {
+              @Override
+              public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                for (SimpleParseUUT.SubenumUUT enumValue : subEnumList) {
+                  writer.value(enumValue.toString());
+                }
+              }
+            })
+        .endArray()
+        .endObject();
 
     String inputString = stringWriter.toString();
     JsonParser jp = new JsonFactory().createParser(inputString);
@@ -142,6 +157,8 @@ public class DeserializeTest {
         Lists.newArrayList(uut.integerQueueField));
     assertEquals(integerSet, uut.integerSetField);
     assertSame(subIntValue, uut.subobjectField.intField);
+    assertSame(subEnum, uut.subenumField);
+    assertEquals(subEnumList, uut.subenumFieldList);
   }
 
   @Test

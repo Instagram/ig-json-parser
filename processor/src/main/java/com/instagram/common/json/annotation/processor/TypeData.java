@@ -69,6 +69,11 @@ class TypeData {
   private String mParsableType;
 
   /**
+   * If this is an enum, the name of this field's enum.
+   */
+  private String mEnumType;
+
+  /**
    * If this is a parsable object, the name of this field's parser class.
    */
   private String mParsableTypeParserClass;
@@ -159,5 +164,13 @@ class TypeData {
 
   void setParsableTypeParserClass(String parsableTypeParserClass) {
     mParsableTypeParserClass = parsableTypeParserClass;
+  }
+
+  String getEnumType() {
+    return mEnumType;
+  }
+
+  void setEnumType(String enumType) {
+    mEnumType = enumType;
   }
 }

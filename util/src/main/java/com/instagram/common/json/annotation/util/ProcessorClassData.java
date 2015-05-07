@@ -6,12 +6,13 @@ import javax.annotation.processing.Messager;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * The basic construct to hold the annotation data gathered about a class.  Data records are indexed
- * by a key.  {@link ProcessorClassData} manages the set of data records, though creation of a
- * record is delegated to a factory.
+ * The basic construct to hold the annotation data gathered about a class.  Data records are stored
+ * in the same order that records are appearing in the class declaration. {@link ProcessorClassData}
+ * manages the set of data records, though creation of a record is delegated to a factory.
  *
  * When the gathering phase is complete, a class injector is asked to produce java source code to be
  * written out.
@@ -59,7 +60,7 @@ abstract public class ProcessorClassData<AnnotationKeyType, AnnotationRecordType
     mSimpleClassName = simpleClassName;
     mInjectedClassName = injectedClassName;
     mFactory = factory;
-    mData = new HashMap<AnnotationKeyType, AnnotationRecordType>();
+    mData = new LinkedHashMap<AnnotationKeyType, AnnotationRecordType>();
   }
 
   /**

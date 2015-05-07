@@ -12,6 +12,8 @@ import com.instagram.common.json.annotation.JsonType;
 
 /**
  * Simple UUT for testing the most basic functionality.
+ * The fields are serialized in the same order that they are appearing in the class declaration.
+ * SerializeTest.FIELD_DECLARATION_ORDER should be updated when adding any new field to this class.
  */
 @JsonType
 public class SimpleParseUUT {
@@ -25,6 +27,8 @@ public class SimpleParseUUT {
   public static final String INTEGER_QUEUE_FIELD_NAME = "IntegerQueue";
   public static final String INTEGER_SET_FIELD_NAME = "IntegerSet";
   public static final String SUBOBJECT_FIELD_NAME = "Subobject";
+  public static final String SUBENUM_FIELD_NAME = "Subenum";
+  public static final String SUBENUM_LIST_FIELD_NAME = "SubenumList";
 
   @JsonField(fieldName = INT_FIELD_NAME)
   public int intField;
@@ -56,6 +60,20 @@ public class SimpleParseUUT {
   @JsonField(fieldName = SUBOBJECT_FIELD_NAME)
   public SubobjectParseUUT subobjectField;
 
+  @JsonField(fieldName = SUBENUM_FIELD_NAME,
+      valueExtractFormatter = "SimpleParseUUT.SubenumUUT.valueOf(${parser_object}.getText())",
+      serializeCodeFormatter = "${generator_object}.writeStringField(\"${json_fieldname}\", " +
+          "${object_varname}.${field_varname}.toString())"
+  )
+  public SubenumUUT subenumField;
+
+  @JsonField(fieldName = SUBENUM_LIST_FIELD_NAME,
+      valueExtractFormatter = "SimpleParseUUT.SubenumUUT.valueOf(${parser_object}.getText())",
+      serializeCodeFormatter = "${generator_object}.writeString(element.toString())",
+      fieldAssignmentFormatter = "${object_varname}.${field_varname} = " +
+          "new ArrayList<SimpleParseUUT.SubenumUUT>(${extracted_value})")
+  public List<SubenumUUT> subenumFieldList;
+
   /**
    * UUT for embedding a subobject.
    */
@@ -65,5 +83,12 @@ public class SimpleParseUUT {
 
     @JsonField(fieldName = INT_FIELD_NAME)
     public int intField;
+  }
+
+  /**
+   * UUT for embedding a subenum.
+   */
+  public enum SubenumUUT {
+    A, B
   }
 }

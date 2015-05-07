@@ -83,6 +83,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
+    Console.reportErrors(env, processingEnv.getMessager());
+
     try {
       // each round of processing requires a clean state.
       mState = new State();
@@ -276,6 +278,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
             "%s: enums must have both value extract formatters and serialize code formatters",
             enclosingElement);
       }
+      data.setEnumType(type.toString());
     }
   }
 
@@ -294,10 +297,13 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     Annotation annotation = enclosingElement.getAnnotation(JsonType.class);
     if (annotation == null) {
-      error(enclosingElement,
+      error(
+          enclosingElement,
           "@%s field may only be contained in classes annotated with @%s (%s.%s)",
-          annotationClass.getSimpleName(), JsonField.class.toString(),
-          enclosingElement.getQualifiedName(), element.getSimpleName());
+          annotationClass.getSimpleName(),
+          JsonType.class.toString(),
+          enclosingElement.getQualifiedName(),
+          element.getSimpleName());
       return false;
     }
 
