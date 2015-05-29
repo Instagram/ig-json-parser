@@ -43,6 +43,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   private final boolean mPostprocessingEnabled;
   private final String mValueExtractFormatter;
   private final String mParentInjectedClassName;
+  private final boolean mUseGetters;
 
   public JsonParserClassData(
       String classPackage,
@@ -53,12 +54,14 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       boolean abstractClass,
       boolean postprocessingEnabled,
       String valueExtractFormatter,
-      String parentInjectedClassName) {
+      String parentInjectedClassName,
+      boolean useGetters) {
     super(classPackage, qualifiedClassName, simpleClassName, injectedClassName, factory);
     mAbstractClass = abstractClass;
     mPostprocessingEnabled = postprocessingEnabled;
     mValueExtractFormatter = valueExtractFormatter;
     mParentInjectedClassName = parentInjectedClassName;
+    mUseGetters = useGetters;
   }
 
   @Override
@@ -483,6 +486,10 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
    */
   private void writeSerializeCalls(Messager messager, JavaWriter writer) throws IOException {
     for (Map.Entry<String, TypeData> entry : getIterator()) {
+      String member = entry.getKey();
+      if (mUseGetters) {
+        member = getGetterName(member);
+      }
       TypeData data = entry.getValue();
       String serializeCode = data.getSerializeCodeFormatter();
 
@@ -502,12 +509,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
           String listType = getJavaType(messager, entry.getValue());
           writer
-              .beginControlFlow("if (object." + entry.getKey() + " != null)")
+              .beginControlFlow("if (object." + member + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", data.getFieldName())
               .emitStatement("generator.writeStartArray()")
               .beginControlFlow("for (" + listType +
                   " element : (" + interfaceType + "<" + listType + ">)" +
-                  "object." + entry.getKey() + ")")
+                  "object." + member + ")")
               .beginControlFlow("if (element != null)")
               .emitStatement(StrFormat.createStringFormatter(serializeCode)
                   .addParam("generator_object", "generator")
@@ -540,11 +547,11 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           }
 
           writer
-              .beginControlFlow("if (object." + entry.getKey() + " != null)")
+              .beginControlFlow("if (object." + member + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", valueTypeData.getFieldName())
               .emitStatement("generator.writeStartObject()")
               .beginControlFlow("for (Map.Entry<" + keyType + ", " + valueType + "> entry : " +
-                  "object." + entry.getKey() + ".entrySet())")
+                  "object." + member + ".entrySet())")
               .emitStatement("generator.writeFieldName(entry.getKey().toString())")
               .beginControlFlow("if (entry.getValue() == null)")
               .emitStatement("generator.writeNull()")
@@ -569,13 +576,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
             serializeCode = PARSABLE_OBJECT_SERIALIZE_CALL;
           }
           writer
-              .beginControlFlow("if (object." + entry.getKey() + " != null)")
+              .beginControlFlow("if (object." + member + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", data.getFieldName())
               .emitStatement(
                   StrFormat.createStringFormatter(serializeCode)
                       .addParam("generator_object", "generator")
                       .addParam("object_varname", "object")
-                      .addParam("field_varname", entry.getKey())
+                      .addParam("field_varname", member)
                       .addParam("subobject_helper_class",
                           data.getParsableTypeParserClass() +
                               JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
@@ -590,7 +597,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               StrFormat.createStringFormatter(serializeCode)
                   .addParam("generator_object", "generator")
                   .addParam("object_varname", "object")
-                  .addParam("field_varname", entry.getKey())
+                  .addParam("field_varname", member)
                   .addParam("json_fieldname", data.getFieldName())
                   .format();
 
@@ -605,13 +612,17 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
             default:
               writer
-                  .beginControlFlow("if (object." + entry.getKey() + " != null)")
+                  .beginControlFlow("if (object." + member + " != null)")
                   .emitStatement(statement)
                   .endControlFlow();
           }
         }
       }
     }
+  }
+
+  private static String getGetterName(String fieldName) {
+    return "get" + String.valueOf(fieldName.charAt(0)).toUpperCase() + fieldName.substring(1) + "()";
   }
 
   /**

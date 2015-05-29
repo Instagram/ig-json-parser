@@ -48,4 +48,10 @@ public @interface JsonType {
    * @return A value extract formatter
    */
   String valueExtractFormatter() default DEFAULT_VALUE_EXTRACT_FORMATTER;
+
+  /**
+   * This annotation specifies that during the serialization the getters will be used for getting field value rather than reading the field
+   * value directly. The getters should be named as standard JavaBean getters, namely prefixed with 'get' and camel-cased field name.
+   */
+  boolean useGetters() default false;
 }

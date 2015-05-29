@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import com.instagram.common.json.annotation.processor.uut.GetterUUT;
+import com.instagram.common.json.annotation.processor.uut.GetterUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.EnumUUT;
 import com.instagram.common.json.annotation.processor.uut.EnumUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.MapUUT;
@@ -332,5 +334,22 @@ public class SerializeTest {
       assertTrue(inputString.indexOf("\"" + FIELD_DECLARATION_ORDER[i] + "\"")
               < inputString.indexOf("\"" + FIELD_DECLARATION_ORDER[i + 1] + "\""));
     }
+  }
+
+  @Test
+  public void serializeWithGetterTest() throws IOException {
+    GetterUUT source = new GetterUUT();
+    source.intField = 5;
+
+    StringWriter stringWriter = new StringWriter();
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+
+    GetterUUT__JsonHelper.serializeToJson(jsonGenerator, source, true);
+    jsonGenerator.close();
+
+    String inputString = stringWriter.toString();
+    GetterUUT parsed = GetterUUT__JsonHelper.parseFromJson(inputString);
+
+    assertEquals(10, parsed.intField);
   }
 }
