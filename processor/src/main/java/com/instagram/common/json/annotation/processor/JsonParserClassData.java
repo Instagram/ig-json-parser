@@ -40,10 +40,8 @@ import static javax.lang.model.element.Modifier.*;
 public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
   private final boolean mAbstractClass;
-  private final boolean mPostprocessingEnabled;
-  private final String mValueExtractFormatter;
   private final String mParentInjectedClassName;
-  private final boolean mUseGetters;
+  private final JsonType mAnnotation;
 
   public JsonParserClassData(
       String classPackage,
@@ -52,16 +50,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       String injectedClassName,
       AnnotationRecordFactory<String, TypeData> factory,
       boolean abstractClass,
-      boolean postprocessingEnabled,
-      String valueExtractFormatter,
       String parentInjectedClassName,
-      boolean useGetters) {
+      JsonType annotation) {
     super(classPackage, qualifiedClassName, simpleClassName, injectedClassName, factory);
     mAbstractClass = abstractClass;
-    mPostprocessingEnabled = postprocessingEnabled;
-    mValueExtractFormatter = valueExtractFormatter;
     mParentInjectedClassName = parentInjectedClassName;
-    mUseGetters = useGetters;
+    mAnnotation = annotation;
   }
 
   @Override
@@ -114,7 +108,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       writer.beginType(mInjectedClassName, "class", EnumSet.of(PUBLIC, FINAL));
       writer.emitEmptyLine();
 
-      String returnValue = mPostprocessingEnabled ?
+      String returnValue = mAnnotation.postprocessingEnabled() ?
           ("instance." + JsonType.POSTPROCESSING_METHOD_NAME + "()") : "instance";
 
       if (!mAbstractClass) {
@@ -487,7 +481,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   private void writeSerializeCalls(Messager messager, JavaWriter writer) throws IOException {
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       String member = entry.getKey();
-      if (mUseGetters) {
+      if (mAnnotation.useGetters()) {
         member = getGetterName(member);
       }
       TypeData data = entry.getValue();
@@ -718,7 +712,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   }
 
   private Modifier getParseMethodVisibility() {
-    return JsonType.DEFAULT_VALUE_EXTRACT_FORMATTER.equals(mValueExtractFormatter) ?
+    return JsonType.DEFAULT_VALUE_EXTRACT_FORMATTER.equals(mAnnotation.valueExtractFormatter()) ?
         PUBLIC :
         PROTECTED;
   }

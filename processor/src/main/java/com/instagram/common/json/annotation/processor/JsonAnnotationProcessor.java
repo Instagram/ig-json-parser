@@ -193,10 +193,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
             }
           },
           abstractClass,
-          annotation.postprocessingEnabled(),
-          annotation.valueExtractFormatter(),
           parentGeneratedClassName,
-          annotation.useGetters());
+          annotation);
       mState.mClassElementToInjectorMap.put(typeElement, injector);
     }
   }
