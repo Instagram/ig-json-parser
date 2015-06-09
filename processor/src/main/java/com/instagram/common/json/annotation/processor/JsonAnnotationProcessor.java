@@ -290,9 +290,9 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
       if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter()) ||
-          StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter())) {
+          (injector.generateSerializer() && StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter()))) {
         error(element,
-            "%s: enums must have both value extract formatters and serialize code formatters",
+            "%s: enums must have a value extract formatter, and a serialize code formatter if serialization generation is enabled",
             enclosingElement);
       }
       data.setEnumType(type.toString());

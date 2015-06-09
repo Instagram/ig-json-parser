@@ -61,6 +61,10 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     mAnnotation = annotation;
   }
 
+  public boolean generateSerializer() {
+    return mGenerateSerializer;
+  }
+
   @Override
   public String getJavaCode(final Messager messager) {
     StringWriter sw = new StringWriter();
