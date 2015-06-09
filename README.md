@@ -117,3 +117,13 @@ Customized parsing code
 TODO: Document this.  See the documentation in
 common/src/main/java/com/instagram/common/json/annotation/JsonField.java
 in the meanwhile.
+
+Optional serializer generation
+------------------------------
+To save generating serializer code if you only need deserialization, serializer generation can be disabled or enabled
+globally and per-class. The default is to generate serializers for all classes. To disable generation globally, pass
+
+    -AgenerateSerializer=false
+
+to the command-line arguments of javac. To override the default generation option for a single class, see
+`JsonType.generateSerializer()`.

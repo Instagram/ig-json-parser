@@ -7,6 +7,7 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -41,12 +42,16 @@ import static javax.lang.model.element.Modifier.*;
  * This annotation processor is run at compile time to find classes annotated with {@link JsonType}.
  * Deserializers are generated for such classes.
  */
+@SupportedOptions({"generateSerializers"})
 public class JsonAnnotationProcessor extends AbstractProcessor {
   private Messager mMessager;
   private Elements mElements;
   private Types mTypes;
   private Filer mFiler;
   private TypeUtils mTypeUtils;
+
+  private boolean mGenerateSerializers;
+
   private static class State {
     private Map<TypeElement, JsonParserClassData> mClassElementToInjectorMap;
 
@@ -65,6 +70,13 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     mTypes = env.getTypeUtils();
     mFiler = env.getFiler();
     mTypeUtils = new TypeUtils(mTypes, mMessager);
+
+    Map<String, String> options = env.getOptions();
+    mGenerateSerializers = toBooleanDefaultTrue(options.get("generateSerializers"));
+  }
+
+  private boolean toBooleanDefaultTrue(String value) {
+    return value == null || !value.equalsIgnoreCase("false");
   }
 
   @Override
@@ -178,6 +190,11 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
         superclass = superclassElement.getSuperclass();
       }
 
+
+      boolean generateSerializer = annotation.generateSerializer() == JsonType.TriState.DEFAULT ?
+              mGenerateSerializers :
+              annotation.generateSerializer() == JsonType.TriState.YES;
+
       String packageName = mTypeUtils.getPackageName(mElements, typeElement);
       injector = new JsonParserClassData(
           packageName,
@@ -193,6 +210,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
             }
           },
           abstractClass,
+          generateSerializer,
           parentGeneratedClassName,
           annotation);
       mState.mClassElementToInjectorMap.put(typeElement, injector);

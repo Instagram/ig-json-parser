@@ -17,4 +17,5 @@ dependencies {
   testCompile project(':processor:support')
   testCompile project(':processor:testuut')
   testCompile project(':processor:testuut:dependent')
+  testCompile project(':processor:testuut:noserializers')
 }

@@ -40,6 +40,7 @@ import static javax.lang.model.element.Modifier.*;
 public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
   private final boolean mAbstractClass;
+  private final boolean mGenerateSerializer;
   private final String mParentInjectedClassName;
   private final JsonType mAnnotation;
 
@@ -50,10 +51,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       String injectedClassName,
       AnnotationRecordFactory<String, TypeData> factory,
       boolean abstractClass,
+      boolean generateSerializer,
       String parentInjectedClassName,
       JsonType annotation) {
     super(classPackage, qualifiedClassName, simpleClassName, injectedClassName, factory);
     mAbstractClass = abstractClass;
+    mGenerateSerializer = generateSerializer;
     mParentInjectedClassName = parentInjectedClassName;
     mAnnotation = annotation;
   }
@@ -184,39 +187,41 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
             .emitEmptyLine();
       }
 
-      writer
-          .beginMethod(
-              "void",
-              "serializeToJson",
-              EnumSet.of(PUBLIC, STATIC),
-              Arrays.asList("JsonGenerator", "generator",
-                  mSimpleClassName, "object",
-                  "boolean", "writeStartAndEnd"),
-              Arrays.asList("IOException"))
-          .beginControlFlow("if (writeStartAndEnd)")
-          .emitStatement("generator.writeStartObject()")
-          .endControlFlow()
-          .emitWithGenerator(
-              new JavaWriter.JavaGenerator() {
-                @Override
-                public void emitJava(JavaWriter writer) throws IOException {
-                  JsonParserClassData.this.writeSerializeCalls(messager, writer);
+      if (mGenerateSerializer) {
+          writer
+              .beginMethod(
+                  "void",
+                  "serializeToJson",
+                  EnumSet.of(PUBLIC, STATIC),
+                  Arrays.asList("JsonGenerator", "generator",
+                      mSimpleClassName, "object",
+                      "boolean", "writeStartAndEnd"),
+                  Arrays.asList("IOException"))
+              .beginControlFlow("if (writeStartAndEnd)")
+              .emitStatement("generator.writeStartObject()")
+              .endControlFlow()
+              .emitWithGenerator(
+                  new JavaWriter.JavaGenerator() {
+                    @Override
+                    public void emitJava(JavaWriter writer) throws IOException {
+                      JsonParserClassData.this.writeSerializeCalls(messager, writer);
 
-                  // if we have a superclass, we need to call its serialize method.
-                  if (mParentInjectedClassName != null) {
-                    writer.emitStatement(mParentInjectedClassName +
-                        ".serializeToJson(generator, object, false)");
-                  }
+                      // if we have a superclass, we need to call its serialize method.
+                      if (mParentInjectedClassName != null) {
+                        writer.emitStatement(mParentInjectedClassName +
+                            ".serializeToJson(generator, object, false)");
+                      }
 
-                }
-              })
-          .beginControlFlow("if (writeStartAndEnd)")
-          .emitStatement("generator.writeEndObject()")
-          .endControlFlow()
-          .endMethod()
-          .emitEmptyLine();
+                    }
+                  })
+              .beginControlFlow("if (writeStartAndEnd)")
+              .emitStatement("generator.writeEndObject()")
+              .endControlFlow()
+              .endMethod()
+              .emitEmptyLine();
+      }
 
-      if (!mAbstractClass) {
+      if (mGenerateSerializer && !mAbstractClass) {
         writer
             .beginMethod(
                 "String",
