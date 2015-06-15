@@ -19,6 +19,12 @@ public @interface JsonType {
   public static final String DEFAULT_VALUE_EXTRACT_FORMATTER =
       "${subobject_helper_class}.parseFromJson(${parser_object})";
 
+  enum TriState {
+    DEFAULT,
+    YES,
+    NO;
+  }
+
   /**
    * This annotation specifies that a method with the name specified by
    * {@link #POSTPROCESSING_METHOD_NAME} (currently "postprocess") on the class that is being
@@ -48,6 +54,13 @@ public @interface JsonType {
    * @return A value extract formatter
    */
   String valueExtractFormatter() default DEFAULT_VALUE_EXTRACT_FORMATTER;
+
+  /**
+   * If set to YES, or NO, will override the global option for generating serializer methods.
+   * Preventing generation of serializer methods when you don't use them may help save on binary size of
+   * the generated code.
+   */
+  TriState generateSerializer() default TriState.DEFAULT;
 
   /**
    * This annotation specifies that during the serialization the getters will be used for getting field value rather than reading the field
