@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import com.instagram.common.json.JsonHelper;
 import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT__JsonHelper;
@@ -145,6 +146,7 @@ public class DeserializeTest {
     jp.nextToken();
     SimpleParseUUT uut = SimpleParseUUT__JsonHelper.parseFromJson(jp);
 
+    assertTrue(new SimpleParseUUT__JsonHelper() instanceof JsonHelper);
     assertSame(intValue, uut.intField);
     assertSame(integerValue, uut.integerField.intValue());
     assertEquals(Float.valueOf(floatValue), Float.valueOf(uut.floatField));
