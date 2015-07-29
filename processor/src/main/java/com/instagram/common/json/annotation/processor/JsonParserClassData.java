@@ -20,6 +20,7 @@ import java.util.Set;
 
 import com.instagram.common.json.JsonAnnotationProcessorConstants;
 import com.instagram.common.json.JsonFactoryHolder;
+import com.instagram.common.json.JsonHelper;
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
 import com.instagram.common.json.annotation.util.Console;
@@ -87,7 +88,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           JsonGenerator.class,
           JsonParser.class,
           JsonToken.class,
-          JsonFactoryHolder.class);
+          JsonFactoryHolder.class,
+          JsonHelper.class);
 
       // Generate the set of imports from the parsable objects referenced.
       Set<String> typeImports = new HashSet<String>();
@@ -112,7 +114,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       writer.emitImports(typeImports);
       writer.emitEmptyLine();
 
-      writer.beginType(mInjectedClassName, "class", EnumSet.of(PUBLIC, FINAL));
+      writer.beginType(
+          mInjectedClassName,
+          "class",
+          EnumSet.of(PUBLIC, FINAL),
+          null,
+          "JsonHelper<" + mSimpleClassName + ">");
       writer.emitEmptyLine();
 
       String returnValue = mAnnotation.postprocessingEnabled() ?
