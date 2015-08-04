@@ -264,6 +264,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       data.setParsableType(mTypeUtils.getClassName(typeElement, packageName));
       data.setParsableTypeParserClass(
           mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName));
+      data.setEnclosingClassName(mTypeUtils.getEnclosingClassName(typeElement, packageName));
 
       if (StringUtil.isNullOrEmpty(data.getValueExtractFormatter())) {
         // Use the parsable object's value extract formatter
