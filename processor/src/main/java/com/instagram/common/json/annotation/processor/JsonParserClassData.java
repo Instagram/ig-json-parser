@@ -97,6 +97,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                 typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
                     JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
           }
+          if (typeData.getEnclosingClassName() != null) {
+            typeImports.add(typeData.getPackageName() + "." + typeData.getEnclosingClassName());
+          }
         } else if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
             !typeData.getPackageName().equals(mClassPackage)) {
           typeImports.add(

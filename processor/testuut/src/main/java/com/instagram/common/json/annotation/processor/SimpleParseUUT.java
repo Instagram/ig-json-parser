@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
+import uutsubpackage.SubpackageObjectUUT;
 
 /**
  * Simple UUT for testing the most basic functionality.
@@ -27,6 +28,7 @@ public class SimpleParseUUT {
   public static final String INTEGER_QUEUE_FIELD_NAME = "IntegerQueue";
   public static final String INTEGER_SET_FIELD_NAME = "IntegerSet";
   public static final String SUBOBJECT_FIELD_NAME = "Subobject";
+  public static final String SUBPACKAGEOBJECT_FIELD_NAME = "Subpackgeobject";
   public static final String SUBENUM_FIELD_NAME = "Subenum";
   public static final String SUBENUM_LIST_FIELD_NAME = "SubenumList";
 
@@ -59,6 +61,9 @@ public class SimpleParseUUT {
 
   @JsonField(fieldName = SUBOBJECT_FIELD_NAME)
   public SubobjectParseUUT subobjectField;
+
+  @JsonField(fieldName = SUBPACKAGEOBJECT_FIELD_NAME)
+  public SubpackageObjectUUT.SubpackageSubobjectUUT subpackageobjectField;
 
   @JsonField(fieldName = SUBENUM_FIELD_NAME,
       valueExtractFormatter = "SimpleParseUUT.SubenumUUT.valueOf(${parser_object}.getText())",

@@ -74,6 +74,11 @@ class TypeData {
   private String mEnumType;
 
   /**
+   * If this is an inner class, the name of the enclosing class.
+   */
+  private String mEnclosingClassName;
+
+  /**
    * If this is a parsable object, the name of this field's parser class.
    */
   private String mParsableTypeParserClass;
@@ -172,5 +177,13 @@ class TypeData {
 
   void setEnumType(String enumType) {
     mEnumType = enumType;
+  }
+
+  String getEnclosingClassName() {
+    return mEnclosingClassName;
+  }
+
+  void setEnclosingClassName(String enclosingClassName) {
+    mEnclosingClassName = enclosingClassName;
   }
 }

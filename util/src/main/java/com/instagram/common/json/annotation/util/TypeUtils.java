@@ -201,6 +201,17 @@ public class TypeUtils {
   }
 
   /**
+   * This returns the first enclosing class name of the type as one would use to reference in code.
+   * If the class name is X.Y.Z in case of inner classes, this method returns X.
+   * If there's no enclosing class, returns null
+   */
+  public String getEnclosingClassName(TypeElement type, String packageName) {
+    String className = getClassName(type, packageName);
+    int enclosingIndex = className.indexOf('.');
+    return enclosingIndex == -1 ? null : className.substring(0, enclosingIndex);
+  }
+
+  /**
    * This returns the prefix used to refer to the generated class.  This is different because we
    * generate individual source files for each inner class.  For instance, if we have class X with
    * inner classes Y and Z, then we generate three source files.
