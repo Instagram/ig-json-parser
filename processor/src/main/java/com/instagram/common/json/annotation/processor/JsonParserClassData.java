@@ -505,8 +505,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
           String listType = getJavaType(messager, entry.getValue());
           writer
-              .beginControlFlow("if (object." + entry.getKey() + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", data.getFieldName())
+              .beginControlFlow("if (object." + entry.getKey() + " != null)")
               .emitStatement("generator.writeStartArray()")
               .beginControlFlow("for (" + listType +
                   " element : (" + interfaceType + "<" + listType + ">)" +
@@ -523,6 +523,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               .endControlFlow()
               .endControlFlow()
               .emitStatement("generator.writeEndArray()")
+              .endControlFlow()
+              .beginControlFlow("else")
+              .emitStatement("generator.writeNull()")
               .endControlFlow();
         } else {
           // map type
