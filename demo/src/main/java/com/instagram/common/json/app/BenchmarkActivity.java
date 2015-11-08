@@ -22,8 +22,6 @@ import com.instagram.common.json.app.ommodel.OmListOfModels;
 import com.instagram.common.json.app.ommodel.OmModelRequest;
 import com.instagram.common.json.app.ommodel.OmModelWorker;
 
-import com.google.common.io.Closeables;
-
 public class BenchmarkActivity extends Activity {
   private String mJsonString;
 
@@ -116,7 +114,7 @@ public class BenchmarkActivity extends Activity {
     return sb.toString();
   }
 
-  String loadFromFile(int resourceId) throws IOException {
+  private String loadFromFile(int resourceId) throws IOException {
     InputStreamReader inputStreamReader = null;
 
     try {
@@ -136,7 +134,13 @@ public class BenchmarkActivity extends Activity {
 
       return sb.toString();
     } finally {
-      Closeables.closeQuietly(inputStreamReader);
+      try {
+        if (inputStreamReader != null) {
+          inputStreamReader.close();
+        }
+      } catch (IOException ignored) {
+        //ignored
+      }
     }
   }
 

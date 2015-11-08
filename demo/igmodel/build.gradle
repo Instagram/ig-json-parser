@@ -1,38 +1,25 @@
-apply plugin: 'java'
+apply plugin: 'com.android.library'
+apply plugin: 'com.neenbedankt.android-apt'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
-ext {
-  generatedSourcesDir = file("gen-src/main/java")
-}
-
-sourceSets {
-  main {
-    java {
-      srcDir 'src/main/java'
-    }
-  }
-  gensrc {
-    java {
-      srcDir 'gen-src/main/java'
-    }
-  }
-}
-
-compileJava {
-  doFirst {
-    // Directory should exists before compilation started.
-    generatedSourcesDir.mkdirs()
-  }
-  options.compilerArgs += [
-                       '-processor',
-                       'com.instagram.common.json.annotation.processor.JsonAnnotationProcessor',
-                       '-s',
-                       generatedSourcesDir
-  ]
-}
 dependencies {
+  apt project(':processor')
   compile project(':common')
-  compile project(':processor')
+}
+
+android {
+  compileSdkVersion 23
+  buildToolsVersion "23.0.1"
+  sourceCompatibility = 1.7
+  targetCompatibility = 1.7
+
+  sourceSets {
+    main {
+      manifest {
+        srcFile "AndroidManifest.xml"
+      }
+      java {
+        srcDir 'src/main/java'
+      }
+    }
+  }
 }
