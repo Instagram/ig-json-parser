@@ -15,27 +15,27 @@ Maven
 -----
 
 To use this library, add this to your build.gradle file:
+```groovy
+ext {
+  generatedSourcesDir = file("gen-src/main/java")
+}
 
-    ext {
-      generatedSourcesDir = file("gen-src/main/java")
+repositories {
+  mavenCentral()
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir 'src/main/java'
     }
+  }
+}
 
-    repositories {
-      mavenCentral()
-    }
-
-    sourceSets {
-      main {
-        java {
-          srcDir 'src/main/java'
-        }
-      }
-    }
-
-    dependencies {
-      compile group: 'com.instagram', name: 'ig-json-parser-processor', version: '0.0.6+'
-    }
-
+dependencies {
+  compile group: 'com.instagram', name: 'ig-json-parser-processor', version: '0.0.6+'
+}
+```
 
 Requirements for model classes
 ------------------------------
@@ -50,16 +50,16 @@ has one mandatory argument, which is the fieldname for the field in the
 JSON.
 
 The following is an example of a very simple model class:
+```java
+@JsonType
+class Dessert {
+  @JsonField(fieldName="type")
+  String type;
 
-    @JsonType
-    class Dessert {
-      @JsonField(fieldName="type")
-      String type;
-
-      @JsonField(fieldName="rating")
-      float rating;
-    }
-
+  @JsonField(fieldName="rating")
+  float rating;
+}
+```
 
 Serializer/deserializer
 -----------------------
@@ -70,12 +70,14 @@ class with the same name as your class, except with the suffix
 `__JsonHelper`.  For example, to deserialize the `Dessert` class above,
 simply run the code:
 
-    Dessert parsed = Dessert__JsonHelper.parseFromJson(inputJsonString);
-
+```java
+Dessert parsed = Dessert__JsonHelper.parseFromJson(inputJsonString);
+```
 To serialize a class, run:
 
-    String serialized = Dessert__JsonHelper.serializeToJson(dessertObject);
-
+```java
+String serialized = Dessert__JsonHelper.serializeToJson(dessertObject);
+```
 
 Supported data types
 --------------------
@@ -97,9 +99,10 @@ Proguard
 ===============
 
 Add the following lines to your proguard-rules file:
-
-    -dontwarn sun.misc.Unsafe
-    -dontwarn javax.annotation.**
+```
+-dontwarn sun.misc.Unsafe
+-dontwarn javax.annotation.**
+```
 
 Advanced features
 =================
