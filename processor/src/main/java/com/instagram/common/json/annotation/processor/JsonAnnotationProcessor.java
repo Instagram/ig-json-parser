@@ -23,7 +23,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -56,7 +56,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     private Map<TypeElement, JsonParserClassData> mClassElementToInjectorMap;
 
     State() {
-      mClassElementToInjectorMap = new HashMap<TypeElement, JsonParserClassData>();
+      mClassElementToInjectorMap = new LinkedHashMap<>();
     }
   }
   private State mState;
