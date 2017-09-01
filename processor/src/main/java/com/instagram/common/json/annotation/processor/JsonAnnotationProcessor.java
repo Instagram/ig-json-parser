@@ -109,7 +109,10 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       mState = new State();
 
       gatherClassAnnotations(env);
-      gatherFieldAnnotations(env);
+      if (!mOmitSomeMethodBodies) {
+        // Field annotations are only needed if we're generating method bodies.
+        gatherFieldAnnotations(env);
+      }
 
       for (Map.Entry<TypeElement, JsonParserClassData> entry :
           mState.mClassElementToInjectorMap.entrySet()) {
@@ -180,21 +183,24 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
       String parentGeneratedClassName = null;
 
-      TypeMirror superclass = typeElement.getSuperclass();
-      // walk up the superclass hierarchy until we find another class we know about.
-      while (superclass.getKind() != TypeKind.NONE) {
-        TypeElement superclassElement = (TypeElement) mTypes.asElement(superclass);
+      if (!mOmitSomeMethodBodies) {
+        // Superclass info is only needed if we're generating method bodies.
+        TypeMirror superclass = typeElement.getSuperclass();
+        // walk up the superclass hierarchy until we find another class we know about.
+        while (superclass.getKind() != TypeKind.NONE) {
+          TypeElement superclassElement = (TypeElement) mTypes.asElement(superclass);
 
-        if (superclassElement.getAnnotation(JsonType.class) != null) {
-          String superclassPackageName = mTypeUtils.getPackageName(mElements, superclassElement);
-          parentGeneratedClassName = superclassPackageName + "." +
-              mTypeUtils.getPrefixForGeneratedClass(superclassElement, superclassPackageName) +
-              JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX;
+          if (superclassElement.getAnnotation(JsonType.class) != null) {
+            String superclassPackageName = mTypeUtils.getPackageName(mElements, superclassElement);
+            parentGeneratedClassName = superclassPackageName + "." +
+                mTypeUtils.getPrefixForGeneratedClass(superclassElement, superclassPackageName) +
+                JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX;
 
-          break;
+            break;
+          }
+
+          superclass = superclassElement.getSuperclass();
         }
-
-        superclass = superclassElement.getSuperclass();
       }
 
 
