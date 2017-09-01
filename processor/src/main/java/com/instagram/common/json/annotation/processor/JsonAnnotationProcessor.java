@@ -51,6 +51,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
   private TypeUtils mTypeUtils;
 
   private boolean mGenerateSerializers;
+  private boolean mOmitSomeMethodBodies;
 
   private static class State {
     private Map<TypeElement, JsonParserClassData> mClassElementToInjectorMap;
@@ -73,10 +74,16 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     Map<String, String> options = env.getOptions();
     mGenerateSerializers = toBooleanDefaultTrue(options.get("generateSerializers"));
+    mOmitSomeMethodBodies = toBooleanDefaultFalse(options.get(
+        "com.facebook.buck.java.generating_abi"));
   }
 
   private boolean toBooleanDefaultTrue(String value) {
     return value == null || !value.equalsIgnoreCase("false");
+  }
+
+  private boolean toBooleanDefaultFalse(String value) {
+    return value != null && value.equalsIgnoreCase("true");
   }
 
   @Override
@@ -211,6 +218,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
           },
           abstractClass,
           generateSerializer,
+          mOmitSomeMethodBodies,
           parentGeneratedClassName,
           annotation);
       mState.mClassElementToInjectorMap.put(typeElement, injector);
