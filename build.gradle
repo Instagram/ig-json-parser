@@ -3,6 +3,10 @@ buildscript {
 
 apply plugin: 'groovy'
 
+task wrapper(type: Wrapper) {
+       gradleVersion = '3.3' //version required
+}
+
 subprojects {
   repositories {
     mavenCentral()
