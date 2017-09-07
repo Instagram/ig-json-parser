@@ -2,10 +2,11 @@ language: android
 
 android:
   components:
-    - build-tools-23.0.1
+    - build-tools-25.0.0
+    - android-25
     - android-23
   licenses:
-    - android-sdk-license-5be876d5
+    - 'android-sdk-license-.+'
 
 before_script:
     - ./gradlew assemble
@@ -14,4 +15,4 @@ script:
     - ./gradlew check
 
 jdk:
-  - oraclejdk7
+  - oraclejdk8

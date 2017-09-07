@@ -3,3 +3,5 @@
 build
 gen-src
 *.iml
+local.properties
+*.DS_Store

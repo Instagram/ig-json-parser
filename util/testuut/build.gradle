@@ -6,7 +6,8 @@ compileJava {
                        'com.instagram.common.json.annotation.util.TestAnnotationProcessor'
   ]
 }
+
 dependencies {
   compile group: 'com.google.guava', name: 'guava', version: '12.0.1+'
-  compile project(':util:testprocessor')
+  compileOnly project(':util:testprocessor')
 }
