@@ -51,6 +51,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
   private TypeUtils mTypeUtils;
 
   private boolean mGenerateSerializers;
+  private boolean mOmitSomeMethodBodies;
 
   private static class State {
     private Map<TypeElement, JsonParserClassData> mClassElementToInjectorMap;
@@ -73,10 +74,16 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     Map<String, String> options = env.getOptions();
     mGenerateSerializers = toBooleanDefaultTrue(options.get("generateSerializers"));
+    mOmitSomeMethodBodies = toBooleanDefaultFalse(options.get(
+        "com.facebook.buck.java.generating_abi"));
   }
 
   private boolean toBooleanDefaultTrue(String value) {
     return value == null || !value.equalsIgnoreCase("false");
+  }
+
+  private boolean toBooleanDefaultFalse(String value) {
+    return value != null && value.equalsIgnoreCase("true");
   }
 
   @Override
@@ -102,7 +109,10 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       mState = new State();
 
       gatherClassAnnotations(env);
-      gatherFieldAnnotations(env);
+      if (!mOmitSomeMethodBodies) {
+        // Field annotations are only needed if we're generating method bodies.
+        gatherFieldAnnotations(env);
+      }
 
       for (Map.Entry<TypeElement, JsonParserClassData> entry :
           mState.mClassElementToInjectorMap.entrySet()) {
@@ -173,21 +183,24 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
       String parentGeneratedClassName = null;
 
-      TypeMirror superclass = typeElement.getSuperclass();
-      // walk up the superclass hierarchy until we find another class we know about.
-      while (superclass.getKind() != TypeKind.NONE) {
-        TypeElement superclassElement = (TypeElement) mTypes.asElement(superclass);
+      if (!mOmitSomeMethodBodies) {
+        // Superclass info is only needed if we're generating method bodies.
+        TypeMirror superclass = typeElement.getSuperclass();
+        // walk up the superclass hierarchy until we find another class we know about.
+        while (superclass.getKind() != TypeKind.NONE) {
+          TypeElement superclassElement = (TypeElement) mTypes.asElement(superclass);
 
-        if (superclassElement.getAnnotation(JsonType.class) != null) {
-          String superclassPackageName = mTypeUtils.getPackageName(mElements, superclassElement);
-          parentGeneratedClassName = superclassPackageName + "." +
-              mTypeUtils.getPrefixForGeneratedClass(superclassElement, superclassPackageName) +
-              JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX;
+          if (superclassElement.getAnnotation(JsonType.class) != null) {
+            String superclassPackageName = mTypeUtils.getPackageName(mElements, superclassElement);
+            parentGeneratedClassName = superclassPackageName + "." +
+                mTypeUtils.getPrefixForGeneratedClass(superclassElement, superclassPackageName) +
+                JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX;
 
-          break;
+            break;
+          }
+
+          superclass = superclassElement.getSuperclass();
         }
-
-        superclass = superclassElement.getSuperclass();
       }
 
 
@@ -211,6 +224,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
           },
           abstractClass,
           generateSerializer,
+          mOmitSomeMethodBodies,
           parentGeneratedClassName,
           annotation);
       mState.mClassElementToInjectorMap.put(typeElement, injector);

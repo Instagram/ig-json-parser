@@ -42,6 +42,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
   private final boolean mAbstractClass;
   private final boolean mGenerateSerializer;
+  private final boolean mOmitSomeMethodBodies;
   private final String mParentInjectedClassName;
   private final JsonType mAnnotation;
 
@@ -53,11 +54,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       AnnotationRecordFactory<String, TypeData> factory,
       boolean abstractClass,
       boolean generateSerializer,
+      boolean omitSomeMethodBodies,
       String parentInjectedClassName,
       JsonType annotation) {
     super(classPackage, qualifiedClassName, simpleClassName, injectedClassName, factory);
     mAbstractClass = abstractClass;
     mGenerateSerializer = generateSerializer;
+    mOmitSomeMethodBodies = omitSomeMethodBodies;
     mParentInjectedClassName = parentInjectedClassName;
     mAnnotation = annotation;
   }
@@ -268,6 +271,10 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
    * block from traversing the radix trie.
    */
   private void writeFields(Messager messager, JavaWriter writer) throws IOException {
+    if (mOmitSomeMethodBodies) {
+      return;
+    }
+
     boolean firstEntry = true;
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       TypeData data = entry.getValue();
@@ -495,6 +502,10 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
    * This writes the code to serialize this class to a JsonGenerator.
    */
   private void writeSerializeCalls(Messager messager, JavaWriter writer) throws IOException {
+    if (mOmitSomeMethodBodies) {
+      return;
+    }
+
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       String member = entry.getKey();
       if (mAnnotation.useGetters()) {
