@@ -1,7 +1,7 @@
 include 'javawriter'
 include 'util'
 include 'util:testprocessor'
-include 'util:testuut'
+include 'util:testuututil'
 include 'common'
 include 'processor'
 include 'processor:support'
