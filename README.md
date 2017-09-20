@@ -14,10 +14,10 @@ The easiest way to get started is to look at maven-example.  For more
 comprehensive examples, check out the unit tests or the demo.
 
 
-[JitPack](https://jitpack.io/#Instagram/ig-json-parser)
+Gradle
 -----
 
-To use this library, add this to your build.gradle file:
+For Java projects, to use this library, add this to your build.gradle file:
 ```groovy
 allprojects {
 	repositories {
@@ -32,6 +32,27 @@ dependencies {
   compile 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT' // the annotation processor 
 }
 ```
+
+For Android projects, you can use `apt` to include the annotation processor:
+
+```
+allprojects {
+	repositories {
+		maven { url 'https://jitpack.io' }
+	}
+}
+
+...
+
+apply plugin: 'com.neenbedankt.android-apt'
+
+dependencies {
+  apt 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT'
+  compile 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT'
+}
+```
+
+If you are using other build sytems, please find instructions [here](https://jitpack.io/#Instagram/ig-json-parser)
 
 Requirements for model classes
 ------------------------------
