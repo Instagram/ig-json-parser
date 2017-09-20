@@ -2,7 +2,7 @@
 ig-json-parser
 ==============
 
-[![Build Status](https://travis-ci.org/Instagram/ig-json-parser.svg?branch=master)](https://travis-ci.org/Instagram/ig-json-parser)
+[![Build Status](https://travis-ci.org/Instagram/ig-json-parser.svg?branch=master)](https://travis-ci.org/Instagram/ig-json-parser) [![Release](https://jitpack.io/v/Instagram/ig-json-parser.svg)](https://jitpack.io/#Instagram/ig-json-parser)
 
 Fast JSON parser for java projects. 
 
@@ -14,29 +14,22 @@ The easiest way to get started is to look at maven-example.  For more
 comprehensive examples, check out the unit tests or the demo.
 
 
-Maven
+[JitPack](https://jitpack.io/#Instagram/ig-json-parser)
 -----
 
 To use this library, add this to your build.gradle file:
 ```groovy
-ext {
-  generatedSourcesDir = file("gen-src/main/java")
+allprojects {
+	repositories {
+		maven { url 'https://jitpack.io' }
+	}
 }
 
-repositories {
-  mavenCentral()
-}
-
-sourceSets {
-  main {
-    java {
-      srcDir 'src/main/java'
-    }
-  }
-}
+...
 
 dependencies {
-  compile group: 'com.instagram', name: 'ig-json-parser-processor', version: '0.0.6+'
+  compile 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT' // the runtime
+  compile 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT' // the annotation processor 
 }
 ```
 
