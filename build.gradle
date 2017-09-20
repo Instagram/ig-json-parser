@@ -2,6 +2,11 @@ buildscript {
 }
 
 apply plugin: 'groovy'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+group = "com.github.instagram"
+version = 0.7
 
 task wrapper(type: Wrapper) {
        gradleVersion = '3.3' //version required
@@ -87,4 +92,33 @@ artifacts {
     archives processorSourcesJar
     archives runtimeJavadocJar
     archives processorJavadocJar
+}
+
+install {
+    repositories.mavenInstaller {
+        addFilter('processor') { artifact, file -> artifact.name.contains('processor') }
+        pom("processor").withXml {
+            def dependenciesNode = asNode().appendNode('dependencies')
+            project(":processor").configurations.compile.allDependencies.findAll {
+                it.group != project(":processor").group // filter out local modules
+            } .each {
+                def dependencyNode = dependenciesNode.appendNode('dependency')
+                dependencyNode.appendNode('groupId', it.group)
+                dependencyNode.appendNode('artifactId', it.name)
+                dependencyNode.appendNode('version', it.version)
+            }
+        }
+        addFilter('runtime') { artifact, file -> artifact.name.contains('runtime') }
+        pom("runtime").withXml {
+            def dependenciesNode = asNode().appendNode('dependencies')
+            project(":common").configurations.compile.allDependencies.findAll {
+                it.group != project(":common").group // filter out local modules
+            } .each {
+                def dependencyNode = dependenciesNode.appendNode('dependency')
+                dependencyNode.appendNode('groupId', it.group)
+                dependencyNode.appendNode('artifactId', it.name)
+                dependencyNode.appendNode('version', it.version)
+            }
+        }
+    }
 }

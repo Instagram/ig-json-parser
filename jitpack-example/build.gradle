@@ -1,0 +1,35 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+ext {
+  generatedSourcesDir = file("gen-src/main/java")
+}
+
+repositories {
+  mavenCentral()
+}
+
+allprojects {
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir 'src/main/java'
+    }
+  }
+}
+
+dependencies {
+  compile 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT'
+  compile 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT'
+}
+
+configurations.all {
+  resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
