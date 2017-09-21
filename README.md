@@ -20,9 +20,9 @@ Gradle
 For Java projects, to use this library, add this to your build.gradle file:
 ```groovy
 allprojects {
-	repositories {
-		maven { url 'https://jitpack.io' }
-	}
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
 }
 
 ...
@@ -37,9 +37,9 @@ For Android projects, you can use `apt` to include the annotation processor:
 
 ```
 allprojects {
-	repositories {
-		maven { url 'https://jitpack.io' }
-	}
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
 }
 
 ...
