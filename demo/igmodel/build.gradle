@@ -1,14 +1,13 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.neenbedankt.android-apt'
 
 dependencies {
-  apt project(':processor')
-  compile project(':common')
+  annotationProcessor project(':processor')
+  implementation project(':common')
 }
 
 android {
   compileSdkVersion 23
-  buildToolsVersion "25.0.0"
+  buildToolsVersion "26.0.2"
   sourceCompatibility = 1.7
   targetCompatibility = 1.7
 

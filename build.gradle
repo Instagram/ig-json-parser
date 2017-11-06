@@ -9,7 +9,7 @@ group = "com.github.instagram"
 version = 0.7
 
 task wrapper(type: Wrapper) {
-       gradleVersion = '3.3' //version required
+       gradleVersion = '4.1' //version required
 }
 
 subprojects {

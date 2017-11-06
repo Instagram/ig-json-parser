@@ -1,25 +1,25 @@
 buildscript {
   repositories {
-    mavenCentral()
+    jcenter()
+    google()
   }
 
   dependencies {
-    classpath group: 'com.android.tools.build', name: 'gradle', version: '2.3.0'
-    classpath group: 'com.neenbedankt.gradle.plugins', name: 'android-apt', version: '1.8'
+    classpath group: 'com.android.tools.build', name: 'gradle', version: '3.0.0'
   }
 }
 
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
 dependencies {
-  compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.2.3+'
-  compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
-  compile project(':demo:igmodel')
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.2.3+'
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
+  implementation project(':demo:igmodel')
 }
 
 android {
   compileSdkVersion 23
-  buildToolsVersion "25.0.0"
+  buildToolsVersion "26.0.2"
 
   defaultConfig {
     minSdkVersion 10
