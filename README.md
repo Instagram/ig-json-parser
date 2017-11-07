@@ -33,7 +33,24 @@ dependencies {
 }
 ```
 
-For Android projects, you can use `apt` to include the annotation processor:
+For Android projects using Android Studio 3.0+ or Gradle 4.0+, you can enable the annotation processor as following:
+
+```
+allprojects {
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
+}
+
+...
+
+dependencies {
+  annotationProcessor 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT'
+  implementation 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT'
+}
+```
+
+If you are using older gradle versions, you can use old `apt` plugin to integrate the annotation processor:
 
 ```
 allprojects {
@@ -51,6 +68,7 @@ dependencies {
   compile 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT'
 }
 ```
+
 
 If you are using other build sytems, please find instructions [here](https://jitpack.io/#Instagram/ig-json-parser)
 
