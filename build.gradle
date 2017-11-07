@@ -6,7 +6,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group = "com.github.instagram"
-version = 0.7
+version = 0.8
 
 task wrapper(type: Wrapper) {
        gradleVersion = '4.1' //version required
