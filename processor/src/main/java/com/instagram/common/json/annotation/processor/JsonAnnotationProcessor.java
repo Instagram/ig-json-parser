@@ -126,7 +126,6 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
         SourceGenerator injector = entry.getValue();
 
         try {
-          System.out.format("Writing source file: %s\n", injector.getInjectedFqcn());
           JavaFileObject jfo = mFiler.createSourceFile(injector.getInjectedFqcn(), typeElement);
           Writer writer = jfo.openWriter();
           writer.write(injector.getJavaCode(processingEnv.getMessager()));
@@ -237,7 +236,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
                 mOmitSomeMethodBodies,
                 parentGeneratedClassName,
                 annotation);
-      } else if (kind == ElementKind.INTERFACE){
+      } else if (kind == ElementKind.INTERFACE) {
         injector = new JsonParserInterfaceData(
                 packageName,
                 typeElement.getQualifiedName().toString(),
@@ -281,7 +280,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
         e.printStackTrace(new PrintWriter(stackTrace));
 
         error(element, "Unable to generate view injector for @JsonField.\n\n%s",
-                stackTrace.toString());      }
+                stackTrace.toString());
+      }
     }
   }
 
