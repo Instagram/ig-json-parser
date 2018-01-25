@@ -38,7 +38,8 @@ import static javax.lang.model.element.Modifier.*;
  * This collects the data about the fields of a class, and generates the java code to parse the
  * object.
  */
-public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
+public class JsonParserClassData extends ProcessorClassData<String, TypeData>
+        implements SourceGenerator {
 
   private final boolean mAbstractClass;
   private final boolean mGenerateSerializer;

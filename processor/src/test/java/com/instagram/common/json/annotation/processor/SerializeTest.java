@@ -19,6 +19,10 @@ import com.instagram.common.json.annotation.processor.uut.MapUUT;
 import com.instagram.common.json.annotation.processor.uut.MapUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT;
 import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.dependent.InterfaceImplementationUUT;
+import com.instagram.common.json.annotation.processor.dependent.InterfaceImplementationUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.parent.InterfaceParentUUT;
+import com.instagram.common.json.annotation.processor.parent.InterfaceParentUUT__JsonHelper;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -351,5 +355,35 @@ public class SerializeTest {
     GetterUUT parsed = GetterUUT__JsonHelper.parseFromJson(inputString);
 
     assertEquals(10, parsed.intField);
+  }
+
+  @Test
+  public void serializeInterfaceTest() throws IOException {
+    InterfaceParentUUT__JsonHelper.registerHandler(
+            InterfaceImplementationUUT.TYPE_NAME,
+            new InterfaceParentUUT__JsonHelper.SerializationHandler() {
+              public void serializeToJson(JsonGenerator generator, InterfaceParentUUT object)
+                      throws IOException {
+                InterfaceImplementationUUT__JsonHelper
+                        .serializeToJson(generator, (InterfaceImplementationUUT)object, true);
+              }
+              public InterfaceParentUUT parseFromJson(JsonParser parser) throws IOException {
+                return InterfaceImplementationUUT__JsonHelper.parseFromJson(parser);
+              }
+            });
+    StringWriter stringWriter = new StringWriter();
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+
+    InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
+    obj.stringField = "testValue";
+    InterfaceParentUUT__JsonHelper.serializeToJson(jsonGenerator, obj, true);
+
+    jsonGenerator.close();
+    String serialized = stringWriter.toString();
+    InterfaceParentUUT parsed = InterfaceParentUUT__JsonHelper.parseFromJson(serialized);
+    assertTrue(parsed instanceof InterfaceImplementationUUT);
+    InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed;
+    assertEquals(obj.stringField, parsedObj.stringField);
+
   }
 }

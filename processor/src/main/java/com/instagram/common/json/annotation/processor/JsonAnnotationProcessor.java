@@ -10,6 +10,8 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -31,11 +33,14 @@ import java.util.Set;
 import com.instagram.common.json.JsonAnnotationProcessorConstants;
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
+import com.instagram.common.json.annotation.JsonTypeName;
 import com.instagram.common.json.annotation.util.Console;
 import com.instagram.common.json.annotation.util.ProcessorClassData;
 import com.instagram.common.json.annotation.util.TypeUtils;
 
 import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.INTERFACE;
+import static javax.lang.model.element.ElementKind.METHOD;
 import static javax.lang.model.element.Modifier.*;
 
 /**
@@ -54,7 +59,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
   private boolean mOmitSomeMethodBodies;
 
   private static class State {
-    private Map<TypeElement, JsonParserClassData> mClassElementToInjectorMap;
+    private Map<TypeElement, SourceGenerator> mClassElementToInjectorMap;
 
     State() {
       mClassElementToInjectorMap = new LinkedHashMap<>();
@@ -91,6 +96,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     Set<String> supportTypes = new LinkedHashSet<String>();
     supportTypes.add(JsonField.class.getCanonicalName());
     supportTypes.add(JsonType.class.getCanonicalName());
+    supportTypes.add(JsonTypeName.class.getCanonicalName());
 
     return supportTypes;
   }
@@ -114,12 +120,13 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
         gatherFieldAnnotations(env);
       }
 
-      for (Map.Entry<TypeElement, JsonParserClassData> entry :
+      for (Map.Entry<TypeElement, SourceGenerator> entry :
           mState.mClassElementToInjectorMap.entrySet()) {
         TypeElement typeElement = entry.getKey();
-        JsonParserClassData injector = entry.getValue();
+        SourceGenerator injector = entry.getValue();
 
         try {
+          System.out.format("Writing source file: %s\n", injector.getInjectedFqcn());
           JavaFileObject jfo = mFiler.createSourceFile(injector.getInjectedFqcn(), typeElement);
           Writer writer = jfo.openWriter();
           writer.write(injector.getJavaCode(processingEnv.getMessager()));
@@ -177,7 +184,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       abstractClass = true;
     }
 
-    JsonParserClassData injector = mState.mClassElementToInjectorMap.get(typeElement);
+    SourceGenerator injector = mState.mClassElementToInjectorMap.get(typeElement);
     if (injector == null) {
       JsonType annotation = element.getAnnotation(JsonType.class);
 
@@ -209,24 +216,43 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
               annotation.generateSerializer() == JsonType.TriState.YES;
 
       String packageName = mTypeUtils.getPackageName(mElements, typeElement);
-      injector = new JsonParserClassData(
-          packageName,
-          typeElement.getQualifiedName().toString(),
-          mTypeUtils.getClassName(typeElement, packageName),
-          mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName) +
-              JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX,
-          new ProcessorClassData.AnnotationRecordFactory<String, TypeData>() {
 
-            @Override
-            public TypeData createAnnotationRecord(String key) {
-              return new TypeData();
-            }
-          },
-          abstractClass,
-          generateSerializer,
-          mOmitSomeMethodBodies,
-          parentGeneratedClassName,
-          annotation);
+      ElementKind kind = typeElement.getKind();
+      if (kind == ElementKind.CLASS) {
+        injector = new JsonParserClassData(
+                packageName,
+                typeElement.getQualifiedName().toString(),
+                mTypeUtils.getClassName(typeElement, packageName),
+                mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName) +
+                        JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX,
+                new ProcessorClassData.AnnotationRecordFactory<String, TypeData>() {
+
+                  @Override
+                  public TypeData createAnnotationRecord(String key) {
+                    return new TypeData();
+                  }
+                },
+                abstractClass,
+                generateSerializer,
+                mOmitSomeMethodBodies,
+                parentGeneratedClassName,
+                annotation);
+      } else if (kind == ElementKind.INTERFACE){
+        injector = new JsonParserInterfaceData(
+                packageName,
+                typeElement.getQualifiedName().toString(),
+                mTypeUtils.getClassName(typeElement, packageName),
+                mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName) +
+                        JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX,
+                new ProcessorClassData.AnnotationRecordFactory<String, TypeData>() {
+
+                  @Override
+                  public TypeData createAnnotationRecord(String key) {
+                    return new TypeData();
+                  }
+                },
+                annotation);
+      }
       mState.mClassElementToInjectorMap.put(typeElement, injector);
     }
   }
@@ -247,6 +273,33 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
             stackTrace.toString());
       }
     }
+    for (Element element : env.getElementsAnnotatedWith(JsonTypeName.class)) {
+      try {
+        processTypeNameAnnotation(element);
+      } catch (Exception e) {
+        StringWriter stackTrace = new StringWriter();
+        e.printStackTrace(new PrintWriter(stackTrace));
+
+        error(element, "Unable to generate view injector for @JsonField.\n\n%s",
+                stackTrace.toString());      }
+    }
+  }
+
+  private void processTypeNameAnnotation(Element element) {
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    if (!isTypeNameAnnotationValid(element)) {
+      return;
+    }
+
+    JsonParserInterfaceData injector = (JsonParserInterfaceData) mState.mClassElementToInjectorMap.get(enclosingElement);
+
+    if (injector.getTypeNameGetter() != null) {
+      error(element, "Only one %s annotated getter is supported", JsonTypeName.class.getSimpleName());
+      return;
+    }
+
+    injector.setTypeNameGetter(element.getSimpleName().toString());
   }
 
   /**
@@ -263,7 +316,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     TypeMirror type = element.asType();
 
-    JsonParserClassData injector = mState.mClassElementToInjectorMap.get(enclosingElement);
+    JsonParserClassData injector = (JsonParserClassData) mState
+            .mClassElementToInjectorMap.get(enclosingElement);
 
     TypeData data = injector.getOrCreateRecord(element.getSimpleName().toString());
 
@@ -343,6 +397,48 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       error(enclosingElement, "@%s %s may not be contained in private classes. (%s.%s)",
           annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
           element.getSimpleName());
+      return false;
+    }
+
+    return true;
+  }
+
+  private boolean isTypeNameAnnotationValid(Element element) {
+    Class<?> annotationClass = JsonTypeName.class;
+    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+
+    // Verify containing type.
+    if (enclosingElement.getKind() != INTERFACE) {
+      error(enclosingElement, "@%s getters may only be contained in interfaces. (%s.%s)",
+              annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+              element.getSimpleName());
+      return false;
+    }
+
+    Annotation annotation = enclosingElement.getAnnotation(JsonType.class);
+    if (annotation == null) {
+      error(
+              enclosingElement,
+              "@%s getters may only be contained in interfaces annotated with @%s (%s.%s)",
+              annotationClass.getSimpleName(),
+              JsonType.class.toString(),
+              enclosingElement.getQualifiedName(),
+              element.getSimpleName());
+      return false;
+    }
+
+    if (element.getKind() != METHOD) {
+      error(
+              element,
+              "@%s is only valid on interface methods",
+              annotationClass.getSimpleName());
+      return false;
+    }
+
+    ExecutableElement method = (ExecutableElement) element;
+    if (method.getParameters().size() > 0
+            || !method.getReturnType().toString().equals(String.class.getName())) {
+      error(element, "%s must annotate a String getter", annotationClass.getSimpleName());
       return false;
     }
 
