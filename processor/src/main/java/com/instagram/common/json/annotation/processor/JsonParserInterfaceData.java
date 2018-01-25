@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.instagram.common.json.JsonFactoryHolder;
 import com.instagram.common.json.JsonHelper;
+import com.instagram.common.json.JsonSerializationHandler;
 import com.instagram.common.json.annotation.JsonType;
 import com.instagram.common.json.annotation.util.Console;
 import com.instagram.common.json.annotation.util.ProcessorClassData;
@@ -36,6 +37,7 @@ public class JsonParserInterfaceData implements SourceGenerator {
     private final String mSimpleClassName;
     private final String mInjectedClassName;
     private final ProcessorClassData.AnnotationRecordFactory<String, TypeData> mFactory;
+    private final String mHandlerTypeName;
     private String mTypeNameGetter;
     private final JsonType mAnnotation;
 
@@ -52,6 +54,7 @@ public class JsonParserInterfaceData implements SourceGenerator {
         mInjectedClassName = injectedClassName;
         mFactory = factory;
         mAnnotation = annotation;
+        mHandlerTypeName = "JsonSerializationHandler<" + mSimpleClassName + ">";
     }
 
     @Override
@@ -72,6 +75,7 @@ public class JsonParserInterfaceData implements SourceGenerator {
                     JsonGenerator.class,
                     JsonHelper.class,
                     JsonParser.class,
+                    JsonSerializationHandler.class,
                     JsonToken.class,
                     IOException.class,
                     HashMap.class,
@@ -87,16 +91,12 @@ public class JsonParserInterfaceData implements SourceGenerator {
                     "JsonHelper<" + mSimpleClassName + ">")
 
                 .emitField(
-                    "HashMap<String,SerializationHandler>",
+                    "HashMap<String," + mHandlerTypeName + ">",
                     "sHandlerMap",
                     EnumSet.of(PRIVATE, STATIC, FINAL),
                     "new HashMap<>()")
 
                 .emitEmptyLine();
-
-            emitHandlerInterface(sw, writer);
-
-            writer.emitEmptyLine();
 
             emitRegisterHandlerMethod(writer);
 
@@ -130,24 +130,13 @@ public class JsonParserInterfaceData implements SourceGenerator {
         return sw.toString();
     }
 
-    private void emitHandlerInterface(StringWriter sw, JavaWriter writer) throws IOException {
-        writer.beginType(
-                "SerializationHandler",
-                "interface",
-                EnumSet.of(PUBLIC));
-        // JavaWriter does not support emitting interface methods.
-        sw.write("    void serializeToJson(JsonGenerator generator, " + mSimpleClassName + " object) throws IOException;\n");
-        sw.write("    " + mSimpleClassName + " parseFromJson(JsonParser parser) throws IOException;\n");
-        writer.endType();
-    }
-
-    private static void emitRegisterHandlerMethod(JavaWriter writer) throws IOException {
+    private void emitRegisterHandlerMethod(JavaWriter writer) throws IOException {
         writer.beginMethod(
                 "void",
                 "registerHandler",
                 EnumSet.of(PUBLIC, STATIC),
                 "String", "typeName",
-                "SerializationHandler", "handler")
+                mHandlerTypeName, "handler")
 
             .beginControlFlow("if (sHandlerMap.containsKey(typeName))")
             .emitStatement("final String message = String.format(\n"
@@ -171,18 +160,19 @@ public class JsonParserInterfaceData implements SourceGenerator {
             .endMethod();
     }
 
-    private static void emitGetHandlerMethod(JavaWriter writer) throws IOException {
+    private void emitGetHandlerMethod(JavaWriter writer) throws IOException {
         writer
             .beginMethod(
-                "SerializationHandler",
+                mHandlerTypeName,
                 "getHandler",
                 EnumSet.of(PRIVATE, STATIC),
                 "String", "typeName")
-            .emitStatement("final @Nullable SerializationHandler handler = sHandlerMap.get(typeName)")
+            .emitStatement("final @Nullable " + mHandlerTypeName
+                    + " handler = sHandlerMap.get(typeName)")
 
             .beginControlFlow("if (handler == null)")
             .emitStatement("final String message = String.format(\n"
-                + "\"No SerializationHandler registered for type name: %%s\",\n"
+                + "\"No JsonSerializationHandler registered for type name: %%s\",\n"
                 + "typeName)")
             .emitStatement("throw new IllegalArgumentException(message)")
             .endControlFlow()

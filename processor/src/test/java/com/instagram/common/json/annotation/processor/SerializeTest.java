@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import com.instagram.common.json.JsonSerializationHandler;
 import com.instagram.common.json.annotation.processor.uut.GetterUUT;
 import com.instagram.common.json.annotation.processor.uut.GetterUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.EnumUUT;
@@ -361,7 +362,7 @@ public class SerializeTest {
   public void serializeInterfaceTest() throws IOException {
     InterfaceParentUUT__JsonHelper.registerHandler(
             InterfaceImplementationUUT.TYPE_NAME,
-            new InterfaceParentUUT__JsonHelper.SerializationHandler() {
+            new JsonSerializationHandler<InterfaceParentUUT>() {
               public void serializeToJson(JsonGenerator generator, InterfaceParentUUT object)
                       throws IOException {
                 InterfaceImplementationUUT__JsonHelper
