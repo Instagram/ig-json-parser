@@ -56,6 +56,14 @@ public @interface JsonType {
   String valueExtractFormatter() default DEFAULT_VALUE_EXTRACT_FORMATTER;
 
   /**
+   * Use the specified serialization formatter to generate JSON for this object. Like
+   * {@link JsonType#valueExtractFormatter()}, this can be used to extend the serializer.
+   *
+   * @return
+   */
+  String serializeCodeFormatter() default "";
+
+  /**
    * If set to YES, or NO, will override the global option for generating serializer methods.
    * Preventing generation of serializer methods when you don't use them may help save on binary size of
    * the generated code.

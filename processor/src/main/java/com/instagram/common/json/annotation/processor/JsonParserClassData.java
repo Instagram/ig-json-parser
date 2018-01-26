@@ -99,15 +99,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       for (Map.Entry<String, TypeData> entry : getIterator()) {
         TypeData typeData = entry.getValue();
         if (typeData.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-          if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
-              !typeData.getPackageName().equals(mClassPackage)) {
+          if (typeData.needsImportFrom(mClassPackage)) {
             typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
             typeImports.add(
                 typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
                     JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
           }
-        } else if (typeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
-            !typeData.getPackageName().equals(mClassPackage)) {
+        } else if (typeData.needsImportFrom(mClassPackage)) {
           typeImports.add(
               typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
                   JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
@@ -404,14 +402,18 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       }
     }
 
-    return StrFormat.createStringFormatter(valueExtractFormatter)
-        .addParam("parser_object", "jp")
-        .addParam("subobject_class", data.getParsableType())
-        .addParam(
-            "subobject_helper_class",
-            data.getParsableTypeParserClass() +
-                JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
-        .format();
+    StrFormat strFormat = StrFormat.createStringFormatter(valueExtractFormatter)
+            .addParam("parser_object", "jp")
+            .addParam("subobject_class", data.getParsableType());
+
+    if (!StringUtil.isNullOrEmpty(data.getParsableTypeParserClass())) {
+      strFormat.addParam(
+                      "subobject_helper_class",
+                      data.getParsableTypeParserClass() +
+                              JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
+    }
+
+    return strFormat.format();
   }
 
   private String getJavaType(Messager messager, TypeData type) {
@@ -577,14 +579,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               .beginControlFlow("if (entry.getValue() == null)")
               .emitStatement("generator.writeNull()")
               .nextControlFlow("else")
-              .emitStatement(StrFormat.createStringFormatter(valueSerializeCode)
-                  .addParam("generator_object", "generator")
-                  .addParam("iterator", "entry.getValue()")
-                  .addParam(
-                      "subobject_helper_class",
-                      valueTypeData.getParsableTypeParserClass() +
-                          JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
-                  .format())
+              .emitStatement(getSerializeCodeStatement(valueTypeData, valueSerializeCode))
               .endControlFlow()
               .endControlFlow()
               .emitStatement("generator.writeEndObject()")
@@ -640,6 +635,20 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         }
       }
     }
+  }
+
+  private String getSerializeCodeStatement(TypeData valueTypeData, String valueSerializeCode) {
+    StrFormat strFormat = StrFormat.createStringFormatter(valueSerializeCode)
+            .addParam("generator_object", "generator")
+            .addParam("iterator", "entry.getValue()");
+    if (!StringUtil.isNullOrEmpty(valueTypeData.getParsableTypeParserClass())) {
+      strFormat.addParam(
+              "subobject_helper_class",
+              valueTypeData.getParsableTypeParserClass() +
+                      JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
+    }
+
+    return strFormat.format();
   }
 
   private static String getGetterName(String fieldName) {

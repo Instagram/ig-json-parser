@@ -4,6 +4,7 @@ package com.instagram.common.json.annotation.util;
 
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.DeclaredType;
@@ -13,7 +14,11 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import java.lang.annotation.Annotation;
+import java.util.EnumSet;
 import java.util.List;
+
+import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.INTERFACE;
 
 /**
  * Utility functions to get the declared types of fields.
@@ -103,7 +108,7 @@ public class TypeUtils {
       Element element = type.asElement();
 
       Annotation annotation = element.getAnnotation(typeAnnotationClass);
-      if (annotation != null) {
+      if (annotation != null && EnumSet.of(CLASS, INTERFACE).contains(element.getKind())) {
         return ParseType.PARSABLE_OBJECT;
       }
 
@@ -209,6 +214,10 @@ public class TypeUtils {
    * with a '_', i.e., the generated class for class X will be X_Y&lt;suffix&gt;.
    */
   public String getPrefixForGeneratedClass(TypeElement type, String packageName) {
+    // Interfaces do not currently generate classes
+    if (type.getKind() == INTERFACE) {
+      return null;
+    }
     int packageLen = packageName.length() + 1;
     return type.getQualifiedName().toString().substring(packageLen).replace('.', '_');
   }

@@ -173,4 +173,10 @@ class TypeData {
   void setEnumType(String enumType) {
     mEnumType = enumType;
   }
+
+  public boolean needsImportFrom(String packageName) {
+    return getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
+            !getPackageName().equals(packageName) &&
+            !StringUtil.isNullOrEmpty(getParsableTypeParserClass());
+  }
 }

@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT;
+import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.GetterUUT;
 import com.instagram.common.json.annotation.processor.uut.GetterUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.EnumUUT;
@@ -352,4 +354,25 @@ public class SerializeTest {
 
     assertEquals(10, parsed.intField);
   }
+
+  @Test
+  public void serializeInterfaceTest() throws IOException {
+    StringWriter stringWriter = new StringWriter();
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+
+    InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
+    obj.mStringField = "testValue";
+
+    WrapperInterfaceUUT wrapper = new WrapperInterfaceUUT();
+    wrapper.mInterfaceParent = obj;
+    WrapperInterfaceUUT__JsonHelper.serializeToJson(jsonGenerator, wrapper, true);
+    jsonGenerator.close();
+    String serialized = stringWriter.toString();
+    WrapperInterfaceUUT parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
+    assertNotNull(parsed);
+    assertTrue(parsed.mInterfaceParent instanceof InterfaceImplementationUUT);
+    InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed.mInterfaceParent;
+    assertEquals(obj.mStringField, parsedObj.mStringField);
+  }
+
 }

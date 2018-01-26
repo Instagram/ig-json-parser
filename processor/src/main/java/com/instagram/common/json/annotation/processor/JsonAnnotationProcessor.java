@@ -35,7 +35,9 @@ import com.instagram.common.json.annotation.util.Console;
 import com.instagram.common.json.annotation.util.ProcessorClassData;
 import com.instagram.common.json.annotation.util.TypeUtils;
 
+import static com.instagram.common.json.annotation.JsonType.DEFAULT_VALUE_EXTRACT_FORMATTER;
 import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.Modifier.*;
 
 /**
@@ -166,6 +168,27 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     boolean abstractClass = false;
     TypeElement typeElement = (TypeElement) element;
 
+    // The annotation should be validated for an interface, but no code should be generated.
+    JsonType annotation = element.getAnnotation(JsonType.class);
+    if (element.getKind() == INTERFACE) {
+      if (StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter())) {
+        error(
+                element,
+                "@%s requires a serializeCodeFormatter when applied to interfaces. (%s.%s)",
+                JsonType.class.getSimpleName(),
+                element.getSimpleName());
+      }
+      if (annotation.valueExtractFormatter().equals(DEFAULT_VALUE_EXTRACT_FORMATTER)) {
+        error(
+                element,
+                "@%s requires a valueExtractF when applied to interfaces. (%s.%s)",
+                JsonType.class.getSimpleName(),
+                element.getSimpleName());
+      }
+
+      return;
+    }
+
     // Verify containing class visibility is not private.
     if (element.getModifiers().contains(PRIVATE)) {
       error(element, "@%s %s may not be applied to private classes. (%s.%s)",
@@ -179,7 +202,6 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     JsonParserClassData injector = mState.mClassElementToInjectorMap.get(typeElement);
     if (injector == null) {
-      JsonType annotation = element.getAnnotation(JsonType.class);
 
       String parentGeneratedClassName = null;
 
@@ -300,6 +322,10 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
         // Use the parsable object's value extract formatter
         data.setValueExtractFormatter(
             typeElement.getAnnotation(JsonType.class).valueExtractFormatter());
+      }
+      if (StringUtil.isNullOrEmpty(data.getSerializeCodeFormatter())) {
+        data.setSerializeCodeFormatter(
+            typeElement.getAnnotation(JsonType.class).serializeCodeFormatter());
       }
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
