@@ -39,7 +39,9 @@ public @interface JsonType {
   /**
    * Use the specified value extract formatter to parse this object whenever it is encountered by
    * the parser. This can be used as an 'escape hatch' to parse non-standard JSON or a way to add
-   * additional default behavior to the standard parser.
+   * additional default behavior to the standard parser. This can also be used to extract interface
+   * values: a {@link JsonType} annotation on an interface will not generate a JsonHelper, but
+   * it can be used to hook up a {@link JsonType#valueExtractFormatter()} for that type.
    *
    * <p>This does not change the generated JsonHelper code for this object; rather it changes
    * the JsonHelper code for all objects that refer to this object. However, using this parameter
@@ -57,7 +59,12 @@ public @interface JsonType {
 
   /**
    * Use the specified serialization formatter to generate JSON for this object. Like
-   * {@link JsonType#valueExtractFormatter()}, this can be used to extend the serializer.
+   * {@link JsonType#valueExtractFormatter()}, this can be used to extend the serializer. Also like
+   * {@link JsonType#valueExtractFormatter()}, this can be used to hook up a
+   * {@link JsonType#serializeCodeFormatter()} for an interface type, which will not generate its
+   * own JsonHelper.
+   *
+   * <p> See {@link JsonField#serializeCodeFormatter()} for more details.</p>
    *
    * @return
    */
