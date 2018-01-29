@@ -13,6 +13,7 @@ import java.util.Set;
 
 import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT;
 import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.parent.InterfaceImplementation2UUT;
 import com.instagram.common.json.annotation.processor.uut.GetterUUT;
 import com.instagram.common.json.annotation.processor.uut.GetterUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.EnumUUT;
@@ -358,7 +359,7 @@ public class SerializeTest {
   @Test
   public void serializeInterfaceTest() throws IOException {
     StringWriter stringWriter = new StringWriter();
-    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);;
 
     InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
     obj.mStringField = "testValue";
@@ -375,4 +376,40 @@ public class SerializeTest {
     assertEquals(obj.mStringField, parsedObj.mStringField);
   }
 
+  @Test
+  public void serializeInterfaceWithWrapperTest() throws IOException {
+    StringWriter stringWriter;
+    JsonGenerator jsonGenerator;
+
+    InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
+    obj.mStringField = "testValue";
+    InterfaceImplementation2UUT obj2 = new InterfaceImplementation2UUT();
+    obj2.mIntegerField = 5;
+
+    WrapperInterfaceUUT wrapper = new WrapperInterfaceUUT();
+
+    stringWriter = new StringWriter();
+    jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+    wrapper.mInterfaceParentWithWrapper = obj;
+    WrapperInterfaceUUT__JsonHelper.serializeToJson(jsonGenerator, wrapper, true);
+    jsonGenerator.close();
+    String serialized = stringWriter.toString();
+    WrapperInterfaceUUT parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
+    assertNotNull(parsed);
+    assertTrue(parsed.mInterfaceParentWithWrapper instanceof InterfaceImplementationUUT);
+    InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed.mInterfaceParentWithWrapper;
+    assertEquals(obj.mStringField, parsedObj.mStringField);
+
+    stringWriter = new StringWriter();
+    jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+    wrapper.mInterfaceParentWithWrapper = obj2;
+    WrapperInterfaceUUT__JsonHelper.serializeToJson(jsonGenerator, wrapper, true);
+    jsonGenerator.close();
+    serialized = stringWriter.toString();
+    parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
+    assertNotNull(parsed);
+    assertTrue(parsed.mInterfaceParentWithWrapper instanceof InterfaceImplementation2UUT);
+    InterfaceImplementation2UUT parsedObj2 = (InterfaceImplementation2UUT) parsed.mInterfaceParentWithWrapper;
+    assertEquals(obj2.mIntegerField, parsedObj2.mIntegerField);
+  }
 }

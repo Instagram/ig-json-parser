@@ -7,7 +7,8 @@ import com.instagram.common.json.annotation.JsonType;
  * A default interface implementation.
  */
 @JsonType
-public class InterfaceImplementationUUT implements InterfaceParentUUT {
+public class InterfaceImplementationUUT implements InterfaceParentUUT,
+        InterfaceParentWithWrapperUUT {
     @JsonField(fieldName = "stringField")
     public String mStringField;
 }
