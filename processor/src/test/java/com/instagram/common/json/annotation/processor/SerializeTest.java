@@ -412,4 +412,24 @@ public class SerializeTest {
     InterfaceImplementation2UUT parsedObj2 = (InterfaceImplementation2UUT) parsed.mInterfaceParentWithWrapper;
     assertEquals(obj2.mIntegerField, parsedObj2.mIntegerField);
   }
+
+  @Test
+  public void serializeInterfaceNoFormattersTest() throws IOException {
+    StringWriter stringWriter = new StringWriter();
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);;
+
+    InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
+    obj.mStringField = "testValue";
+
+    WrapperInterfaceUUT wrapper = new WrapperInterfaceUUT();
+    wrapper.mInterfaceParentNoFormatters = obj;
+    WrapperInterfaceUUT__JsonHelper.serializeToJson(jsonGenerator, wrapper, true);
+    jsonGenerator.close();
+    String serialized = stringWriter.toString();
+    WrapperInterfaceUUT parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
+    assertNotNull(parsed);
+    assertTrue(parsed.mInterfaceParentNoFormatters instanceof InterfaceImplementationUUT);
+    InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed.mInterfaceParentNoFormatters;
+    assertEquals(obj.mStringField, parsedObj.mStringField);
+  }
 }

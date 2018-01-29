@@ -171,14 +171,6 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     // The annotation should be validated for an interface, but no code should be generated.
     JsonType annotation = element.getAnnotation(JsonType.class);
     if (element.getKind() == INTERFACE) {
-      if (annotation.valueExtractFormatter().equals(DEFAULT_VALUE_EXTRACT_FORMATTER)) {
-        error(
-                element,
-                "@%s requires a valueExtractF when applied to interfaces. (%s.%s)",
-                JsonType.class.getSimpleName(),
-                element.getSimpleName());
-      }
-
       return;
     }
 

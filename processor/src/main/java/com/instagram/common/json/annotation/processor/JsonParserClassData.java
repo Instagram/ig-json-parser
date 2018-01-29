@@ -275,6 +275,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
     boolean firstEntry = true;
     for (Map.Entry<String, TypeData> entry : getIterator()) {
+      String member = entry.getKey();
       TypeData data = entry.getValue();
 
       String condition = "\"" + data.getFieldName() + "\".equals(fieldName)";
@@ -290,7 +291,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       }
 
       if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-        generateCollectionParser(messager, writer, data);
+        generateCollectionParser(messager, writer, data, member);
         String assignmentFormatter = data.getAssignmentFormatter();
         if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
           assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
@@ -298,11 +299,11 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
-                .addParam("field_varname", entry.getKey())
+                .addParam("field_varname", member)
                 .addParam("extracted_value", "results")
                 .format());
       } else {
-        String rValue = generateExtractRvalue(data);
+        String rValue = generateExtractRvalue(data, messager, member);
         String assignmentFormatter = data.getAssignmentFormatter();
         if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
           assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
@@ -310,7 +311,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
-                .addParam("field_varname", entry.getKey())
+                .addParam("field_varname", member)
                 .addParam("extracted_value", rValue)
                 .format());
       }
@@ -325,19 +326,19 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     }
   }
 
-  private void generateCollectionParser(Messager messager, JavaWriter writer, TypeData data)
+  private void generateCollectionParser(Messager messager, JavaWriter writer, TypeData data, String member)
       throws IOException {
     if (TypeUtils.isMapType(data.getCollectionType())) {
-      generateMapParser(messager, writer, data);
+      generateMapParser(messager, writer, data, member);
     } else {
-      generateArrayParser(messager, writer, data);
+      generateArrayParser(messager, writer, data, member);
     }
   }
 
   /**
    * This writes the code to properly parse an array.
    */
-  private void generateArrayParser(Messager messager, JavaWriter writer, TypeData data)
+  private void generateArrayParser(Messager messager, JavaWriter writer, TypeData data, String member)
       throws IOException {
     String innerType = getJavaType(messager, data);
     String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
@@ -347,7 +348,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         .beginControlFlow("if (jp.getCurrentToken() == JsonToken.START_ARRAY)")
         .emitStatement("results = new %s<%s>()", concreteType, innerType)
         .beginControlFlow("while (jp.nextToken() != JsonToken.END_ARRAY)")
-        .emitStatement("%s parsed = %s", innerType, generateExtractRvalue(data))
+        .emitStatement("%s parsed = %s", innerType, generateExtractRvalue(data, messager, member))
         .beginControlFlow("if (parsed != null)")
         .emitStatement("results.add(parsed)")
         .endControlFlow()
@@ -355,7 +356,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         .endControlFlow();
   }
 
-  private void generateMapParser(Messager messager, JavaWriter writer, TypeData valueTypeData)
+  private void generateMapParser(Messager messager, JavaWriter writer, TypeData valueTypeData, String member)
       throws IOException {
     TypeData keyTypeData = new TypeData();
     keyTypeData.setParseType(TypeUtils.ParseType.STRING);
@@ -378,7 +379,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         .emitStatement(
             "%s parsedValue = %s",
             valueType,
-            generateExtractRvalue(valueTypeData))
+            generateExtractRvalue(valueTypeData, messager, member))
         .beginControlFlow("if (parsedValue != null)")
         .emitStatement("results.put(parsedKey, parsedValue)")
         .endControlFlow()
@@ -391,10 +392,21 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
    * We allow consumers of this library to override how we interact with the jackson to get the
    * value.  This generates the code to generate the rvalue expression.
    */
-  private String generateExtractRvalue(TypeData data) {
+  private String generateExtractRvalue(TypeData data, Messager messager, String member) {
     String valueExtractFormatter = data.getValueExtractFormatter();
 
     if (StringUtil.isNullOrEmpty(valueExtractFormatter)) {
+      if (data.isInterface()) {
+        Console.error(
+                messager,
+                "Interface %s cannot be parsed without a valueExtractFormatter "
+                        + "on either the interface's %s or field's %s annotation. (%s.%s)",
+                data.getParsableType(),
+                JsonType.class.getSimpleName(),
+                JsonField.class.getSimpleName(),
+                mSimpleClassName,
+                member);
+      }
       if (data.getMapping() == JsonField.TypeMapping.EXACT) {
         valueExtractFormatter = sExactFormatters.get(data.getParseType());
       } else if (data.getMapping() == JsonField.TypeMapping.COERCED) {
@@ -599,7 +611,6 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       JsonField.class.getSimpleName(),
                       mSimpleClassName,
                       member);
-
             }
             serializeCode = PARSABLE_OBJECT_SERIALIZE_CALL;
           }
