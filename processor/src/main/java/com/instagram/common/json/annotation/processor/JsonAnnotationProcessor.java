@@ -171,13 +171,6 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     // The annotation should be validated for an interface, but no code should be generated.
     JsonType annotation = element.getAnnotation(JsonType.class);
     if (element.getKind() == INTERFACE) {
-      if (StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter())) {
-        error(
-                element,
-                "@%s requires a serializeCodeFormatter when applied to interfaces. (%s.%s)",
-                JsonType.class.getSimpleName(),
-                element.getSimpleName());
-      }
       if (annotation.valueExtractFormatter().equals(DEFAULT_VALUE_EXTRACT_FORMATTER)) {
         error(
                 element,
@@ -318,15 +311,18 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       data.setParsableTypeParserClass(
           mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName));
 
+      JsonType typeAnnotation = typeElement.getAnnotation(JsonType.class);
       if (StringUtil.isNullOrEmpty(data.getValueExtractFormatter())) {
         // Use the parsable object's value extract formatter
         data.setValueExtractFormatter(
-            typeElement.getAnnotation(JsonType.class).valueExtractFormatter());
+            typeAnnotation.valueExtractFormatter());
       }
       if (StringUtil.isNullOrEmpty(data.getSerializeCodeFormatter())) {
         data.setSerializeCodeFormatter(
-            typeElement.getAnnotation(JsonType.class).serializeCodeFormatter());
+            typeAnnotation.serializeCodeFormatter());
       }
+
+      data.setIsInterface(typeElement.getKind() == INTERFACE);
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
       if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter()) ||

@@ -7,7 +7,7 @@ import com.instagram.common.json.annotation.JsonType;
  */
 @JsonType(
         valueExtractFormatter =
-                "com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT__JsonHelper"
+        "com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT__JsonHelper"
                 + ".parseFromJson(${parser_object})",
         serializeCodeFormatter =
                 "com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT__JsonHelper"

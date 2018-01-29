@@ -79,6 +79,7 @@ class TypeData {
    * If this is a parsable object, the name of this field's parser class.
    */
   private String mParsableTypeParserClass;
+  private boolean mIsInterface;
 
   String getFieldName() {
     return mFieldName;
@@ -186,5 +187,17 @@ class TypeData {
     return getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
             !getPackageName().equals(packageName) &&
             !StringUtil.isNullOrEmpty(getParsableTypeParserClass());
+  }
+
+  public void setIsInterface(boolean isInterface) {
+    mIsInterface = isInterface;
+  }
+
+  public boolean isInterface() {
+    return mIsInterface;
+  }
+
+  public void setInterface(boolean isInterface) {
+    mIsInterface = isInterface;
   }
 }

@@ -589,6 +589,18 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       } else {
         if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
           if (StringUtil.isNullOrEmpty(serializeCode)) {
+            if (data.isInterface()) {
+              Console.error(
+                      messager,
+                      "Interface %s cannot be serialized without a serializeCodeFormatter "
+                              + "on either the interface's %s or field's %s annotation. (%s.%s)",
+                      data.getParsableType(),
+                      JsonType.class.getSimpleName(),
+                      JsonField.class.getSimpleName(),
+                      mSimpleClassName,
+                      member);
+
+            }
             serializeCode = PARSABLE_OBJECT_SERIALIZE_CALL;
           }
           writer

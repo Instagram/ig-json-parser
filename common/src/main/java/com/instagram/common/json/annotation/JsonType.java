@@ -48,6 +48,10 @@ public @interface JsonType {
    * will change the visibility of the JsonHelper parse methods to <b>protected</b> to avoid
    * mistakes by client code which might call those methods directly by accident.
    *
+   * <p>Interfaces do not generate parse code, so compilation will fail if an interface appears
+   * in a {@link JsonField} without a valueExtractFormatter on either the {@link JsonField} or
+   * the {@link JsonType}.
+   *
    * <p>See {@link JsonField#valueExtractFormatter()} for a description of the available
    * substitutions.
    *
@@ -64,7 +68,11 @@ public @interface JsonType {
    * {@link JsonType#serializeCodeFormatter()} for an interface type, which will not generate its
    * own JsonHelper.
    *
-   * <p> See {@link JsonField#serializeCodeFormatter()} for more details.</p>
+   * <p>Interfaces do not generate serialization code, so compilation will fail if an interface
+   * is referenced in a serializer without either {@link JsonType}'s {@link JsonType#serializeCodeFormatter()}
+   * or {@link JsonField#serializeCodeFormatter()} provided.
+   *
+   * <p> See {@link JsonField#serializeCodeFormatter()} for more details.
    *
    * @return
    */
