@@ -2,6 +2,7 @@
 
 package com.instagram.common.json.annotation.util;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -156,6 +157,7 @@ public class TypeUtils {
    * Returns null if {@code typeMirror} does not represent a list type or if we cannot divine the
    * type of the contents.
    */
+  @Nullable
   public TypeMirror getCollectionParameterizedType(TypeMirror typeMirror) {
     if (!(typeMirror instanceof DeclaredType)) {
       return null;
@@ -213,6 +215,7 @@ public class TypeUtils {
    * To make this work, we replace the normal dot notation between an outer class and an inner class
    * with a '_', i.e., the generated class for class X will be X_Y&lt;suffix&gt;.
    */
+  @Nullable
   public String getPrefixForGeneratedClass(TypeElement type, String packageName) {
     // Interfaces do not currently generate classes
     if (type.getKind() == INTERFACE) {
