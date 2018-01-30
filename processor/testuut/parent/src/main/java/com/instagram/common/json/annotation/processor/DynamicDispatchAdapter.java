@@ -67,7 +67,7 @@ public class DynamicDispatchAdapter<T extends DynamicDispatchAdapter.TypeNamePro
         return adapter;
     }
 
-    public void serialize(JsonGenerator generator, String fieldName, T object) throws IOException {
+    public void serializeToJson(JsonGenerator generator, T object) throws IOException {
         generator.writeStartArray();
         generator.writeString(object.getTypeName());
         getAdapter(object.getTypeName()).serializeToJson(generator, object);

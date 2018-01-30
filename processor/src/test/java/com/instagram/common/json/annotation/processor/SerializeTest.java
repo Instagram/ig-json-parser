@@ -14,6 +14,7 @@ import java.util.Set;
 import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT;
 import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.parent.InterfaceImplementation2UUT;
+import com.instagram.common.json.annotation.processor.parent.InterfaceParentDynamicUUTHelper;
 import com.instagram.common.json.annotation.processor.uut.GetterUUT;
 import com.instagram.common.json.annotation.processor.uut.GetterUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.EnumUUT;
@@ -432,4 +433,27 @@ public class SerializeTest {
     InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed.mInterfaceParentNoFormatters;
     assertEquals(obj.mStringField, parsedObj.mStringField);
   }
+
+  @Test
+  public void serializeInterfaceDynamicTest() throws IOException {
+    StringWriter stringWriter = new StringWriter();
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);;
+
+    InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
+    obj.mStringField = "testValue";
+
+    InterfaceParentDynamicUUTHelper.DISPATCHER.register(InterfaceImplementationUUT.TYPE_NAME,
+            InterfaceImplementationUUT.ADAPTER);
+    WrapperInterfaceUUT wrapper = new WrapperInterfaceUUT();
+    wrapper.mInterfaceParentDynamic = obj;
+    WrapperInterfaceUUT__JsonHelper.serializeToJson(jsonGenerator, wrapper, true);
+    jsonGenerator.close();
+    String serialized = stringWriter.toString();
+    WrapperInterfaceUUT parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
+    assertNotNull(parsed);
+    assertTrue(parsed.mInterfaceParentDynamic instanceof InterfaceImplementationUUT);
+    InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed.mInterfaceParentDynamic;
+    assertEquals(obj.mStringField, parsedObj.mStringField);
+  }
+
 }

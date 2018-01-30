@@ -2,6 +2,7 @@ package com.instagram.common.json.annotation.processor;
 
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
+import com.instagram.common.json.annotation.processor.parent.InterfaceParentDynamicUUT;
 import com.instagram.common.json.annotation.processor.parent.InterfaceParentNoFormattersUUT;
 import com.instagram.common.json.annotation.processor.parent.InterfaceParentUUT;
 import com.instagram.common.json.annotation.processor.parent.InterfaceParentWithWrapperUUT;
@@ -30,4 +31,7 @@ public class WrapperInterfaceUUT {
                             + "${object_varname}.${field_varname}, "
                             + "true)")
     InterfaceParentNoFormattersUUT mInterfaceParentNoFormatters;
+
+    @JsonField(fieldName = "interface_parent_dynamic")
+    InterfaceParentDynamicUUT mInterfaceParentDynamic;
 }
