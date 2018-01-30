@@ -14,6 +14,11 @@ import java.util.Set;
 
 import com.instagram.common.json.JsonHelper;
 import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
+import com.instagram.common.json.annotation.processor.dependent.CalleeImportsContainerUUT;
+import com.instagram.common.json.annotation.processor.dependent.CalleeImportsContainerUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.parent.CalleeImportsCompanionUUT;
+import com.instagram.common.json.annotation.processor.parent.CalleeImportsUUT;
+import com.instagram.common.json.annotation.processor.parent.CalleeImportsUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.CustomParseContainerUUT;
@@ -203,6 +208,31 @@ public class DeserializeTest {
     ImportsUUT uut = ImportsUUT__JsonHelper.parseFromJson(jp);
 
     assertEquals(deserializedValue, uut.mStringField);
+  }
+
+  @Test
+  public void calleeImportsTest() throws IOException, JSONException {
+    final String encodedValue = "test";
+
+    StringWriter stringWriter = new StringWriter();
+    JSONWriter writer = new JSONWriter(stringWriter);
+
+    writer
+        .object()
+        .key("callee_ref")
+        .object()
+        .key("string_field").value(encodedValue)
+        .endObject()
+        .endObject();
+
+    String inputString = stringWriter.toString();
+    CalleeImportsContainerUUT container =
+        CalleeImportsContainerUUT__JsonHelper.parseFromJson(inputString);
+    CalleeImportsUUT uut = container.mCalleeImports;
+
+    assertTrue(uut instanceof CalleeImportsCompanionUUT);
+    assertEquals(encodedValue, uut.mString);
+
   }
 
   @Test
