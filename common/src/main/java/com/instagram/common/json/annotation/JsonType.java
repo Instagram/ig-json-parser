@@ -106,4 +106,16 @@ public @interface JsonType {
    * value directly. The getters should be named as standard JavaBean getters, namely prefixed with 'get' and camel-cased field name.
    */
   boolean useGetters() default false;
+
+  /**
+   * Additional imports to include in generated code for this class. This can be used to clean up
+   * code in {@link JsonField#valueExtractFormatter()} and {@link JsonField#serializeCodeFormatter()}.
+   */
+  String [] imports() default {};
+
+  /**
+   * Additional imports to include in generated code for classes that serialize/deserialize this one. This can be used
+   * to clean up code in {@link JsonType#valueExtractFormatter()}.
+   */
+  String [] calleeImports() default {};
 }
