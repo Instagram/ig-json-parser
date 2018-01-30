@@ -320,6 +320,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
           .orIfEmpty(serializeCodeType.forString(typeAnnotation.serializeCodeFormatter())));
 
       data.setIsInterface(typeElement.getKind() == INTERFACE);
+      data.setCalleeImports(typeAnnotation.calleeImports());
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
       if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter()) ||

@@ -112,6 +112,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                     JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
           }
         }
+        imports.addAll(typeData.getCalleeImports());
       }
       writer.emitImports(imports);
       writer.emitEmptyLine();
