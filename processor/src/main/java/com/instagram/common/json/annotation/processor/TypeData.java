@@ -185,8 +185,11 @@ class TypeData {
 
   public boolean needsImportFrom(String packageName) {
     return getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
-            !getPackageName().equals(packageName) &&
-            !StringUtil.isNullOrEmpty(getParsableTypeParserClass());
+            !getPackageName().equals(packageName);
+  }
+
+  public boolean hasParserHelperClass() {
+    return !StringUtil.isNullOrEmpty(getParsableTypeParserClass());
   }
 
   public void setIsInterface(boolean isInterface) {

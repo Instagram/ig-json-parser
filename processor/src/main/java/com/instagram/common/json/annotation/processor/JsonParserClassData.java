@@ -98,18 +98,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       Set<String> typeImports = new HashSet<String>();
       for (Map.Entry<String, TypeData> entry : getIterator()) {
         TypeData typeData = entry.getValue();
-        if (typeData.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-          if (typeData.needsImportFrom(mClassPackage)) {
-            typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
+        if (typeData.needsImportFrom(mClassPackage)) {
+          typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
+          if (typeData.hasParserHelperClass()) {
             typeImports.add(
                 typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
                     JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
           }
-        } else if (typeData.needsImportFrom(mClassPackage)) {
-          typeImports.add(
-              typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
-                  JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
-          typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
         }
       }
       writer.emitImports(typeImports);
