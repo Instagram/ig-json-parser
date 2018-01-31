@@ -6,6 +6,8 @@ import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
 import com.instagram.common.json.annotation.util.TypeUtils;
 
+import javax.annotation.Nullable;
+
 /**
  * Represents the data needed to serialize and deserialize a field. These roughly correspond
  * to the attributes of the JsonField annotation.
@@ -77,6 +79,7 @@ class TypeData {
    * If this is a parsable object, the name of this field's parser class.
    */
   private String mParsableTypeParserClass;
+  private boolean mIsInterface;
 
   String getFieldName() {
     return mFieldName;
@@ -158,6 +161,12 @@ class TypeData {
     mParsableType = parsableType;
   }
 
+  /**
+   * This is the name of the helper parser class, without the suffix applied. Some parsable types
+   * do not generate helper classes at all (interfaces), so this value can be null.
+   * @return
+   */
+  @Nullable
   String getParsableTypeParserClass() {
     return mParsableTypeParserClass;
   }
@@ -172,5 +181,23 @@ class TypeData {
 
   void setEnumType(String enumType) {
     mEnumType = enumType;
+  }
+
+  public boolean needsImportFrom(String packageName) {
+    return getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT &&
+            !getPackageName().equals(packageName) &&
+            !StringUtil.isNullOrEmpty(getParsableTypeParserClass());
+  }
+
+  public void setIsInterface(boolean isInterface) {
+    mIsInterface = isInterface;
+  }
+
+  public boolean isInterface() {
+    return mIsInterface;
+  }
+
+  public void setInterface(boolean isInterface) {
+    mIsInterface = isInterface;
   }
 }

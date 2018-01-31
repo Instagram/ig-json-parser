@@ -39,12 +39,18 @@ public @interface JsonType {
   /**
    * Use the specified value extract formatter to parse this object whenever it is encountered by
    * the parser. This can be used as an 'escape hatch' to parse non-standard JSON or a way to add
-   * additional default behavior to the standard parser.
+   * additional default behavior to the standard parser. This can also be used to extract interface
+   * values: a {@link JsonType} annotation on an interface will not generate a JsonHelper, but
+   * it can be used to hook up a {@link JsonType#valueExtractFormatter()} for that type.
    *
    * <p>This does not change the generated JsonHelper code for this object; rather it changes
    * the JsonHelper code for all objects that refer to this object. However, using this parameter
    * will change the visibility of the JsonHelper parse methods to <b>protected</b> to avoid
    * mistakes by client code which might call those methods directly by accident.
+   *
+   * <p>Interfaces do not generate parse code, so compilation will fail if an interface appears
+   * in a {@link JsonField} without a valueExtractFormatter on either the {@link JsonField} or
+   * the {@link JsonType}.
    *
    * <p>See {@link JsonField#valueExtractFormatter()} for a description of the available
    * substitutions.
@@ -54,6 +60,23 @@ public @interface JsonType {
    * @return A value extract formatter
    */
   String valueExtractFormatter() default DEFAULT_VALUE_EXTRACT_FORMATTER;
+
+  /**
+   * Use the specified serialization formatter to generate JSON for this object. Like
+   * {@link JsonType#valueExtractFormatter()}, this can be used to extend the serializer. Also like
+   * {@link JsonType#valueExtractFormatter()}, this can be used to hook up a
+   * {@link JsonType#serializeCodeFormatter()} for an interface type, which will not generate its
+   * own JsonHelper.
+   *
+   * <p>Interfaces do not generate serialization code, so compilation will fail if an interface
+   * is referenced in a serializer without either {@link JsonType}'s {@link JsonType#serializeCodeFormatter()}
+   * or {@link JsonField#serializeCodeFormatter()} provided.
+   *
+   * <p> See {@link JsonField#serializeCodeFormatter()} for more details.
+   *
+   * @return
+   */
+  String serializeCodeFormatter() default "";
 
   /**
    * If set to YES, or NO, will override the global option for generating serializer methods.

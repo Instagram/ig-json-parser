@@ -35,7 +35,9 @@ import com.instagram.common.json.annotation.util.Console;
 import com.instagram.common.json.annotation.util.ProcessorClassData;
 import com.instagram.common.json.annotation.util.TypeUtils;
 
+import static com.instagram.common.json.annotation.JsonType.DEFAULT_VALUE_EXTRACT_FORMATTER;
 import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.Modifier.*;
 
 /**
@@ -166,6 +168,12 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     boolean abstractClass = false;
     TypeElement typeElement = (TypeElement) element;
 
+    // The annotation should be validated for an interface, but no code should be generated.
+    JsonType annotation = element.getAnnotation(JsonType.class);
+    if (element.getKind() == INTERFACE) {
+      return;
+    }
+
     // Verify containing class visibility is not private.
     if (element.getModifiers().contains(PRIVATE)) {
       error(element, "@%s %s may not be applied to private classes. (%s.%s)",
@@ -179,7 +187,6 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     JsonParserClassData injector = mState.mClassElementToInjectorMap.get(typeElement);
     if (injector == null) {
-      JsonType annotation = element.getAnnotation(JsonType.class);
 
       String parentGeneratedClassName = null;
 
@@ -296,11 +303,18 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       data.setParsableTypeParserClass(
           mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName));
 
+      JsonType typeAnnotation = typeElement.getAnnotation(JsonType.class);
       if (StringUtil.isNullOrEmpty(data.getValueExtractFormatter())) {
         // Use the parsable object's value extract formatter
         data.setValueExtractFormatter(
-            typeElement.getAnnotation(JsonType.class).valueExtractFormatter());
+            typeAnnotation.valueExtractFormatter());
       }
+      if (StringUtil.isNullOrEmpty(data.getSerializeCodeFormatter())) {
+        data.setSerializeCodeFormatter(
+            typeAnnotation.serializeCodeFormatter());
+      }
+
+      data.setIsInterface(typeElement.getKind() == INTERFACE);
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
       if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter()) ||
