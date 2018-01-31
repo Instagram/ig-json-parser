@@ -558,6 +558,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       "subobject_helper_class",
                       data.getParsableTypeParserClass() +
                           JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                  .addParam("subobject", "element")
                   .format())
               .endControlFlow()
               .endControlFlow()
@@ -591,7 +592,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               .beginControlFlow("if (entry.getValue() == null)")
               .emitStatement("generator.writeNull()")
               .nextControlFlow("else")
-              .emitStatement(getSerializeCodeStatement(valueTypeData, valueSerializeCode))
+              .emitStatement(getMapSerializeCodeStatement(valueTypeData, valueSerializeCode))
               .endControlFlow()
               .endControlFlow()
               .emitStatement("generator.writeEndObject()")
@@ -625,6 +626,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       .addParam("subobject_helper_class",
                           data.getParsableTypeParserClass() +
                               JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                      .addParam("subobject", "object." + member)
                       .format())
               .endControlFlow();
         } else {
@@ -638,6 +640,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                   .addParam("object_varname", "object")
                   .addParam("field_varname", member)
                   .addParam("json_fieldname", data.getFieldName())
+                  .addParam("subobject", "object." + member)
                   .format();
 
           switch (data.getParseType()) {
@@ -660,10 +663,11 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     }
   }
 
-  private String getSerializeCodeStatement(TypeData valueTypeData, String valueSerializeCode) {
+  private String getMapSerializeCodeStatement(TypeData valueTypeData, String valueSerializeCode) {
     StrFormat strFormat = StrFormat.createStringFormatter(valueSerializeCode)
             .addParam("generator_object", "generator")
-            .addParam("iterator", "entry.getValue()");
+            .addParam("iterator", "entry.getValue()")
+            .addParam("subobject", "entry.getValue()");
     if (!StringUtil.isNullOrEmpty(valueTypeData.getParsableTypeParserClass())) {
       strFormat.addParam(
               "subobject_helper_class",
