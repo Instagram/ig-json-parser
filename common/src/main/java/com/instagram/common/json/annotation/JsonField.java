@@ -129,6 +129,10 @@ public @interface JsonField {
    *   <li>
    *     ${subobject_helper_class}: the class that is responsible for serializing the current field
    *   </li>
+   *   <li>
+   *     ${subobject}: reference to the subobject being parsed. Equivalent to either
+   *     ${object_varname}.${field_varname} or ${iterator}, depending on context.
+   *   </li>
    * </ul>
    * <p/>
    * The formatting tokens are not always valid, depending on the nature of the field being
@@ -142,6 +146,7 @@ public @interface JsonField {
    *     <th>${iterator}</th>
    *     <th>${json_fieldname}</th>
    *     <th>${subobject_helper_class}</th>
+   *     <th>${subobject}</th>
    *   </tr>
    *   <tr>
    *     <th>Scalars</th>
@@ -150,6 +155,7 @@ public @interface JsonField {
    *     <td>&#x2714;</td>
    *     <td>&#x2717;</td>
    *     <td>&#x2714;</td>
+   *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *   </tr>
    *   <tr>
@@ -160,6 +166,7 @@ public @interface JsonField {
    *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *     <td>&#x2714;</td>
+   *     <td>&#x2714;</td>
    *   </tr>
    *   <tr>
    *     <th>List of scalars</th>
@@ -167,6 +174,7 @@ public @interface JsonField {
    *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *     <td>&#x2714;</td>
+   *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *   </tr>
@@ -177,6 +185,7 @@ public @interface JsonField {
    *     <td>&#x2717;</td>
    *     <td>&#x2714;</td>
    *     <td>&#x2717;</td>
+   *     <td>&#x2714;</td>
    *     <td>&#x2714;</td>
    *   </tr>
    * </table>

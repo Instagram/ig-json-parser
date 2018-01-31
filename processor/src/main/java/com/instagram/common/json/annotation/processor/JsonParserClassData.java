@@ -635,7 +635,6 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                   .addParam("object_varname", "object")
                   .addParam("field_varname", member)
                   .addParam("json_fieldname", data.getFieldName())
-                  .addParam("subobject", "object." + member)
                   .format();
 
           switch (data.getParseType()) {
@@ -661,13 +660,16 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   private String getMapSerializeCodeStatement(TypeData valueTypeData, String valueSerializeCode) {
     StrFormat strFormat = StrFormat.createStringFormatter(valueSerializeCode)
             .addParam("generator_object", "generator")
-            .addParam("iterator", "entry.getValue()")
-            .addParam("subobject", "entry.getValue()");
-    if (!StringUtil.isNullOrEmpty(valueTypeData.getParsableTypeParserClass())) {
+            .addParam("iterator", "entry.getValue()");
+
+    if (valueTypeData.hasParserHelperClass()) {
       strFormat.addParam(
               "subobject_helper_class",
               valueTypeData.getParsableTypeParserClass() +
                       JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
+    }
+    if (valueTypeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
+      strFormat.addParam("subobject", "entry.getValue()");
     }
 
     return strFormat.format();
