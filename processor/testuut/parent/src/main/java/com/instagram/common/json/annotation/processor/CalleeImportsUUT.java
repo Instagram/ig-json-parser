@@ -4,11 +4,11 @@ import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
 
 /**
- * A class to test whether the {@link JsonType#calleeImports} parameter works.
+ * A class to test whether the {@link JsonType#formatterImports} parameter works.
  */
 @JsonType(
     valueExtractFormatter = "CalleeImportsCompanionUUT__JsonHelper.parseFromJson(${parser_object})",
-    calleeImports = {
+    formatterImports = {
         "com.instagram.common.json.annotation.processor.parent.CalleeImportsCompanionUUT__JsonHelper"
     })
 public class CalleeImportsUUT {

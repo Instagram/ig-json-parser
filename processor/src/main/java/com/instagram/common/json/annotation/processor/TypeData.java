@@ -55,10 +55,10 @@ class TypeData {
   private TypeUtils.CollectionType mCollectionType;
 
   /**
-   * {@link JsonType#calleeImports()} (for parseable object types)
+   * {@link JsonType#formatterImports()} (for parseable object types)
    */
   @Nullable
-  private List<String> mCalleeImports;
+  private List<String> mFormatterImports;
 
   /**
    * The parse type of the field. This is either the
@@ -214,12 +214,12 @@ class TypeData {
     mIsInterface = isInterface;
   }
 
-  void setCalleeImports(String[] calleeImports) {
-    mCalleeImports = Arrays.asList(calleeImports);
+  void setFormatterImports(String[] formatterImports) {
+    mFormatterImports = Arrays.asList(formatterImports);
   }
 
-  List<String> getCalleeImports() {
-    return mCalleeImports == null ? Collections.<String>emptyList()
-        : mCalleeImports;
+  List<String> getFormatterImports() {
+    return mFormatterImports == null ? Collections.<String>emptyList()
+        : mFormatterImports;
   }
 }

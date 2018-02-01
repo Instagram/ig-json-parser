@@ -117,5 +117,5 @@ public @interface JsonType {
    * Additional imports to include in generated code for classes that serialize/deserialize this one. This can be used
    * to clean up code in {@link JsonType#valueExtractFormatter()}.
    */
-  String [] calleeImports() default {};
+  String [] formatterImports() default {};
 }
