@@ -108,14 +108,20 @@ public @interface JsonType {
   boolean useGetters() default false;
 
   /**
-   * Additional imports to include in generated code for this class. This can be used to clean up
-   * code in {@link JsonField#valueExtractFormatter()} and {@link JsonField#serializeCodeFormatter()}.
+   * Additional imports to include in generated code for this class. These imports are visible
+   * from formatter code on {@link JsonField}.
+   * They will not be visible from formatters on {@link JsonType}.
+   *
+   * <p>These imports will be unconditionally added to this class's generated JsonHelper.</p>
    */
   String [] imports() default {};
 
   /**
-   * Additional imports to include in generated code for classes that serialize/deserialize this one. This can be used
-   * to clean up code in {@link JsonType#valueExtractFormatter()}.
+   * Additional imports to include in generated code that refers to this class. These imports are
+   * visible from formatter code on {@link JsonType}. They will not be visible from formatters
+   * on {@link JsonField}.
+   *
+   * <p>These imports will be added to generated JsonHelpers that refer to this class.</p>
    */
   String [] formatterImports() default {};
 }
