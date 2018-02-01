@@ -7,6 +7,8 @@ import com.instagram.common.json.annotation.processor.parent.InterfaceParentNoFo
 import com.instagram.common.json.annotation.processor.parent.InterfaceParentUUT;
 import com.instagram.common.json.annotation.processor.parent.InterfaceParentWithWrapperUUT;
 
+import java.util.List;
+
 
 /**
  * Wrapper for interface tests.
@@ -34,4 +36,7 @@ public class WrapperInterfaceUUT {
 
     @JsonField(fieldName = "interface_parent_dynamic")
     InterfaceParentDynamicUUT mInterfaceParentDynamic;
+
+    @JsonField(fieldName = "interface_parent_list")
+    List<InterfaceParentUUT> mInterfaceParentList;
 }

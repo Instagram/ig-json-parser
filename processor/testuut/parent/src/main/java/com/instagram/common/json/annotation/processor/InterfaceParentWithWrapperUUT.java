@@ -14,7 +14,7 @@ import com.instagram.common.json.annotation.JsonType;
                         + ".serializeToJson(${generator_object}, "
                         + "com.instagram.common.json.annotation.processor.parent.InterfaceParentWrapperUUT.from("
                         + ""
-                        + "${object_varname}.${field_varname}), "
+                        + "${subobject}), "
                         + "true)")
 public interface InterfaceParentWithWrapperUUT {
 }

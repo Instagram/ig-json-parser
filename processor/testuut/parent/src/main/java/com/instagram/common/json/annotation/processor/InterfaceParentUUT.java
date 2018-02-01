@@ -13,7 +13,7 @@ import com.instagram.common.json.annotation.JsonType;
                 "com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT__JsonHelper"
                 + ".serializeToJson(${generator_object}, "
                 + "(com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT)"
-                + "${object_varname}.${field_varname}, "
+                + "${subobject}, "
                 + "true)")
 public interface InterfaceParentUUT {
 }

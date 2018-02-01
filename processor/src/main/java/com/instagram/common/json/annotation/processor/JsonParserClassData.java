@@ -98,18 +98,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       Set<String> typeImports = new HashSet<String>();
       for (Map.Entry<String, TypeData> entry : getIterator()) {
         TypeData typeData = entry.getValue();
-        if (typeData.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-          if (typeData.needsImportFrom(mClassPackage)) {
-            typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
+        if (typeData.needsImportFrom(mClassPackage)) {
+          typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
+          if (typeData.hasParserHelperClass()) {
             typeImports.add(
                 typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
                     JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
           }
-        } else if (typeData.needsImportFrom(mClassPackage)) {
-          typeImports.add(
-              typeData.getPackageName() + "." + typeData.getParsableTypeParserClass() +
-                  JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
-          typeImports.add(typeData.getPackageName() + "." + typeData.getParsableType());
         }
       }
       writer.emitImports(typeImports);
@@ -558,6 +553,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       "subobject_helper_class",
                       data.getParsableTypeParserClass() +
                           JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                  .addParam("subobject", "element")
                   .format())
               .endControlFlow()
               .endControlFlow()
@@ -591,7 +587,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               .beginControlFlow("if (entry.getValue() == null)")
               .emitStatement("generator.writeNull()")
               .nextControlFlow("else")
-              .emitStatement(getSerializeCodeStatement(valueTypeData, valueSerializeCode))
+              .emitStatement(getMapSerializeCodeStatement(valueTypeData, valueSerializeCode))
               .endControlFlow()
               .endControlFlow()
               .emitStatement("generator.writeEndObject()")
@@ -625,6 +621,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       .addParam("subobject_helper_class",
                           data.getParsableTypeParserClass() +
                               JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
+                      .addParam("subobject", "object." + member)
                       .format())
               .endControlFlow();
         } else {
@@ -660,15 +657,19 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     }
   }
 
-  private String getSerializeCodeStatement(TypeData valueTypeData, String valueSerializeCode) {
+  private String getMapSerializeCodeStatement(TypeData valueTypeData, String valueSerializeCode) {
     StrFormat strFormat = StrFormat.createStringFormatter(valueSerializeCode)
             .addParam("generator_object", "generator")
             .addParam("iterator", "entry.getValue()");
-    if (!StringUtil.isNullOrEmpty(valueTypeData.getParsableTypeParserClass())) {
+
+    if (valueTypeData.hasParserHelperClass()) {
       strFormat.addParam(
               "subobject_helper_class",
               valueTypeData.getParsableTypeParserClass() +
                       JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
+    }
+    if (valueTypeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
+      strFormat.addParam("subobject", "entry.getValue()");
     }
 
     return strFormat.format();
