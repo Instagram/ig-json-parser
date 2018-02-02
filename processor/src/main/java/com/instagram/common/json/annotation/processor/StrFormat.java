@@ -3,7 +3,6 @@
 package com.instagram.common.json.annotation.processor;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,16 +14,16 @@ import org.apache.commons.lang3.text.StrSubstitutor;
 class StrFormat {
   private final String mFormatString;
   private final Map<String, String> mInternalMap;
-  private final Set<String> mSupportedParameters;
+  private final Set<String> mSupportedTokens;
 
-  private StrFormat(String formatString, Set<String> supportedParameters) {
+  private StrFormat(String formatString, Set<String> supportedTokens) {
     mFormatString = formatString;
     mInternalMap = new HashMap<String, String>();
-    mSupportedParameters = supportedParameters;
+    mSupportedTokens = supportedTokens;
   }
 
   StrFormat addParam(String variableName, String replacementText) {
-    if (mSupportedParameters.contains(variableName)) {
+    if (mSupportedTokens.contains(variableName)) {
       mInternalMap.put(variableName, replacementText);
     }
     return this;
@@ -37,6 +36,6 @@ class StrFormat {
   static StrFormat createStringFormatter(CodeFormatter formatter) {
     return new StrFormat(
         formatter.getFormatterString(),
-        formatter.getSupportedParameters());
+        formatter.getSupportedTokens());
   }
 }

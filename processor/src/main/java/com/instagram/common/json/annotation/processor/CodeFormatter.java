@@ -20,11 +20,11 @@ public class CodeFormatter {
 
   private final String mFormatterString;
 
-  private final Set<String> mSupportedParameters;
+  private final Set<String> mSupportedTokens;
 
-  private CodeFormatter(String formatterString, Set<String> supportedParameters) {
+  private CodeFormatter(String formatterString, Set<String> supportedTokens) {
     mFormatterString = formatterString;
-    mSupportedParameters = supportedParameters;
+    mSupportedTokens = supportedTokens;
   }
 
   public boolean isEmpty() {
@@ -43,24 +43,24 @@ public class CodeFormatter {
     }
   }
 
-  public Set<String> getSupportedParameters() {
-    return mSupportedParameters;
+  public Set<String> getSupportedTokens() {
+    return mSupportedTokens;
   }
 
   public static class Factory {
-    private Set<String> mSupportedParameters;
+    private Set<String> mSupportedTokens;
 
-    private Factory(String... supportedParameters) {
-      if (supportedParameters != null && supportedParameters.length > 0) {
-        mSupportedParameters = new HashSet<>(Arrays.asList(supportedParameters));
+    private Factory(String... supportedTokens) {
+      if (supportedTokens != null && supportedTokens.length > 0) {
+        mSupportedTokens = new HashSet<>(Arrays.asList(supportedTokens));
       } else {
-        mSupportedParameters = Collections.emptySet();
+        mSupportedTokens = Collections.emptySet();
       }
 
     }
 
     public CodeFormatter forString(String formatterString) {
-      return new CodeFormatter(formatterString, mSupportedParameters);
+      return new CodeFormatter(formatterString, mSupportedTokens);
     }
   }
 }
