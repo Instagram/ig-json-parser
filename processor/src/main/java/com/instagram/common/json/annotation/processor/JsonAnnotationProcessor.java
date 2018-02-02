@@ -35,7 +35,9 @@ import com.instagram.common.json.annotation.util.Console;
 import com.instagram.common.json.annotation.util.ProcessorClassData;
 import com.instagram.common.json.annotation.util.TypeUtils;
 
-import static com.instagram.common.json.annotation.JsonType.DEFAULT_VALUE_EXTRACT_FORMATTER;
+import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_ASSIGNMENT;
+import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_CODE_SERIALIZATION;
+import static com.instagram.common.json.annotation.processor.CodeFormatter.VALUE_EXTRACT;
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.Modifier.*;
@@ -279,9 +281,12 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     data.setFieldName(annotation.fieldName());
     data.setAlternateFieldNames(annotation.alternateFieldNames());
     data.setMapping(annotation.mapping());
-    data.setValueExtractFormatter(annotation.valueExtractFormatter());
-    data.setAssignmentFormatter(annotation.fieldAssignmentFormatter());
-    data.setSerializeCodeFormatter(annotation.serializeCodeFormatter());
+    data.setValueExtractFormatter(
+        VALUE_EXTRACT.forString(annotation.valueExtractFormatter()));
+    data.setAssignmentFormatter(
+        FIELD_ASSIGNMENT.forString(annotation.fieldAssignmentFormatter()));
+    data.setSerializeCodeFormatter(
+        FIELD_CODE_SERIALIZATION.forString(annotation.serializeCodeFormatter()));
     TypeUtils.CollectionType collectionType = mTypeUtils.getCollectionType(type);
     data.setCollectionType(collectionType);
 
@@ -304,15 +309,15 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
           mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName));
 
       JsonType typeAnnotation = typeElement.getAnnotation(JsonType.class);
-      if (StringUtil.isNullOrEmpty(data.getValueExtractFormatter())) {
-        // Use the parsable object's value extract formatter
-        data.setValueExtractFormatter(
-            typeAnnotation.valueExtractFormatter());
-      }
-      if (StringUtil.isNullOrEmpty(data.getSerializeCodeFormatter())) {
-        data.setSerializeCodeFormatter(
-            typeAnnotation.serializeCodeFormatter());
-      }
+      // Use the parsable object's value extract formatter if existing one is empty
+      data.setValueExtractFormatter(data.getValueExtractFormatter()
+        .orIfEmpty(VALUE_EXTRACT.forString(typeAnnotation.valueExtractFormatter())));
+
+      CodeFormatter.Factory serializeCodeType = typeElement.getKind() == INTERFACE
+          ? CodeFormatter.CLASS_CODE_SERIALIZATION
+          : CodeFormatter.INTERFACE_CODE_SERIALIZATION;
+      data.setSerializeCodeFormatter(data.getSerializeCodeFormatter()
+          .orIfEmpty(serializeCodeType.forString(typeAnnotation.serializeCodeFormatter())));
 
       data.setIsInterface(typeElement.getKind() == INTERFACE);
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {

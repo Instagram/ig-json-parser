@@ -32,17 +32,17 @@ class TypeData {
   /**
    * {@link JsonField#valueExtractFormatter()}
    */
-  private String mValueExtractFormatter;
+  private CodeFormatter mValueExtractFormatter;
 
   /**
    * {@link JsonField#fieldAssignmentFormatter()}
    */
-  private String mAssignmentFormatter;
+  private CodeFormatter mAssignmentFormatter;
 
   /**
    * {@link JsonField#serializeCodeFormatter()}
    */
-  private String mSerializeCodeFormatter;
+  private CodeFormatter mSerializeCodeFormatter;
 
   /**
    * The collection type of the field, if the field is a collection, otherwise it is set to
@@ -105,27 +105,27 @@ class TypeData {
     this.mMapping = mapping;
   }
 
-  public String getValueExtractFormatter() {
+  public CodeFormatter getValueExtractFormatter() {
     return mValueExtractFormatter;
   }
 
-  public void setValueExtractFormatter(String valueExtractFormatter) {
-    mValueExtractFormatter = valueExtractFormatter;
+  public void setValueExtractFormatter(CodeFormatter codeFormatter) {
+    mValueExtractFormatter = codeFormatter;
   }
 
-  public String getAssignmentFormatter() {
+  public CodeFormatter getAssignmentFormatter() {
     return mAssignmentFormatter;
   }
 
-  public void setAssignmentFormatter(String assignmentFormatter) {
+  public void setAssignmentFormatter(CodeFormatter assignmentFormatter) {
     mAssignmentFormatter = assignmentFormatter;
   }
 
-  public String getSerializeCodeFormatter() {
+  public CodeFormatter getSerializeCodeFormatter() {
     return mSerializeCodeFormatter;
   }
 
-  public void setSerializeCodeFormatter(String serializeCodeFormatter) {
+  public void setSerializeCodeFormatter(CodeFormatter serializeCodeFormatter) {
     mSerializeCodeFormatter = serializeCodeFormatter;
   }
 

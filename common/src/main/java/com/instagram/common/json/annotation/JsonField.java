@@ -146,7 +146,6 @@ public @interface JsonField {
    *     <th>${iterator}</th>
    *     <th>${json_fieldname}</th>
    *     <th>${subobject_helper_class}</th>
-   *     <th>${subobject}</th>
    *   </tr>
    *   <tr>
    *     <th>Scalars</th>
@@ -155,7 +154,6 @@ public @interface JsonField {
    *     <td>&#x2714;</td>
    *     <td>&#x2717;</td>
    *     <td>&#x2714;</td>
-   *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *   </tr>
    *   <tr>
@@ -166,7 +164,6 @@ public @interface JsonField {
    *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *     <td>&#x2714;</td>
-   *     <td>&#x2714;</td>
    *   </tr>
    *   <tr>
    *     <th>List of scalars</th>
@@ -174,7 +171,6 @@ public @interface JsonField {
    *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *     <td>&#x2714;</td>
-   *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *     <td>&#x2717;</td>
    *   </tr>
@@ -185,7 +181,6 @@ public @interface JsonField {
    *     <td>&#x2717;</td>
    *     <td>&#x2714;</td>
    *     <td>&#x2717;</td>
-   *     <td>&#x2714;</td>
    *     <td>&#x2714;</td>
    *   </tr>
    * </table>

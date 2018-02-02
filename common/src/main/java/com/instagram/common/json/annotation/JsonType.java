@@ -72,6 +72,22 @@ public @interface JsonType {
    * is referenced in a serializer without either {@link JsonType}'s {@link JsonType#serializeCodeFormatter()}
    * or {@link JsonField#serializeCodeFormatter()} provided.
    *
+   * <p>Valid formatting tokens:</p>
+   *
+   * <ul>
+   *   <li>
+   *     ${generator_object}: the name of the variable holding the reference to the json generator
+   *     object
+   *   </li>
+   *   <li>
+   *    ${subobject}: a reference to the instance being serialized
+   *   </li>
+   *   <li>
+   *     ${subobject_helper_class}: name of the subobject's JsonHelper class. Not valid for
+   *     interfaces.
+   *   </li>
+   * </ul>
+   *
    * <p> See {@link JsonField#serializeCodeFormatter()} for more details.
    *
    * @return

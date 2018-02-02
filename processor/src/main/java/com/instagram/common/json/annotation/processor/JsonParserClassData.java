@@ -32,6 +32,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
+import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_ASSIGNMENT;
+import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_CODE_SERIALIZATION;
+import static com.instagram.common.json.annotation.processor.CodeFormatter.VALUE_EXTRACT;
 import static javax.lang.model.element.Modifier.*;
 
 /**
@@ -287,10 +290,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
       if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
         generateCollectionParser(messager, writer, data, member);
-        String assignmentFormatter = data.getAssignmentFormatter();
-        if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
-          assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
-        }
+        CodeFormatter assignmentFormatter = data.getAssignmentFormatter()
+            .orIfEmpty(DEFAULT_ASSIGNMENT_FORMATTER);
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
@@ -299,10 +300,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                 .format());
       } else {
         String rValue = generateExtractRvalue(data, messager, member);
-        String assignmentFormatter = data.getAssignmentFormatter();
-        if (StringUtil.isNullOrEmpty(assignmentFormatter)) {
-          assignmentFormatter = DEFAULT_ASSIGNMENT_FORMATTER;
-        }
+        CodeFormatter assignmentFormatter = data.getAssignmentFormatter()
+            .orIfEmpty(DEFAULT_ASSIGNMENT_FORMATTER);
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
@@ -388,9 +387,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
    * value.  This generates the code to generate the rvalue expression.
    */
   private String generateExtractRvalue(TypeData data, Messager messager, String member) {
-    String valueExtractFormatter = data.getValueExtractFormatter();
+    CodeFormatter valueExtractFormatter = data.getValueExtractFormatter();
 
-    if (StringUtil.isNullOrEmpty(valueExtractFormatter)) {
+    if (valueExtractFormatter.isEmpty()) {
       if (data.isInterface()) {
         Console.error(
                 messager,
@@ -443,61 +442,72 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   }
 
   // These are all the default formatters.
-  private static String DEFAULT_ASSIGNMENT_FORMATTER =
-      "${object_varname}.${field_varname} = ${extracted_value}";
+  private static CodeFormatter DEFAULT_ASSIGNMENT_FORMATTER = FIELD_ASSIGNMENT.forString(
+      "${object_varname}.${field_varname} = ${extracted_value}");
 
-  private static Map<TypeUtils.ParseType, String> sExactFormatters =
-      new HashMap<TypeUtils.ParseType, String>();
-  private static Map<TypeUtils.ParseType, String> sCoercedFormatters =
-      new HashMap<TypeUtils.ParseType, String>();
+  private static Map<TypeUtils.ParseType, CodeFormatter> sExactFormatters =
+      new HashMap<TypeUtils.ParseType, CodeFormatter>();
+  private static Map<TypeUtils.ParseType, CodeFormatter> sCoercedFormatters =
+      new HashMap<TypeUtils.ParseType, CodeFormatter>();
   private static Map<TypeUtils.ParseType, String> sJavaTypes =
       new HashMap<TypeUtils.ParseType, String>();
 
   static {
-    sExactFormatters.put(TypeUtils.ParseType.BOOLEAN, "${parser_object}.getBooleanValue()");
+    sExactFormatters.put(TypeUtils.ParseType.BOOLEAN,
+        VALUE_EXTRACT.forString("${parser_object}.getBooleanValue()"));
     sExactFormatters.put(TypeUtils.ParseType.BOOLEAN_OBJECT,
-        "((${parser_object}.getCurrentToken() == JsonToken.VALUE_TRUE || " +
+        VALUE_EXTRACT.forString("((${parser_object}.getCurrentToken() == JsonToken.VALUE_TRUE || " +
             "${parser_object}.getCurrentToken() == JsonToken.VALUE_FALSE) ? " +
-            "Boolean.valueOf(${parser_object}.getValueAsBoolean()) : null)");
-    sExactFormatters.put(TypeUtils.ParseType.INTEGER, "${parser_object}.getIntValue()");
+            "Boolean.valueOf(${parser_object}.getValueAsBoolean()) : null)"));
+    sExactFormatters.put(TypeUtils.ParseType.INTEGER,
+        VALUE_EXTRACT.forString("${parser_object}.getIntValue()"));
     sExactFormatters.put(TypeUtils.ParseType.INTEGER_OBJECT,
-        "(${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_INT ? " +
-            "Integer.valueOf(${parser_object}.getValueAsInt()) : null)");
-    sExactFormatters.put(TypeUtils.ParseType.LONG, "${parser_object}.getLongValue()");
+        VALUE_EXTRACT.forString("(${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_INT ? " +
+            "Integer.valueOf(${parser_object}.getValueAsInt()) : null)"));
+    sExactFormatters.put(TypeUtils.ParseType.LONG,
+        VALUE_EXTRACT.forString("${parser_object}.getLongValue()"));
     sExactFormatters.put(TypeUtils.ParseType.LONG_OBJECT,
-        "(${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_INT ? " +
-            "Long.valueOf(${parser_object}.getValueAsLong()) : null)");
-    sExactFormatters.put(TypeUtils.ParseType.FLOAT, "${parser_object}.getFloatValue()");
+        VALUE_EXTRACT.forString("(${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_INT ? " +
+            "Long.valueOf(${parser_object}.getValueAsLong()) : null)"));
+    sExactFormatters.put(TypeUtils.ParseType.FLOAT,
+        VALUE_EXTRACT.forString("${parser_object}.getFloatValue()"));
     sExactFormatters.put(TypeUtils.ParseType.FLOAT_OBJECT,
-        "((${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_FLOAT || " +
+        VALUE_EXTRACT.forString("((${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_FLOAT || " +
             "${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_INT) ? " +
-            "new Float(${parser_object}.getValueAsDouble()) : null)");
-    sExactFormatters.put(TypeUtils.ParseType.DOUBLE, "${parser_object}.getDoubleValue()");
+            "new Float(${parser_object}.getValueAsDouble()) : null)"));
+    sExactFormatters.put(TypeUtils.ParseType.DOUBLE,
+        VALUE_EXTRACT.forString("${parser_object}.getDoubleValue()"));
     sExactFormatters.put(TypeUtils.ParseType.DOUBLE_OBJECT,
-        "((${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_FLOAT || " +
+        VALUE_EXTRACT.forString("((${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_FLOAT || " +
             "${parser_object}.getCurrentToken() == JsonToken.VALUE_NUMBER_INT) ? " +
-            "Double.valueOf(${parser_object}.getValueAsDouble()) : null)");
+            "Double.valueOf(${parser_object}.getValueAsDouble()) : null)"));
     sExactFormatters.put(TypeUtils.ParseType.STRING,
-        "(${parser_object}.getCurrentToken() == JsonToken.VALUE_STRING ? ${parser_object}.getText() : null)");
+        VALUE_EXTRACT.forString("(${parser_object}.getCurrentToken() == JsonToken.VALUE_STRING ? ${parser_object}.getText() : null)"));
 
-    sCoercedFormatters.put(TypeUtils.ParseType.BOOLEAN, "${parser_object}.getValueAsBoolean()");
+    sCoercedFormatters.put(TypeUtils.ParseType.BOOLEAN,
+        VALUE_EXTRACT.forString("${parser_object}.getValueAsBoolean()"));
     sCoercedFormatters.put(
-        TypeUtils.ParseType.BOOLEAN_OBJECT, "Boolean.valueOf(${parser_object}.getValueAsBoolean())");
-    sCoercedFormatters.put(TypeUtils.ParseType.INTEGER, "${parser_object}.getValueAsInt()");
+        TypeUtils.ParseType.BOOLEAN_OBJECT,
+        VALUE_EXTRACT.forString("Boolean.valueOf(${parser_object}.getValueAsBoolean())"));
+    sCoercedFormatters.put(TypeUtils.ParseType.INTEGER,
+        VALUE_EXTRACT.forString("${parser_object}.getValueAsInt()"));
     sCoercedFormatters.put(TypeUtils.ParseType.INTEGER_OBJECT,
-        "Integer.valueOf(${parser_object}.getValueAsInt())");
-    sCoercedFormatters.put(TypeUtils.ParseType.LONG, "${parser_object}.getValueAsLong()");
+        VALUE_EXTRACT.forString("Integer.valueOf(${parser_object}.getValueAsInt())"));
+    sCoercedFormatters.put(TypeUtils.ParseType.LONG,
+        VALUE_EXTRACT.forString("${parser_object}.getValueAsLong()"));
     sCoercedFormatters.put(TypeUtils.ParseType.LONG_OBJECT,
-        "Long.valueOf(${parser_object}.getValueAsLong())");
+        VALUE_EXTRACT.forString("Long.valueOf(${parser_object}.getValueAsLong())"));
     sCoercedFormatters.put(TypeUtils.ParseType.FLOAT,
-        "((float) ${parser_object}.getValueAsDouble())");
+        VALUE_EXTRACT.forString("((float) ${parser_object}.getValueAsDouble())"));
     sCoercedFormatters.put(TypeUtils.ParseType.FLOAT_OBJECT,
-        "new Float(${parser_object}.getValueAsDouble())");
-    sCoercedFormatters.put(TypeUtils.ParseType.DOUBLE, "${parser_object}.getValueAsDouble()");
+        VALUE_EXTRACT.forString("new Float(${parser_object}.getValueAsDouble())"));
+    sCoercedFormatters.put(TypeUtils.ParseType.DOUBLE,
+        VALUE_EXTRACT.forString("${parser_object}.getValueAsDouble()"));
     sCoercedFormatters.put(
-        TypeUtils.ParseType.DOUBLE_OBJECT, "Double.valueOf(${parser_object}.getValueAsDouble())");
+        TypeUtils.ParseType.DOUBLE_OBJECT,
+        VALUE_EXTRACT.forString("Double.valueOf(${parser_object}.getValueAsDouble())"));
     sCoercedFormatters.put(TypeUtils.ParseType.STRING,
-        "(${parser_object}.getCurrentToken() == JsonToken.VALUE_NULL ? null : ${parser_object}.getText())");
+        VALUE_EXTRACT.forString("(${parser_object}.getCurrentToken() == JsonToken.VALUE_NULL ? null : ${parser_object}.getText())"));
 
     sJavaTypes.put(TypeUtils.ParseType.BOOLEAN_OBJECT, "Boolean");
     sJavaTypes.put(TypeUtils.ParseType.INTEGER_OBJECT, "Integer");
@@ -521,19 +531,16 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         member = getGetterName(member);
       }
       TypeData data = entry.getValue();
-      String serializeCode = data.getSerializeCodeFormatter();
+      CodeFormatter serializeCode = data.getSerializeCodeFormatter();
 
       if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
 
         if (!TypeUtils.isMapType(data.getCollectionType())) {
 
-          if (StringUtil.isNullOrEmpty(serializeCode)) {
-            if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
-              serializeCode = PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL;
-            } else {
-              serializeCode = mCollectionSerializeCalls.get(data.getParseType());
-            }
-          }
+          CodeFormatter defaultFormat = data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT
+              ? PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL
+              : mCollectionSerializeCalls.get(data.getParseType());
+          serializeCode = serializeCode.orIfEmpty(defaultFormat);
 
           // needed to do a typecast for erased types
           String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
@@ -568,14 +575,11 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           String keyType = getJavaType(messager, keyTypeData);
           String valueType = getJavaType(messager, valueTypeData);
 
-          String valueSerializeCode = valueTypeData.getSerializeCodeFormatter();
-          if (StringUtil.isNullOrEmpty(valueSerializeCode)) {
-            if (valueTypeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
-              valueSerializeCode = PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL;
-            } else {
-              valueSerializeCode = mCollectionSerializeCalls.get(valueTypeData.getParseType());
-            }
-          }
+          CodeFormatter defaultFormat = valueTypeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT
+              ? PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL
+              : mCollectionSerializeCalls.get(valueTypeData.getParseType());
+          CodeFormatter valueSerializeCode = valueTypeData.getSerializeCodeFormatter()
+              .orIfEmpty(defaultFormat);
 
           writer
               .beginControlFlow("if (object." + member + " != null)")
@@ -596,7 +600,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
       } else {
         if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
-          if (StringUtil.isNullOrEmpty(serializeCode)) {
+          if (serializeCode.isEmpty()) {
             if (data.isInterface()) {
               Console.error(
                       messager,
@@ -625,9 +629,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       .format())
               .endControlFlow();
         } else {
-          if (StringUtil.isNullOrEmpty(serializeCode)) {
-            serializeCode = mScalarSerializeCalls.get(data.getParseType());
-          }
+          serializeCode = serializeCode.orIfEmpty(mScalarSerializeCalls.get(data.getParseType()));
 
           String statement =
               StrFormat.createStringFormatter(serializeCode)
@@ -657,7 +659,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     }
   }
 
-  private String getMapSerializeCodeStatement(TypeData valueTypeData, String valueSerializeCode) {
+  private String getMapSerializeCodeStatement(TypeData valueTypeData, CodeFormatter valueSerializeCode) {
     StrFormat strFormat = StrFormat.createStringFormatter(valueSerializeCode)
             .addParam("generator_object", "generator")
             .addParam("iterator", "entry.getValue()");
@@ -682,61 +684,74 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   /**
    * used to write a single instance of a parsable object.
    */
-  private static final String PARSABLE_OBJECT_SERIALIZE_CALL =
-      "${subobject_helper_class}.serializeToJson(${generator_object}, ${object_varname}.${field_varname}, true)";
-  private static final String PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL =
-      "${subobject_helper_class}.serializeToJson(${generator_object}, ${iterator}, true)";
+  private static final CodeFormatter PARSABLE_OBJECT_SERIALIZE_CALL =
+      FIELD_CODE_SERIALIZATION.forString(
+          "${subobject_helper_class}.serializeToJson(${generator_object}, ${object_varname}.${field_varname}, true)");
+  private static final CodeFormatter PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL =
+      FIELD_CODE_SERIALIZATION.forString(
+          "${subobject_helper_class}.serializeToJson(${generator_object}, ${iterator}, true)");
 
-  private static final Map<TypeUtils.ParseType, String> mScalarSerializeCalls =
-      new HashMap<TypeUtils.ParseType, String>();
-  private static final Map<TypeUtils.ParseType, String> mCollectionSerializeCalls =
-      new HashMap<TypeUtils.ParseType, String>();
+  private static final Map<TypeUtils.ParseType, CodeFormatter> mScalarSerializeCalls =
+      new HashMap<TypeUtils.ParseType, CodeFormatter>();
+  private static final Map<TypeUtils.ParseType, CodeFormatter> mCollectionSerializeCalls =
+      new HashMap<TypeUtils.ParseType, CodeFormatter>();
   static {
     mScalarSerializeCalls.put(TypeUtils.ParseType.BOOLEAN,
-        "${generator_object}.writeBooleanField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeBooleanField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.BOOLEAN_OBJECT,
-        "${generator_object}.writeBooleanField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeBooleanField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.INTEGER,
-        "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.INTEGER_OBJECT,
-        "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.LONG,
-        "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.LONG_OBJECT,
-        "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.FLOAT,
-        "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.FLOAT_OBJECT,
-        "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.DOUBLE,
-        "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.DOUBLE_OBJECT,
-        "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
     mScalarSerializeCalls.put(TypeUtils.ParseType.STRING,
-        "${generator_object}.writeStringField(\"${json_fieldname}\", ${object_varname}.${field_varname})");
+        FIELD_CODE_SERIALIZATION.forString(
+            "${generator_object}.writeStringField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
 
     mCollectionSerializeCalls.put(TypeUtils.ParseType.BOOLEAN,
-        "${generator_object}.writeBoolean(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeBoolean(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.BOOLEAN_OBJECT,
-        "${generator_object}.writeBoolean(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeBoolean(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.INTEGER,
-        "${generator_object}.writeNumber(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.INTEGER_OBJECT,
-        "${generator_object}.writeNumber(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.LONG,
-        "${generator_object}.writeNumber(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.LONG_OBJECT,
-        "${generator_object}.writeNumber(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.FLOAT,
-        "${generator_object}.writeNumber(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.FLOAT_OBJECT,
-        "${generator_object}.writeNumber(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.DOUBLE,
-        "${generator_object}.writeNumber(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.DOUBLE_OBJECT,
-        "${generator_object}.writeNumber(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
     mCollectionSerializeCalls.put(TypeUtils.ParseType.STRING,
-        "${generator_object}.writeString(${iterator})");
+        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeString(${iterator})"));
 
   }
 

@@ -4,6 +4,7 @@ package com.instagram.common.json.annotation.processor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.text.StrSubstitutor;
 
@@ -11,16 +12,20 @@ import org.apache.commons.lang3.text.StrSubstitutor;
  * Syntactic sugar wrapper for {@link StrSubstitutor}.
  */
 class StrFormat {
-  private String mFormatString;
-  private Map<String, String> mInternalMap;
+  private final String mFormatString;
+  private final Map<String, String> mInternalMap;
+  private final Set<String> mSupportedTokens;
 
-  StrFormat(String formatString) {
+  private StrFormat(String formatString, Set<String> supportedTokens) {
     mFormatString = formatString;
     mInternalMap = new HashMap<String, String>();
+    mSupportedTokens = supportedTokens;
   }
 
   StrFormat addParam(String variableName, String replacementText) {
-    mInternalMap.put(variableName, replacementText);
+    if (mSupportedTokens.contains(variableName)) {
+      mInternalMap.put(variableName, replacementText);
+    }
     return this;
   }
 
@@ -28,7 +33,9 @@ class StrFormat {
     return StrSubstitutor.replace(mFormatString, mInternalMap);
   }
 
-  static StrFormat createStringFormatter(String formatString) {
-    return new StrFormat(formatString);
+  static StrFormat createStringFormatter(CodeFormatter formatter) {
+    return new StrFormat(
+        formatter.getFormatterString(),
+        formatter.getSupportedTokens());
   }
 }
