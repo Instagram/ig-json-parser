@@ -55,7 +55,7 @@ class TypeData {
   private TypeUtils.CollectionType mCollectionType;
 
   /**
-   * {@link JsonType#formatterImports()} (for parseable object types)
+   * {@link JsonType#typeFormatterImports()} (for parseable object types)
    */
   @Nullable
   private List<String> mFormatterImports;

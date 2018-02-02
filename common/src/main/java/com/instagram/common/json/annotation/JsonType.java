@@ -123,5 +123,5 @@ public @interface JsonType {
    *
    * <p>These imports will be added to generated JsonHelpers that refer to this class.</p>
    */
-  String [] formatterImports() default {};
+  String [] typeFormatterImports() default {};
 }

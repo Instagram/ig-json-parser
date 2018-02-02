@@ -14,11 +14,11 @@ import java.util.Set;
 
 import com.instagram.common.json.JsonHelper;
 import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
-import com.instagram.common.json.annotation.processor.dependent.CalleeImportsContainerUUT;
-import com.instagram.common.json.annotation.processor.dependent.CalleeImportsContainerUUT__JsonHelper;
-import com.instagram.common.json.annotation.processor.parent.CalleeImportsCompanionUUT;
-import com.instagram.common.json.annotation.processor.parent.CalleeImportsUUT;
-import com.instagram.common.json.annotation.processor.parent.CalleeImportsUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.dependent.TypeFormatterImportsContainerUUT;
+import com.instagram.common.json.annotation.processor.dependent.TypeFormatterImportsContainerUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsUUT;
+import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsCompanionUUT;
+import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.CustomParseContainerUUT;
@@ -211,7 +211,7 @@ public class DeserializeTest {
   }
 
   @Test
-  public void calleeImportsTest() throws IOException, JSONException {
+  public void TypeFormatterImportsTest() throws IOException, JSONException {
     final String encodedValue = "test";
 
     StringWriter stringWriter = new StringWriter();
@@ -226,11 +226,11 @@ public class DeserializeTest {
         .endObject();
 
     String inputString = stringWriter.toString();
-    CalleeImportsContainerUUT container =
-        CalleeImportsContainerUUT__JsonHelper.parseFromJson(inputString);
-    CalleeImportsUUT uut = container.mCalleeImports;
+    TypeFormatterImportsContainerUUT container =
+        TypeFormatterImportsContainerUUT__JsonHelper.parseFromJson(inputString);
+    TypeFormatterImportsUUT uut = container.mTypeFormatterImports;
 
-    assertTrue(uut instanceof CalleeImportsCompanionUUT);
+    assertTrue(uut instanceof TypeFormatterImportsCompanionUUT);
     assertEquals(encodedValue, uut.mString);
 
   }
