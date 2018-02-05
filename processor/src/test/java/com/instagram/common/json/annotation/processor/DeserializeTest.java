@@ -14,6 +14,11 @@ import java.util.Set;
 
 import com.instagram.common.json.JsonHelper;
 import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
+import com.instagram.common.json.annotation.processor.dependent.TypeFormatterImportsContainerUUT;
+import com.instagram.common.json.annotation.processor.dependent.TypeFormatterImportsContainerUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsUUT;
+import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsCompanionUUT;
+import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.CustomParseContainerUUT;
@@ -24,6 +29,8 @@ import com.instagram.common.json.annotation.processor.uut.ExactMappingUUT;
 import com.instagram.common.json.annotation.processor.uut.ExactMappingUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.FormatterUUT;
 import com.instagram.common.json.annotation.processor.uut.FormatterUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.uut.ImportsUUT;
+import com.instagram.common.json.annotation.processor.uut.ImportsUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.MapUUT;
 import com.instagram.common.json.annotation.processor.uut.MapUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.PostprocessingUUT;
@@ -181,6 +188,51 @@ public class DeserializeTest {
     FormatterUUT uut = FormatterUUT__JsonHelper.parseFromJson(jp);
 
     assertSame(deserializedValue, uut.getValueFormatter());
+  }
+
+  @Test
+  public void importsTest() throws IOException, JSONException {
+    final String encodedValue = "test";
+    final String deserializedValue = ":test";
+
+    StringWriter stringWriter = new StringWriter();
+    JSONWriter writer = new JSONWriter(stringWriter);
+
+    writer.object()
+        .key("string_field").value(encodedValue)
+        .endObject();
+
+    String inputString = stringWriter.toString();
+    JsonParser jp = new JsonFactory().createParser(inputString);
+    jp.nextToken();
+    ImportsUUT uut = ImportsUUT__JsonHelper.parseFromJson(jp);
+
+    assertEquals(deserializedValue, uut.mStringField);
+  }
+
+  @Test
+  public void TypeFormatterImportsTest() throws IOException, JSONException {
+    final String encodedValue = "test";
+
+    StringWriter stringWriter = new StringWriter();
+    JSONWriter writer = new JSONWriter(stringWriter);
+
+    writer
+        .object()
+        .key("callee_ref")
+        .object()
+        .key("string_field").value(encodedValue)
+        .endObject()
+        .endObject();
+
+    String inputString = stringWriter.toString();
+    TypeFormatterImportsContainerUUT container =
+        TypeFormatterImportsContainerUUT__JsonHelper.parseFromJson(inputString);
+    TypeFormatterImportsUUT uut = container.mTypeFormatterImports;
+
+    assertTrue(uut instanceof TypeFormatterImportsCompanionUUT);
+    assertEquals(encodedValue, uut.mString);
+
   }
 
   @Test

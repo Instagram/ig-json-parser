@@ -6,6 +6,10 @@ import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
 import com.instagram.common.json.annotation.util.TypeUtils;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 /**
@@ -49,6 +53,12 @@ class TypeData {
    * {@link TypeUtils.CollectionType#NOT_A_COLLECTION}
    */
   private TypeUtils.CollectionType mCollectionType;
+
+  /**
+   * {@link JsonType#typeFormatterImports()} (for parseable object types)
+   */
+  @Nullable
+  private List<String> mFormatterImports;
 
   /**
    * The parse type of the field. This is either the
@@ -202,5 +212,14 @@ class TypeData {
 
   public void setInterface(boolean isInterface) {
     mIsInterface = isInterface;
+  }
+
+  void setFormatterImports(String[] formatterImports) {
+    mFormatterImports = Arrays.asList(formatterImports);
+  }
+
+  List<String> getFormatterImports() {
+    return mFormatterImports == null ? Collections.<String>emptyList()
+        : mFormatterImports;
   }
 }
