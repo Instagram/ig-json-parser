@@ -28,8 +28,8 @@ allprojects {
 ...
 
 dependencies {
-  compile 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT' // the runtime
-  compile 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT' // the annotation processor 
+  implementation 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT' // the runtime
+  implementation 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT' // the annotation processor 
 }
 ```
 
@@ -65,7 +65,7 @@ apply plugin: 'com.neenbedankt.android-apt'
 
 dependencies {
   apt 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT'
-  compile 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT'
+  implementation 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT'
 }
 ```
 
