@@ -2,10 +2,22 @@
 
 package com.instagram.common.json.annotation.util;
 
+import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.Modifier.PRIVATE;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
-import javax.annotation.processing.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.lang.annotation.Annotation;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -15,16 +27,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.annotation.Annotation;
-import java.util.Map;
-import java.util.Set;
-
-import static javax.lang.model.element.ElementKind.CLASS;
-import static javax.lang.model.element.Modifier.PRIVATE;
 
 /**
  * This annotation processor generates a class that traverses the fields of a class and records
@@ -38,6 +40,7 @@ public class TestAnnotationProcessor extends AbstractProcessor {
   private Types mTypes;
   private Filer mFiler;
   private TypeUtils mTypeUtils;
+
   private static class State {
     private Map<TypeElement, TypeGathererClassData> mClassElementToInjectorMap;
 
@@ -45,6 +48,7 @@ public class TestAnnotationProcessor extends AbstractProcessor {
       mClassElementToInjectorMap = Maps.newHashMap();
     }
   }
+
   private State mState;
 
   @Override
@@ -92,8 +96,8 @@ public class TestAnnotationProcessor extends AbstractProcessor {
           writer.flush();
           writer.close();
         } catch (IOException e) {
-          error(typeElement, "Unable to write injector for type %s: %s",
-              typeElement, e.getMessage());
+          error(
+              typeElement, "Unable to write injector for type %s: %s", typeElement, e.getMessage());
         }
       }
 
@@ -113,7 +117,9 @@ public class TestAnnotationProcessor extends AbstractProcessor {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @TypeTesting.\n\n%s",
+        error(
+            element,
+            "Unable to generate view injector for @TypeTesting.\n\n%s",
             stackTrace.toString());
       }
     }
@@ -142,8 +148,11 @@ public class TestAnnotationProcessor extends AbstractProcessor {
 
     // Verify containing class visibility is not private.
     if (element.getModifiers().contains(PRIVATE)) {
-      error(element, "@%s %s may not be applied to private classes. (%s.%s)",
-          MarkedTypes.class.getSimpleName(), typeElement.getQualifiedName(),
+      error(
+          element,
+          "@%s %s may not be applied to private classes. (%s.%s)",
+          MarkedTypes.class.getSimpleName(),
+          typeElement.getQualifiedName(),
           element.getSimpleName());
       return;
     }
@@ -151,18 +160,19 @@ public class TestAnnotationProcessor extends AbstractProcessor {
     TypeGathererClassData injector = mState.mClassElementToInjectorMap.get(typeElement);
     if (injector == null) {
       String packageName = mTypeUtils.getPackageName(mElements, typeElement);
-      injector = new TypeGathererClassData(
-          packageName,
-          typeElement.getQualifiedName().toString(),
-          mTypeUtils.getClassName(typeElement, packageName),
-          mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName) + TYPE_DATA_SUFFIX,
-          new ProcessorClassData.AnnotationRecordFactory<String, FieldData>() {
+      injector =
+          new TypeGathererClassData(
+              packageName,
+              typeElement.getQualifiedName().toString(),
+              mTypeUtils.getClassName(typeElement, packageName),
+              mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName) + TYPE_DATA_SUFFIX,
+              new ProcessorClassData.AnnotationRecordFactory<String, FieldData>() {
 
-            @Override
-            public FieldData createAnnotationRecord(String key) {
-              return new FieldData();
-            }
-          });
+                @Override
+                public FieldData createAnnotationRecord(String key) {
+                  return new FieldData();
+                }
+              });
       mState.mClassElementToInjectorMap.put(typeElement, injector);
     }
   }
@@ -176,7 +186,9 @@ public class TestAnnotationProcessor extends AbstractProcessor {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @TypeTesting.\n\n%s",
+        error(
+            element,
+            "Unable to generate view injector for @TypeTesting.\n\n%s",
             stackTrace.toString());
       }
     }
@@ -216,21 +228,25 @@ public class TestAnnotationProcessor extends AbstractProcessor {
     }
   }
 
-  private boolean isFieldAnnotationValid(Class<? extends Annotation> annotationClass,
-      Element element) {
+  private boolean isFieldAnnotationValid(
+      Class<? extends Annotation> annotationClass, Element element) {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Verify containing type.
     if (enclosingElement.getKind() != CLASS) {
-      error(enclosingElement, "@%s field may only be contained in classes. (%s.%s)",
-          annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+      error(
+          enclosingElement,
+          "@%s field may only be contained in classes. (%s.%s)",
+          annotationClass.getSimpleName(),
+          enclosingElement.getQualifiedName(),
           element.getSimpleName());
       return false;
     }
 
     Annotation annotation = enclosingElement.getAnnotation(MarkedTypes.class);
     if (annotation == null) {
-      error(enclosingElement,
+      error(
+          enclosingElement,
           "@%s field may only be contained in classes annotated with @%s (%s.%s)",
           annotationClass.getSimpleName(),
           MarkedTypes.class.toString(),
@@ -241,7 +257,9 @@ public class TestAnnotationProcessor extends AbstractProcessor {
 
     // Verify containing class visibility is not private.
     if (enclosingElement.getModifiers().contains(PRIVATE)) {
-      error(enclosingElement, "@%s %s may not be contained in private classes. (%s.%s)",
+      error(
+          enclosingElement,
+          "@%s %s may not be contained in private classes. (%s.%s)",
           annotationClass.getSimpleName(),
           enclosingElement.getQualifiedName(),
           element.getSimpleName());

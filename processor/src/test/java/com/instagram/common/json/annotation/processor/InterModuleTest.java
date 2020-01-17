@@ -2,8 +2,6 @@
 
 package com.instagram.common.json.annotation.processor;
 
-import java.io.IOException;
-
 import com.instagram.common.json.annotation.processor.dependent.SubclassUUT;
 import com.instagram.common.json.annotation.processor.dependent.SubclassUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.dependent.SubclassWithAbstractParentUUT;
@@ -11,20 +9,14 @@ import com.instagram.common.json.annotation.processor.dependent.SubclassWithAbst
 import com.instagram.common.json.annotation.processor.dependent.WrapperClassUUT;
 import com.instagram.common.json.annotation.processor.dependent.WrapperClassUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.parent.ParentUUT;
-
+import java.io.IOException;
 import org.json.JSONException;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-/**
- * Try to do stuff across modules.
- */
+/** Try to do stuff across modules. */
 public class InterModuleTest {
 
-  /**
-   * Subclasses a java object in a different class.
-   */
+  /** Subclasses a java object in a different class. */
   @Test
   public void subclassingTest() throws IOException, JSONException {
     final int intValue = 25;
@@ -46,9 +38,7 @@ public class InterModuleTest {
     assertEquals(uut.subclassInt, parsed.subclassInt);
   }
 
-  /**
-   * Subclasses an abstract java object in a different class.
-   */
+  /** Subclasses an abstract java object in a different class. */
   @Test
   public void abstractSubclassingTest() throws IOException, JSONException {
     final int intValue = 25;
@@ -71,9 +61,7 @@ public class InterModuleTest {
     assertEquals(uut.subclassInt, parsed.subclassInt);
   }
 
-  /**
-   * Includes a java object in a different class.
-   */
+  /** Includes a java object in a different class. */
   @Test
   public void wrapperTest() throws IOException, JSONException {
     final int intValue = 25;

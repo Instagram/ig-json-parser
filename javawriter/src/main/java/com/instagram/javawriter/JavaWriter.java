@@ -1,6 +1,8 @@
 // Copyright 2013 Square, Inc.
 package com.instagram.javawriter;
 
+import static javax.lang.model.element.Modifier.ABSTRACT;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Writer;
@@ -22,8 +24,6 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.lang.model.element.Modifier;
-
-import static javax.lang.model.element.Modifier.ABSTRACT;
 
 /** A utility class which aids in generating Java source files. */
 public class JavaWriter implements Closeable {
@@ -130,16 +130,16 @@ public class JavaWriter implements Closeable {
   }
 
   /**
-   * Emit a static import for each {@code type} provided. For the duration of the file,
-   * all references to these classes will be automatically shortened.
+   * Emit a static import for each {@code type} provided. For the duration of the file, all
+   * references to these classes will be automatically shortened.
    */
   public JavaWriter emitStaticImports(String... types) throws IOException {
     return emitStaticImports(Arrays.asList(types));
   }
 
   /**
-   * Emit a static import for each {@code type} in the provided {@code Collection}. For the
-   * duration of the file, all references to these classes will be automatically shortened.
+   * Emit a static import for each {@code type} in the provided {@code Collection}. For the duration
+   * of the file, all references to these classes will be automatically shortened.
    */
   public JavaWriter emitStaticImports(Collection<String> types) throws IOException {
     for (String type : new TreeSet<String>(types)) {
@@ -159,8 +159,8 @@ public class JavaWriter implements Closeable {
 
   /**
    * Emits a name like {@code java.lang.String} or {@code java.util.List<java.lang.String>},
-   * compressing it with imports if possible. Type compression will only be enabled if
-   * {@link #isCompressingTypes} is true.
+   * compressing it with imports if possible. Type compression will only be enabled if {@link
+   * #isCompressingTypes} is true.
    */
   private JavaWriter emitCompressedType(String type) throws IOException {
     if (isCompressingTypes) {
@@ -260,11 +260,11 @@ public class JavaWriter implements Closeable {
     return this;
   }
 
- /**
-  * Emits a type declaration.
-  *
-  * @param kind such as "class", "interface" or "enum".
-  */
+  /**
+   * Emits a type declaration.
+   *
+   * @param kind such as "class", "interface" or "enum".
+   */
   public JavaWriter beginType(String type, String kind) throws IOException {
     return beginType(type, kind, EnumSet.noneOf(Modifier.class), null);
   }
@@ -285,8 +285,13 @@ public class JavaWriter implements Closeable {
    * @param kind such as "class", "interface" or "enum".
    * @param extendsType the class to extend, or null for no extends clause.
    */
-  public JavaWriter beginType(String type, String kind, Set<Modifier> modifiers, String extendsType,
-      String... implementsTypes) throws IOException {
+  public JavaWriter beginType(
+      String type,
+      String kind,
+      Set<Modifier> modifiers,
+      String extendsType,
+      String... implementsTypes)
+      throws IOException {
     indent();
     emitModifiers(modifiers);
     out.write(kind);
@@ -334,8 +339,8 @@ public class JavaWriter implements Closeable {
   }
 
   /** Emits a field declaration. */
-  public JavaWriter emitField(String type, String name, Set<Modifier> modifiers,
-      String initialValue) throws IOException {
+  public JavaWriter emitField(
+      String type, String name, Set<Modifier> modifiers, String initialValue) throws IOException {
     indent();
     emitModifiers(modifiers);
     emitCompressedType(type);
@@ -360,26 +365,27 @@ public class JavaWriter implements Closeable {
   /**
    * Emit a method declaration.
    *
-   * <p>A {@code null} return type may be used to indicate a constructor, but
-   * {@link #beginConstructor(Set, String...)} should be preferred. This behavior may be removed in
-   * a future release.
+   * <p>A {@code null} return type may be used to indicate a constructor, but {@link
+   * #beginConstructor(Set, String...)} should be preferred. This behavior may be removed in a
+   * future release.
    *
    * @param returnType the method's return type, or null for constructors
    * @param name the method name, or the fully qualified class name for constructors.
    * @param modifiers the set of modifiers to be applied to the method
    * @param parameters alternating parameter types and names.
    */
-  public JavaWriter beginMethod(String returnType, String name, Set<Modifier> modifiers,
-      String... parameters) throws IOException {
+  public JavaWriter beginMethod(
+      String returnType, String name, Set<Modifier> modifiers, String... parameters)
+      throws IOException {
     return beginMethod(returnType, name, modifiers, Arrays.asList(parameters), null);
   }
 
   /**
    * Emit a method declaration.
    *
-   * <p>A {@code null} return type may be used to indicate a constructor, but
-   * {@link #beginConstructor(Set, List, List)} should be preferred. This behavior may be removed in
-   * a future release.
+   * <p>A {@code null} return type may be used to indicate a constructor, but {@link
+   * #beginConstructor(Set, List, List)} should be preferred. This behavior may be removed in a
+   * future release.
    *
    * @param returnType the method's return type, or null for constructors.
    * @param name the method name, or the fully qualified class name for constructors.
@@ -387,8 +393,13 @@ public class JavaWriter implements Closeable {
    * @param parameters alternating parameter types and names.
    * @param throwsTypes the classes to throw, or null for no throws clause.
    */
-  public JavaWriter beginMethod(String returnType, String name, Set<Modifier> modifiers,
-      List<String> parameters, List<String> throwsTypes) throws IOException {
+  public JavaWriter beginMethod(
+      String returnType,
+      String name,
+      Set<Modifier> modifiers,
+      List<String> parameters,
+      List<String> throwsTypes)
+      throws IOException {
     indent();
     emitModifiers(modifiers);
     if (returnType != null) {
@@ -400,7 +411,7 @@ public class JavaWriter implements Closeable {
     }
     out.write("(");
     if (parameters != null) {
-      for (int p = 0; p < parameters.size();) {
+      for (int p = 0; p < parameters.size(); ) {
         if (p != 0) {
           out.write(", ");
         }
@@ -437,8 +448,8 @@ public class JavaWriter implements Closeable {
     return this;
   }
 
-  public JavaWriter beginConstructor(Set<Modifier> modifiers,
-      List<String> parameters, List<String> throwsTypes)
+  public JavaWriter beginConstructor(
+      Set<Modifier> modifiers, List<String> parameters, List<String> throwsTypes)
       throws IOException {
     beginMethod(null, types.peekFirst(), modifiers, parameters, throwsTypes);
     return this;
@@ -486,8 +497,8 @@ public class JavaWriter implements Closeable {
   }
 
   /**
-   * A simple switch to emit the proper enum depending if its last causing it to be terminated
-   * by a semi-colon ({@code ;}).
+   * A simple switch to emit the proper enum depending if its last causing it to be terminated by a
+   * semi-colon ({@code ;}).
    */
   public JavaWriter emitEnumValue(String name, boolean isLast) throws IOException {
     return isLast ? emitLastEnumValue(name) : emitEnumValue(name);
@@ -557,8 +568,8 @@ public class JavaWriter implements Closeable {
   }
 
   /** Equivalent to {@code annotation(annotationType.getName(), attributes)}. */
-  public JavaWriter emitAnnotation(Class<? extends Annotation> annotationType,
-      Map<String, ?> attributes) throws IOException {
+  public JavaWriter emitAnnotation(
+      Class<? extends Annotation> annotationType, Map<String, ?> attributes) throws IOException {
     return emitAnnotation(type(annotationType), attributes);
   }
 
@@ -588,8 +599,8 @@ public class JavaWriter implements Closeable {
         out.write(")");
         break;
       default:
-        boolean split = attributes.size() > MAX_SINGLE_LINE_ATTRIBUTES
-            || containsArray(attributes.values());
+        boolean split =
+            attributes.size() > MAX_SINGLE_LINE_ATTRIBUTES || containsArray(attributes.values());
         out.write("(");
         scopes.push(Scope.ANNOTATION_ATTRIBUTE);
         String separator = split ? "\n" : "";
@@ -704,8 +715,8 @@ public class JavaWriter implements Closeable {
   }
 
   /**
-   * @param controlFlow the optional control flow construct and its code, such as
-   *     "while(foo == 20)". Only used for "do/while" control flows.
+   * @param controlFlow the optional control flow construct and its code, such as "while(foo ==
+   *     20)". Only used for "do/while" control flows.
    */
   public JavaWriter endControlFlow(String controlFlow) throws IOException {
     popScope(Scope.CONTROL_FLOW);
@@ -801,7 +812,8 @@ public class JavaWriter implements Closeable {
     return result.toString();
   }
 
-  @Override public void close() throws IOException {
+  @Override
+  public void close() throws IOException {
     out.close();
   }
 
@@ -828,8 +840,9 @@ public class JavaWriter implements Closeable {
     }
   }
 
-  private static final EnumSet<Scope> METHOD_SCOPES = EnumSet.of(
-      Scope.NON_ABSTRACT_METHOD, Scope.CONSTRUCTOR, Scope.CONTROL_FLOW, Scope.INITIALIZER);
+  private static final EnumSet<Scope> METHOD_SCOPES =
+      EnumSet.of(
+          Scope.NON_ABSTRACT_METHOD, Scope.CONSTRUCTOR, Scope.CONTROL_FLOW, Scope.INITIALIZER);
 
   private void checkInMethod() {
     if (!METHOD_SCOPES.contains(scopes.peekFirst())) {

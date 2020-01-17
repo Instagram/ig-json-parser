@@ -1,13 +1,15 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 apply plugin: 'java'
 
 compileJava {
-  options.compilerArgs += [
-                       '-processor',
-                       'com.instagram.common.json.annotation.processor.JsonAnnotationProcessor'
-  ]
+    options.compilerArgs += [
+            '-processor',
+            'com.instagram.common.json.annotation.processor.JsonAnnotationProcessor'
+    ]
 }
 dependencies {
-  compile project(':common')
-  compile project(':processor')
-  compile project(':processor:testuut:parent')
+    compile project(':common')
+    compile project(':processor')
+    compile project(':processor:testuut:parent')
 }

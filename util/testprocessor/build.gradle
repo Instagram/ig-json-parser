@@ -1,7 +1,9 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 apply plugin: 'java'
 
 dependencies {
-  compile group: 'com.google.guava', name: 'guava', version: '12.0.1+'
-  compile project(':util')
-  compile project(':javawriter')
+    compile group: 'com.google.guava', name: 'guava', version: '12.0.1+'
+    compile project(':util')
+    compile project(':javawriter')
 }

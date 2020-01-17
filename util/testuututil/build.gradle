@@ -1,13 +1,15 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 apply plugin: 'java'
 
 compileJava {
-  options.compilerArgs += [
-                       '-processor',
-                       'com.instagram.common.json.annotation.util.TestAnnotationProcessor'
-  ]
+    options.compilerArgs += [
+            '-processor',
+            'com.instagram.common.json.annotation.util.TestAnnotationProcessor'
+    ]
 }
 
 dependencies {
-  compile group: 'com.google.guava', name: 'guava', version: '12.0.1+'
-  compileOnly project(':util:testprocessor')
+    compile group: 'com.google.guava', name: 'guava', version: '12.0.1+'
+    compileOnly project(':util:testprocessor')
 }

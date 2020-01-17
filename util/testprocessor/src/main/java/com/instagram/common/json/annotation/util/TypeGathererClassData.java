@@ -2,30 +2,31 @@
 
 package com.instagram.common.json.annotation.util;
 
-import javax.annotation.processing.Messager;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
 
+import com.instagram.javawriter.JavaWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.EnumSet;
 import java.util.Map;
+import javax.annotation.processing.Messager;
 
-import com.instagram.javawriter.JavaWriter;
-
-import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.PUBLIC;
-import static javax.lang.model.element.Modifier.STATIC;
 /**
  * This gathers data about the declared types of annotated fields and writes code to mutate fields
  * to record that information.
- * <p/>
- * If a field's name is XXX, then it generates code to write:
+ *
+ * <p>If a field's name is XXX, then it generates code to write:
+ *
  * <ul>
- *    <li>XXX__IsList - whether a field is a list or a scalar.</li>
- *    <li>XXX__ParseType - the {@link TypeUtils.ParseType} that best matches the field.</li>
+ *   <li>XXX__IsList - whether a field is a list or a scalar.
+ *   <li>XXX__ParseType - the {@link TypeUtils.ParseType} that best matches the field.
  * </ul>
  *
- * As an example, a field declared as <code>int foo;</code>
- * Will generate the following code:<pre>
+ * As an example, a field declared as <code>int foo;</code> Will generate the following code:
+ *
+ * <pre>
  *    foo__IsList = false;
  *    foo__ParseType = "INTEGER";
  * </pre>
@@ -48,11 +49,13 @@ public class TypeGathererClassData extends ProcessorClassData<String, FieldData>
     JavaWriter writer = new JavaWriter(sw);
 
     try {
-      writer.emitPackage(mClassPackage)
+      writer
+          .emitPackage(mClassPackage)
           .beginType(mInjectedClassName, "class", EnumSet.of(PUBLIC, FINAL))
-            .beginMethod("void", "injectTypeData", EnumSet.of(PUBLIC, STATIC),
-                mSimpleClassName, "instance")
-              .emitWithGenerator(new JavaWriter.JavaGenerator() {
+          .beginMethod(
+              "void", "injectTypeData", EnumSet.of(PUBLIC, STATIC), mSimpleClassName, "instance")
+          .emitWithGenerator(
+              new JavaWriter.JavaGenerator() {
                 @Override
                 public void emitJava(JavaWriter writer) throws IOException {
                   TypeGathererClassData classWalker = TypeGathererClassData.this;
@@ -62,11 +65,11 @@ public class TypeGathererClassData extends ProcessorClassData<String, FieldData>
                   }
                 }
               })
-            .endMethod()
+          .endMethod()
           .endType();
     } catch (IOException ex) {
-      Console.error(messager, "IOException while generating %s: %s",
-          mInjectedClassName, ex.toString());
+      Console.error(
+          messager, "IOException while generating %s: %s", mInjectedClassName, ex.toString());
     }
 
     return sw.toString();
@@ -85,21 +88,21 @@ public class TypeGathererClassData extends ProcessorClassData<String, FieldData>
       writer.emitStatement("instance.%s__ParseType = \"%s\"", entry.getKey(), parseTypeString);
 
       String parseTypeGeneratedClass = entry.getValue().mParsableTypeGeneratedClass;
-      writer.emitStatement("instance.%s__ParseTypeGeneratedClass = %s",
+      writer.emitStatement(
+          "instance.%s__ParseTypeGeneratedClass = %s",
           entry.getKey(),
           parseTypeGeneratedClass == null ? null : '\"' + parseTypeGeneratedClass + '\"');
     }
   }
 
-  /**
-   * Sets the class data structure for the parent class.
-   */
+  /** Sets the class data structure for the parent class. */
   void setParentClassData(TypeGathererClassData parentClassData) {
     mParentClassData = parentClassData;
   }
 
   /**
    * Retrieves the class data structure for the parent class.
+   *
    * @return
    */
   private TypeGathererClassData getParentClassData() {

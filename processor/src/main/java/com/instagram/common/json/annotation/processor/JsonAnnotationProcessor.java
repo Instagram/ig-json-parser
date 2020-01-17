@@ -2,6 +2,29 @@
 
 package com.instagram.common.json.annotation.processor;
 
+import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_ASSIGNMENT;
+import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_CODE_SERIALIZATION;
+import static com.instagram.common.json.annotation.processor.CodeFormatter.VALUE_EXTRACT;
+import static javax.lang.model.element.ElementKind.CLASS;
+import static javax.lang.model.element.ElementKind.INTERFACE;
+import static javax.lang.model.element.Modifier.ABSTRACT;
+import static javax.lang.model.element.Modifier.PRIVATE;
+
+import com.instagram.common.json.JsonAnnotationProcessorConstants;
+import com.instagram.common.json.annotation.JsonField;
+import com.instagram.common.json.annotation.JsonType;
+import com.instagram.common.json.annotation.util.Console;
+import com.instagram.common.json.annotation.util.ProcessorClassData;
+import com.instagram.common.json.annotation.util.TypeUtils;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.lang.annotation.Annotation;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -17,30 +40,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.annotation.Annotation;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import com.instagram.common.json.JsonAnnotationProcessorConstants;
-import com.instagram.common.json.annotation.JsonField;
-import com.instagram.common.json.annotation.JsonType;
-import com.instagram.common.json.annotation.util.Console;
-import com.instagram.common.json.annotation.util.ProcessorClassData;
-import com.instagram.common.json.annotation.util.TypeUtils;
-
-import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_ASSIGNMENT;
-import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_CODE_SERIALIZATION;
-import static com.instagram.common.json.annotation.processor.CodeFormatter.VALUE_EXTRACT;
-import static javax.lang.model.element.ElementKind.CLASS;
-import static javax.lang.model.element.ElementKind.INTERFACE;
-import static javax.lang.model.element.Modifier.*;
 
 /**
  * This annotation processor is run at compile time to find classes annotated with {@link JsonType}.
@@ -64,6 +63,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       mClassElementToInjectorMap = new LinkedHashMap<>();
     }
   }
+
   private State mState;
 
   @Override
@@ -78,8 +78,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     Map<String, String> options = env.getOptions();
     mGenerateSerializers = toBooleanDefaultTrue(options.get("generateSerializers"));
-    mOmitSomeMethodBodies = toBooleanDefaultFalse(options.get(
-        "com.facebook.buck.java.generating_abi"));
+    mOmitSomeMethodBodies =
+        toBooleanDefaultFalse(options.get("com.facebook.buck.java.generating_abi"));
   }
 
   private boolean toBooleanDefaultTrue(String value) {
@@ -130,8 +130,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
           writer.flush();
           writer.close();
         } catch (IOException e) {
-          error(typeElement,
-              "Unable to write injector for type %s: %s", typeElement, e.getMessage());
+          error(
+              typeElement, "Unable to write injector for type %s: %s", typeElement, e.getMessage());
         }
       }
 
@@ -144,9 +144,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     }
   }
 
-  /**
-   * This finds the classes that are annotated with {@link JsonType}.
-   */
+  /** This finds the classes that are annotated with {@link JsonType}. */
   private void gatherClassAnnotations(RoundEnvironment env) {
     // Process each @TypeTesting elements.
     for (Element element : env.getElementsAnnotatedWith(JsonType.class)) {
@@ -156,14 +154,13 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate injector for @JsonType.\n\n%s",
-            stackTrace.toString());
+        error(element, "Unable to generate injector for @JsonType.\n\n%s", stackTrace.toString());
       }
     }
   }
 
   /**
-   * This processes a single class that is annotated with {@link JsonType}.  It verifies that the
+   * This processes a single class that is annotated with {@link JsonType}. It verifies that the
    * class is public and creates an {@link ProcessorClassData} for it.
    */
   private void processClassAnnotation(Element element) {
@@ -178,8 +175,11 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     // Verify containing class visibility is not private.
     if (element.getModifiers().contains(PRIVATE)) {
-      error(element, "@%s %s may not be applied to private classes. (%s.%s)",
-          JsonType.class.getSimpleName(), typeElement.getQualifiedName(),
+      error(
+          element,
+          "@%s %s may not be applied to private classes. (%s.%s)",
+          JsonType.class.getSimpleName(),
+          typeElement.getQualifiedName(),
           element.getSimpleName());
       return;
     }
@@ -201,9 +201,12 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
           if (superclassElement.getAnnotation(JsonType.class) != null) {
             String superclassPackageName = mTypeUtils.getPackageName(mElements, superclassElement);
-            parentGeneratedClassName = superclassPackageName + "." +
-                mTypeUtils.getPrefixForGeneratedClass(superclassElement, superclassPackageName) +
-                JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX;
+            parentGeneratedClassName =
+                superclassPackageName
+                    + "."
+                    + mTypeUtils.getPrefixForGeneratedClass(
+                        superclassElement, superclassPackageName)
+                    + JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX;
 
             break;
           }
@@ -212,37 +215,36 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
         }
       }
 
-
-      boolean generateSerializer = annotation.generateSerializer() == JsonType.TriState.DEFAULT ?
-              mGenerateSerializers :
-              annotation.generateSerializer() == JsonType.TriState.YES;
+      boolean generateSerializer =
+          annotation.generateSerializer() == JsonType.TriState.DEFAULT
+              ? mGenerateSerializers
+              : annotation.generateSerializer() == JsonType.TriState.YES;
 
       String packageName = mTypeUtils.getPackageName(mElements, typeElement);
-      injector = new JsonParserClassData(
-          packageName,
-          typeElement.getQualifiedName().toString(),
-          mTypeUtils.getClassName(typeElement, packageName),
-          mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName) +
-              JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX,
-          new ProcessorClassData.AnnotationRecordFactory<String, TypeData>() {
+      injector =
+          new JsonParserClassData(
+              packageName,
+              typeElement.getQualifiedName().toString(),
+              mTypeUtils.getClassName(typeElement, packageName),
+              mTypeUtils.getPrefixForGeneratedClass(typeElement, packageName)
+                  + JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX,
+              new ProcessorClassData.AnnotationRecordFactory<String, TypeData>() {
 
-            @Override
-            public TypeData createAnnotationRecord(String key) {
-              return new TypeData();
-            }
-          },
-          abstractClass,
-          generateSerializer,
-          mOmitSomeMethodBodies,
-          parentGeneratedClassName,
-          annotation);
+                @Override
+                public TypeData createAnnotationRecord(String key) {
+                  return new TypeData();
+                }
+              },
+              abstractClass,
+              generateSerializer,
+              mOmitSomeMethodBodies,
+              parentGeneratedClassName,
+              annotation);
       mState.mClassElementToInjectorMap.put(typeElement, injector);
     }
   }
 
-  /**
-   * This finds the fields that are annotated with {@link JsonField}.
-   */
+  /** This finds the fields that are annotated with {@link JsonField}. */
   private void gatherFieldAnnotations(RoundEnvironment env) {
     // Process each @TypeTesting elements.
     for (Element element : env.getElementsAnnotatedWith(JsonField.class)) {
@@ -252,15 +254,17 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
         StringWriter stackTrace = new StringWriter();
         e.printStackTrace(new PrintWriter(stackTrace));
 
-        error(element, "Unable to generate view injector for @JsonField.\n\n%s",
+        error(
+            element,
+            "Unable to generate view injector for @JsonField.\n\n%s",
             stackTrace.toString());
       }
     }
   }
 
   /**
-   * This processes a single field annotated with {@link JsonField}.  It locates the enclosing
-   * class and then gathers data on the declared type of the field.
+   * This processes a single field annotated with {@link JsonField}. It locates the enclosing class
+   * and then gathers data on the declared type of the field.
    */
   private void processFieldAnnotation(Element element) {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
@@ -281,10 +285,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     data.setFieldName(annotation.fieldName());
     data.setAlternateFieldNames(annotation.alternateFieldNames());
     data.setMapping(annotation.mapping());
-    data.setValueExtractFormatter(
-        VALUE_EXTRACT.forString(annotation.valueExtractFormatter()));
-    data.setAssignmentFormatter(
-        FIELD_ASSIGNMENT.forString(annotation.fieldAssignmentFormatter()));
+    data.setValueExtractFormatter(VALUE_EXTRACT.forString(annotation.valueExtractFormatter()));
+    data.setAssignmentFormatter(FIELD_ASSIGNMENT.forString(annotation.fieldAssignmentFormatter()));
     data.setSerializeCodeFormatter(
         FIELD_CODE_SERIALIZATION.forString(annotation.serializeCodeFormatter()));
     TypeUtils.CollectionType collectionType = mTypeUtils.getCollectionType(type);
@@ -310,22 +312,27 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
       JsonType typeAnnotation = typeElement.getAnnotation(JsonType.class);
       // Use the parsable object's value extract formatter if existing one is empty
-      data.setValueExtractFormatter(data.getValueExtractFormatter()
-        .orIfEmpty(VALUE_EXTRACT.forString(typeAnnotation.valueExtractFormatter())));
+      data.setValueExtractFormatter(
+          data.getValueExtractFormatter()
+              .orIfEmpty(VALUE_EXTRACT.forString(typeAnnotation.valueExtractFormatter())));
 
-      CodeFormatter.Factory serializeCodeType = typeElement.getKind() == INTERFACE
-          ? CodeFormatter.CLASS_CODE_SERIALIZATION
-          : CodeFormatter.INTERFACE_CODE_SERIALIZATION;
-      data.setSerializeCodeFormatter(data.getSerializeCodeFormatter()
-          .orIfEmpty(serializeCodeType.forString(typeAnnotation.serializeCodeFormatter())));
+      CodeFormatter.Factory serializeCodeType =
+          typeElement.getKind() == INTERFACE
+              ? CodeFormatter.CLASS_CODE_SERIALIZATION
+              : CodeFormatter.INTERFACE_CODE_SERIALIZATION;
+      data.setSerializeCodeFormatter(
+          data.getSerializeCodeFormatter()
+              .orIfEmpty(serializeCodeType.forString(typeAnnotation.serializeCodeFormatter())));
 
       data.setIsInterface(typeElement.getKind() == INTERFACE);
       data.setFormatterImports(typeAnnotation.typeFormatterImports());
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
-      if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter()) ||
-          (injector.generateSerializer() && StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter()))) {
-        error(element,
+      if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter())
+          || (injector.generateSerializer()
+              && StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter()))) {
+        error(
+            element,
             "%s: enums must have a value extract formatter, and a serialize code formatter if serialization generation is enabled",
             enclosingElement);
       }
@@ -334,14 +341,16 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
   }
 
   private boolean isFieldAnnotationValid(
-      Class<? extends Annotation> annotationClass,
-      Element element) {
+      Class<? extends Annotation> annotationClass, Element element) {
     TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Verify containing type.
     if (enclosingElement.getKind() != CLASS) {
-      error(enclosingElement, "@%s field may only be contained in classes. (%s.%s)",
-          annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+      error(
+          enclosingElement,
+          "@%s field may only be contained in classes. (%s.%s)",
+          annotationClass.getSimpleName(),
+          enclosingElement.getQualifiedName(),
           element.getSimpleName());
       return false;
     }
@@ -360,8 +369,11 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     // Verify containing class visibility is not private.
     if (enclosingElement.getModifiers().contains(PRIVATE)) {
-      error(enclosingElement, "@%s %s may not be contained in private classes. (%s.%s)",
-          annotationClass.getSimpleName(), enclosingElement.getQualifiedName(),
+      error(
+          enclosingElement,
+          "@%s %s may not be contained in private classes. (%s.%s)",
+          annotationClass.getSimpleName(),
+          enclosingElement.getQualifiedName(),
           element.getSimpleName());
       return false;
     }

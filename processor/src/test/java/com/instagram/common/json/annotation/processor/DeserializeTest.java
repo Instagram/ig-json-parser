@@ -2,23 +2,25 @@
 
 package com.instagram.common.json.annotation.processor;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Queues;
+import com.google.common.collect.Sets;
 import com.instagram.common.json.JsonHelper;
-import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
 import com.instagram.common.json.annotation.processor.dependent.TypeFormatterImportsContainerUUT;
 import com.instagram.common.json.annotation.processor.dependent.TypeFormatterImportsContainerUUT__JsonHelper;
-import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsUUT;
 import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsCompanionUUT;
-import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.parent.TypeFormatterImportsUUT;
+import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT;
 import com.instagram.common.json.annotation.processor.uut.AlternateFieldUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.CustomParseContainerUUT;
@@ -39,27 +41,20 @@ import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT;
 import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.uut.StrictListParseUUT;
 import com.instagram.common.json.annotation.processor.uut.StrictListParseUUT__JsonHelper;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Queues;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONWriter;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-/**
- * Basic deserialization tests.
- */
+/** Basic deserialization tests. */
 public class DeserializeTest {
   @Test
   public void simpleDeserializeTest() throws IOException, JSONException {
@@ -74,32 +69,40 @@ public class DeserializeTest {
     final Set<Integer> integerSet = Sets.newHashSet(1, 2, 3, 4);
     final int subIntValue = 30;
     final SimpleParseUUT.SubenumUUT subEnum = SimpleParseUUT.SubenumUUT.A;
-    final List<SimpleParseUUT.SubenumUUT> subEnumList = Lists.newArrayList(
-        SimpleParseUUT.SubenumUUT.A, SimpleParseUUT.SubenumUUT.B);
+    final List<SimpleParseUUT.SubenumUUT> subEnumList =
+        Lists.newArrayList(SimpleParseUUT.SubenumUUT.A, SimpleParseUUT.SubenumUUT.B);
 
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
-        .key(SimpleParseUUT.INT_FIELD_NAME).value(intValue)
-        .key(SimpleParseUUT.INTEGER_FIELD_NAME).value(integerValue)
-        .key(SimpleParseUUT.FLOAT_FIELD_NAME).value(floatValue)
-        .key(SimpleParseUUT.FLOAT_OBJ_FIELD_NAME).value(floatObjValue)
-        .key(SimpleParseUUT.STRING_FIELD_NAME).value(stringValue)
+    writer
+        .object()
+        .key(SimpleParseUUT.INT_FIELD_NAME)
+        .value(intValue)
+        .key(SimpleParseUUT.INTEGER_FIELD_NAME)
+        .value(integerValue)
+        .key(SimpleParseUUT.FLOAT_FIELD_NAME)
+        .value(floatValue)
+        .key(SimpleParseUUT.FLOAT_OBJ_FIELD_NAME)
+        .value(floatObjValue)
+        .key(SimpleParseUUT.STRING_FIELD_NAME)
+        .value(stringValue)
         .key(SimpleParseUUT.INTEGER_LIST_FIELD_NAME)
-          .array()
-          .extend(new ExtensibleJSONWriter.Extender() {
-                @Override
-                public void extend(ExtensibleJSONWriter writer) throws JSONException {
-                  for (Integer integer : integerList) {
-                    writer.value(integer);
-                  }
+        .array()
+        .extend(
+            new ExtensibleJSONWriter.Extender() {
+              @Override
+              public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                for (Integer integer : integerList) {
+                  writer.value(integer);
                 }
-              })
-          .endArray()
+              }
+            })
+        .endArray()
         .key(SimpleParseUUT.INTEGER_ARRAY_LIST_FIELD_NAME)
         .array()
-        .extend(new ExtensibleJSONWriter.Extender() {
+        .extend(
+            new ExtensibleJSONWriter.Extender() {
               @Override
               public void extend(ExtensibleJSONWriter writer) throws JSONException {
                 for (Integer integer : integerList) {
@@ -110,7 +113,8 @@ public class DeserializeTest {
         .endArray()
         .key(SimpleParseUUT.INTEGER_QUEUE_FIELD_NAME)
         .array()
-        .extend(new ExtensibleJSONWriter.Extender() {
+        .extend(
+            new ExtensibleJSONWriter.Extender() {
               @Override
               public void extend(ExtensibleJSONWriter writer) throws JSONException {
                 for (Integer integer : integerQueue) {
@@ -121,7 +125,8 @@ public class DeserializeTest {
         .endArray()
         .key(SimpleParseUUT.INTEGER_SET_FIELD_NAME)
         .array()
-        .extend(new ExtensibleJSONWriter.Extender() {
+        .extend(
+            new ExtensibleJSONWriter.Extender() {
               @Override
               public void extend(ExtensibleJSONWriter writer) throws JSONException {
                 for (Integer integer : integerSet) {
@@ -131,13 +136,16 @@ public class DeserializeTest {
             })
         .endArray()
         .key(SimpleParseUUT.SUBOBJECT_FIELD_NAME)
-          .object()
-            .key(SimpleParseUUT.SubobjectParseUUT.INT_FIELD_NAME).value(subIntValue)
-          .endObject()
-        .key(SimpleParseUUT.SUBENUM_FIELD_NAME).value(subEnum.toString())
+        .object()
+        .key(SimpleParseUUT.SubobjectParseUUT.INT_FIELD_NAME)
+        .value(subIntValue)
+        .endObject()
+        .key(SimpleParseUUT.SUBENUM_FIELD_NAME)
+        .value(subEnum.toString())
         .key(SimpleParseUUT.SUBENUM_LIST_FIELD_NAME)
         .array()
-        .extend(new ExtensibleJSONWriter.Extender() {
+        .extend(
+            new ExtensibleJSONWriter.Extender() {
               @Override
               public void extend(ExtensibleJSONWriter writer) throws JSONException {
                 for (SimpleParseUUT.SubenumUUT enumValue : subEnumList) {
@@ -162,8 +170,7 @@ public class DeserializeTest {
     assertEquals(integerList, uut.integerListField);
     assertEquals(integerArrayList, uut.integerArrayListField);
     // NOTE: this is because ArrayDeque hilariously does not implement .equals()/.hashcode().
-    assertEquals(Lists.newArrayList(integerQueue),
-        Lists.newArrayList(uut.integerQueueField));
+    assertEquals(Lists.newArrayList(integerQueue), Lists.newArrayList(uut.integerQueueField));
     assertEquals(integerSet, uut.integerSetField);
     assertSame(subIntValue, uut.subobjectField.intField);
     assertSame(subEnum, uut.subenumField);
@@ -178,9 +185,7 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     JSONWriter writer = new JSONWriter(stringWriter);
 
-    writer.object()
-        .key(FormatterUUT.VALUE_FORMATTER_FIELD_NAME).value(encodedValue)
-        .endObject();
+    writer.object().key(FormatterUUT.VALUE_FORMATTER_FIELD_NAME).value(encodedValue).endObject();
 
     String inputString = stringWriter.toString();
     JsonParser jp = new JsonFactory().createParser(inputString);
@@ -198,9 +203,7 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     JSONWriter writer = new JSONWriter(stringWriter);
 
-    writer.object()
-        .key("string_field").value(encodedValue)
-        .endObject();
+    writer.object().key("string_field").value(encodedValue).endObject();
 
     String inputString = stringWriter.toString();
     JsonParser jp = new JsonFactory().createParser(inputString);
@@ -221,7 +224,8 @@ public class DeserializeTest {
         .object()
         .key("callee_ref")
         .object()
-        .key("string_field").value(encodedValue)
+        .key("string_field")
+        .value(encodedValue)
         .endObject()
         .endObject();
 
@@ -232,7 +236,6 @@ public class DeserializeTest {
 
     assertTrue(uut instanceof TypeFormatterImportsCompanionUUT);
     assertEquals(encodedValue, uut.mString);
-
   }
 
   @Test
@@ -243,9 +246,7 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     JSONWriter writer = new JSONWriter(stringWriter);
 
-    writer.object()
-        .key(FormatterUUT.FIELD_ASSIGNMENT_FIELD_NAME).value(encodedValue)
-        .endObject();
+    writer.object().key(FormatterUUT.FIELD_ASSIGNMENT_FIELD_NAME).value(encodedValue).endObject();
 
     String inputString = stringWriter.toString();
     JsonParser jp = new JsonFactory().createParser(inputString);
@@ -262,9 +263,7 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     JSONWriter writer = new JSONWriter(stringWriter);
 
-    writer.object()
-        .key(EnumUUT.ENUM_FIELD_NAME).value(value.toString())
-        .endObject();
+    writer.object().key(EnumUUT.ENUM_FIELD_NAME).value(value.toString()).endObject();
 
     String inputString = stringWriter.toString();
     JsonParser jp = new JsonFactory().createParser(inputString);
@@ -291,14 +290,15 @@ public class DeserializeTest {
     }
 
     // Boolean exact fail.  should be null.
-    assertNull(parseObjectFromContents(
-        new ExtensibleJSONWriter.Extender() {
-          @Override
-          public void extend(ExtensibleJSONWriter writer) throws JSONException {
-            writer.key(ExactMappingUUT.BOOLEAN_OBJ_FIELD_NAME).value(15);
-          }
-        })
-        .BooleanField);
+    assertNull(
+        parseObjectFromContents(
+                new ExtensibleJSONWriter.Extender() {
+                  @Override
+                  public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                    writer.key(ExactMappingUUT.BOOLEAN_OBJ_FIELD_NAME).value(15);
+                  }
+                })
+            .BooleanField);
 
     // int exact fail.  should throw exception.
     try {
@@ -315,14 +315,15 @@ public class DeserializeTest {
     }
 
     // Integer exact fail.  should be null.
-    assertNull(parseObjectFromContents(
-        new ExtensibleJSONWriter.Extender() {
-          @Override
-          public void extend(ExtensibleJSONWriter writer) throws JSONException {
-            writer.key(ExactMappingUUT.INTEGER_FIELD_NAME).value(false);
-          }
-        })
-        .IntegerField);
+    assertNull(
+        parseObjectFromContents(
+                new ExtensibleJSONWriter.Extender() {
+                  @Override
+                  public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                    writer.key(ExactMappingUUT.INTEGER_FIELD_NAME).value(false);
+                  }
+                })
+            .IntegerField);
 
     // long exact fail.  should throw exception.
     try {
@@ -339,14 +340,15 @@ public class DeserializeTest {
     }
 
     // Long exact fail.  should be null.
-    assertNull(parseObjectFromContents(
-        new ExtensibleJSONWriter.Extender() {
-          @Override
-          public void extend(ExtensibleJSONWriter writer) throws JSONException {
-            writer.key(ExactMappingUUT.LONG_OBJ_FIELD_NAME).value("abc");
-          }
-        })
-        .LongField);
+    assertNull(
+        parseObjectFromContents(
+                new ExtensibleJSONWriter.Extender() {
+                  @Override
+                  public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                    writer.key(ExactMappingUUT.LONG_OBJ_FIELD_NAME).value("abc");
+                  }
+                })
+            .LongField);
 
     // float exact fail.  should throw exception.
     try {
@@ -363,14 +365,15 @@ public class DeserializeTest {
     }
 
     // Float exact fail.  should be null.
-    assertNull(parseObjectFromContents(
-        new ExtensibleJSONWriter.Extender() {
-          @Override
-          public void extend(ExtensibleJSONWriter writer) throws JSONException {
-            writer.key(ExactMappingUUT.FLOAT_OBJ_FIELD_NAME).value("abc");
-          }
-        })
-        .FloatField);
+    assertNull(
+        parseObjectFromContents(
+                new ExtensibleJSONWriter.Extender() {
+                  @Override
+                  public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                    writer.key(ExactMappingUUT.FLOAT_OBJ_FIELD_NAME).value("abc");
+                  }
+                })
+            .FloatField);
 
     // double exact fail.  should throw exception.
     try {
@@ -387,38 +390,38 @@ public class DeserializeTest {
     }
 
     // Double exact fail.  should be null.
-    assertNull(parseObjectFromContents(
-        new ExtensibleJSONWriter.Extender() {
-          @Override
-          public void extend(ExtensibleJSONWriter writer) throws JSONException {
-            writer.key(ExactMappingUUT.DOUBLE_OBJ_FIELD_NAME).value("abc");
-          }
-        })
-        .DoubleField);
+    assertNull(
+        parseObjectFromContents(
+                new ExtensibleJSONWriter.Extender() {
+                  @Override
+                  public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                    writer.key(ExactMappingUUT.DOUBLE_OBJ_FIELD_NAME).value("abc");
+                  }
+                })
+            .DoubleField);
 
     // string exact fail.  should be null.
-    assertNull(parseObjectFromContents(
-        new ExtensibleJSONWriter.Extender() {
-          @Override
-          public void extend(ExtensibleJSONWriter writer) throws JSONException {
-            writer.key(ExactMappingUUT.STRING_FIELD_NAME).value(15);
-          }
-        })
-        .StringField);
+    assertNull(
+        parseObjectFromContents(
+                new ExtensibleJSONWriter.Extender() {
+                  @Override
+                  public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                    writer.key(ExactMappingUUT.STRING_FIELD_NAME).value(15);
+                  }
+                })
+            .StringField);
   }
 
   /**
-   * Write an object in which the contents are sourced from the extender.  Then parse it as an
-   * {@link ExactMappingUUT} object and return it.
+   * Write an object in which the contents are sourced from the extender. Then parse it as an {@link
+   * ExactMappingUUT} object and return it.
    */
   private static ExactMappingUUT parseObjectFromContents(ExtensibleJSONWriter.Extender extender)
       throws IOException, JSONException {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
-        .extend(extender)
-        .endObject();
+    writer.object().extend(extender).endObject();
 
     return ExactMappingUUT__JsonHelper.parseFromJson(stringWriter.toString());
   }
@@ -430,9 +433,7 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     JSONWriter writer = new JSONWriter(stringWriter);
 
-    writer.object()
-        .key(PostprocessingUUT.FIELD_NAME).value(value)
-        .endObject();
+    writer.object().key(PostprocessingUUT.FIELD_NAME).value(value).endObject();
 
     String inputString = stringWriter.toString();
     JsonParser jp = new JsonFactory().createParser(inputString);
@@ -450,21 +451,24 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
+    writer
+        .object()
         .key(StrictListParseUUT.INTEGER_LIST_FIELD_NAME)
         .array()
-          .extend(new ExtensibleJSONWriter.Extender() {
-          @Override
-          public void extend(ExtensibleJSONWriter writer) throws JSONException {
-              for (Integer integer : integerList) {
-                writer.value(integer);
+        .extend(
+            new ExtensibleJSONWriter.Extender() {
+              @Override
+              public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                for (Integer integer : integerList) {
+                  writer.value(integer);
+                }
               }
-            }
-        })
+            })
         .endArray()
         .key(StrictListParseUUT.SUBOBJECT_LIST_FIELD_NAME)
         .object()
-          .key(StrictListParseUUT.SubobjectParseUUT.INT_FIELD_NAME).value(subIntValue)
+        .key(StrictListParseUUT.SubobjectParseUUT.INT_FIELD_NAME)
+        .value(subIntValue)
         .endObject()
         .endObject();
 
@@ -490,10 +494,7 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
-        .key(fieldName)
-        .value(value)
-        .endObject();
+    writer.object().key(fieldName).value(value).endObject();
 
     String inputString = stringWriter.toString();
     JsonParser jp = new JsonFactory().createParser(inputString);
@@ -508,10 +509,7 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
-        .key(SimpleParseUUT.STRING_FIELD_NAME)
-        .value(null)
-        .endObject();
+    writer.object().key(SimpleParseUUT.STRING_FIELD_NAME).value(null).endObject();
 
     String inputString = stringWriter.toString();
     JsonParser jp = new JsonFactory().createParser(inputString);
@@ -527,12 +525,13 @@ public class DeserializeTest {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
+    writer
+        .object()
         .key(CustomParseContainerUUT.INNER_FIELD_NAME)
-          .object()
-            .key(CustomParseContainerUUT.CustomParseUUT.STRING_FIELD_NAME)
-            .value(value)
-          .endObject()
+        .object()
+        .key(CustomParseContainerUUT.CustomParseUUT.STRING_FIELD_NAME)
+        .value(value)
+        .endObject()
         .endObject();
 
     String inputString = stringWriter.toString();
@@ -606,8 +605,7 @@ public class DeserializeTest {
                   writer.value(entry.getValue());
                 }
               }
-            }
-        )
+            })
         .endObject()
         .key(MapUUT.STRING_LONG_MAP_FIELD_NAME)
         .object()
@@ -620,8 +618,7 @@ public class DeserializeTest {
                   writer.value(entry.getValue());
                 }
               }
-            }
-        )
+            })
         .endObject()
         .key(MapUUT.STRING_DOUBLE_MAP_FIELD_NAME)
         .object()
@@ -634,8 +631,7 @@ public class DeserializeTest {
                   writer.value(entry.getValue());
                 }
               }
-            }
-        )
+            })
         .endObject()
         .key(MapUUT.STRING_FLOAT_MAP_FIELD_NAME)
         .object()
@@ -648,8 +644,7 @@ public class DeserializeTest {
                   writer.value(entry.getValue());
                 }
               }
-            }
-        )
+            })
         .endObject()
         .key(MapUUT.STRING_BOOLEAN_MAP_FIELD_NAME)
         .object()
@@ -662,8 +657,7 @@ public class DeserializeTest {
                   writer.value(entry.getValue());
                 }
               }
-            }
-        )
+            })
         .endObject()
         .key(MapUUT.STRING_OBJECT_MAP_FIELD_NAME)
         .object()
@@ -672,14 +666,15 @@ public class DeserializeTest {
               @Override
               public void extend(ExtensibleJSONWriter writer) throws JSONException {
                 for (Map.Entry<String, MapUUT.MapObject> entry : stringObjectMap.entrySet()) {
-                  writer.key(entry.getKey())
+                  writer
+                      .key(entry.getKey())
                       .object()
-                      .key(MapUUT.MapObject.INT_KEY).value(entry.getValue().subclassInt)
+                      .key(MapUUT.MapObject.INT_KEY)
+                      .value(entry.getValue().subclassInt)
                       .endObject();
                 }
               }
-            }
-        )
+            })
         .endObject()
         .endObject();
 

@@ -7,15 +7,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     >
+
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       >
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Iterations:"
         />
+
     <EditText
         android:id="@+id/iterations"
         android:layout_width="wrap_content"
@@ -26,22 +29,26 @@
         android:inputType="numberDecimal"
         />
   </LinearLayout>
+
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       >
+
     <Button
         android:id="@+id/ig_parse_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="IG Parse"
         />
+
     <Button
         android:id="@+id/om_parse_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ObjectMapper Parse"
         />
+
     <Button
         android:id="@+id/quit"
         android:layout_width="wrap_content"
@@ -49,6 +56,7 @@
         android:text="Quit"
         />
   </LinearLayout>
+
   <TextView
       android:id="@+id/results"
       android:layout_width="match_parent"

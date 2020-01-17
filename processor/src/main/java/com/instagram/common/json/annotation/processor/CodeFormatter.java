@@ -1,3 +1,5 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 package com.instagram.common.json.annotation.processor;
 
 import java.util.Arrays;
@@ -6,17 +8,22 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CodeFormatter {
-  public static final Factory VALUE_EXTRACT = new Factory(
-      "parser_object", "subobject_class", "subobject_helper_class");
-  public static final Factory FIELD_ASSIGNMENT = new Factory(
-      "object_varname", "field_varname", "extracted_value");
-  public static final Factory FIELD_CODE_SERIALIZATION = new Factory(
-      "generator_object", "object_varname", "field_varname", "iterator",
-      "json_fieldname", "subobject_helper_class");
-  public static final Factory CLASS_CODE_SERIALIZATION = new Factory(
-      "generator_object", "subobject", "subobject_helper_class");
-  public static final Factory INTERFACE_CODE_SERIALIZATION = new Factory(
-      "generator_object", "subobject");
+  public static final Factory VALUE_EXTRACT =
+      new Factory("parser_object", "subobject_class", "subobject_helper_class");
+  public static final Factory FIELD_ASSIGNMENT =
+      new Factory("object_varname", "field_varname", "extracted_value");
+  public static final Factory FIELD_CODE_SERIALIZATION =
+      new Factory(
+          "generator_object",
+          "object_varname",
+          "field_varname",
+          "iterator",
+          "json_fieldname",
+          "subobject_helper_class");
+  public static final Factory CLASS_CODE_SERIALIZATION =
+      new Factory("generator_object", "subobject", "subobject_helper_class");
+  public static final Factory INTERFACE_CODE_SERIALIZATION =
+      new Factory("generator_object", "subobject");
 
   private final String mFormatterString;
 
@@ -56,7 +63,6 @@ public class CodeFormatter {
       } else {
         mSupportedTokens = Collections.emptySet();
       }
-
     }
 
     public CodeFormatter forString(String formatterString) {

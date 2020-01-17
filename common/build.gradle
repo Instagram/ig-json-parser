@@ -1,8 +1,10 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 apply plugin: 'java'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 dependencies {
-  compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
 }

@@ -5,9 +5,7 @@ package com.instagram.common.json.annotation.processor.uut;
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
 
-/**
- * UUT to test the optional post-processing code.
- */
+/** UUT to test the optional post-processing code. */
 @JsonType(postprocessingEnabled = true)
 public class PostprocessingUUT {
 

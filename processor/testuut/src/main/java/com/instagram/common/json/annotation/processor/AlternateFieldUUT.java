@@ -12,7 +12,8 @@ public class AlternateFieldUUT {
   public static final String ALTERNATE_FIELD_NAME_1 = "josh";
   public static final String ALTERNATE_FIELD_NAME_2 = "kang";
 
-  @JsonField(fieldName = FIELD_NAME,
+  @JsonField(
+      fieldName = FIELD_NAME,
       alternateFieldNames = {ALTERNATE_FIELD_NAME_1, ALTERNATE_FIELD_NAME_2})
   String nameField;
 

@@ -1,52 +1,54 @@
-buildscript {
-  repositories {
-    jcenter()
-    google()
-  }
+// Copyright 2004-present Facebook. All Rights Reserved.
 
-  dependencies {
-    classpath group: 'com.android.tools.build', name: 'gradle', version: '3.0.0'
-  }
+buildscript {
+    repositories {
+        jcenter()
+        google()
+    }
+
+    dependencies {
+        classpath group: 'com.android.tools.build', name: 'gradle', version: '3.0.0'
+    }
 }
 
 apply plugin: 'com.android.application'
 
 dependencies {
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.2.3+'
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
-  implementation project(':demo:igmodel')
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.2.3+'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
+    implementation project(':demo:igmodel')
 }
 
 android {
-  compileSdkVersion 23
-  buildToolsVersion "26.0.2"
+    compileSdkVersion 23
+    buildToolsVersion "26.0.2"
 
-  defaultConfig {
-    minSdkVersion 10
-    targetSdkVersion 23
-  }
-
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_7
-    targetCompatibility JavaVersion.VERSION_1_7
-  }
-
-  sourceSets {
-    main {
-      manifest {
-        srcFile 'AndroidManifest.xml'
-      }
-      java {
-        srcDir 'src/java/main'
-      }
-      res {
-        srcDir 'src/main/res'
-      }
+    defaultConfig {
+        minSdkVersion 10
+        targetSdkVersion 23
     }
-  }
 
-  packagingOptions {
-    exclude 'META-INF/LICENSE'
-    exclude 'META-INF/NOTICE'
-  }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    sourceSets {
+        main {
+            manifest {
+                srcFile 'AndroidManifest.xml'
+            }
+            java {
+                srcDir 'src/java/main'
+            }
+            res {
+                srcDir 'src/main/res'
+            }
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
 }

@@ -2,18 +2,17 @@
 
 package com.instagram.common.json.annotation.processor.uut;
 
+import com.instagram.common.json.annotation.JsonField;
+import com.instagram.common.json.annotation.JsonType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import com.instagram.common.json.annotation.JsonField;
-import com.instagram.common.json.annotation.JsonType;
-
 /**
- * Simple UUT for testing the most basic functionality.
- * The fields are serialized in the same order that they are appearing in the class declaration.
- * SerializeTest.FIELD_DECLARATION_ORDER should be updated when adding any new field to this class.
+ * Simple UUT for testing the most basic functionality. The fields are serialized in the same order
+ * that they are appearing in the class declaration. SerializeTest.FIELD_DECLARATION_ORDER should be
+ * updated when adding any new field to this class.
  */
 @JsonType
 public class SimpleParseUUT {
@@ -60,23 +59,24 @@ public class SimpleParseUUT {
   @JsonField(fieldName = SUBOBJECT_FIELD_NAME)
   public SubobjectParseUUT subobjectField;
 
-  @JsonField(fieldName = SUBENUM_FIELD_NAME,
+  @JsonField(
+      fieldName = SUBENUM_FIELD_NAME,
       valueExtractFormatter = "SimpleParseUUT.SubenumUUT.valueOf(${parser_object}.getText())",
-      serializeCodeFormatter = "${generator_object}.writeStringField(\"${json_fieldname}\", " +
-          "${object_varname}.${field_varname}.toString())"
-  )
+      serializeCodeFormatter =
+          "${generator_object}.writeStringField(\"${json_fieldname}\", "
+              + "${object_varname}.${field_varname}.toString())")
   public SubenumUUT subenumField;
 
-  @JsonField(fieldName = SUBENUM_LIST_FIELD_NAME,
+  @JsonField(
+      fieldName = SUBENUM_LIST_FIELD_NAME,
       valueExtractFormatter = "SimpleParseUUT.SubenumUUT.valueOf(${parser_object}.getText())",
       serializeCodeFormatter = "${generator_object}.writeString(element.toString())",
-      fieldAssignmentFormatter = "${object_varname}.${field_varname} = " +
-          "new ArrayList<SimpleParseUUT.SubenumUUT>(${extracted_value})")
+      fieldAssignmentFormatter =
+          "${object_varname}.${field_varname} = "
+              + "new ArrayList<SimpleParseUUT.SubenumUUT>(${extracted_value})")
   public List<SubenumUUT> subenumFieldList;
 
-  /**
-   * UUT for embedding a subobject.
-   */
+  /** UUT for embedding a subobject. */
   @JsonType
   public static class SubobjectParseUUT {
     public static final String INT_FIELD_NAME = "int";
@@ -85,10 +85,9 @@ public class SimpleParseUUT {
     public int intField;
   }
 
-  /**
-   * UUT for embedding a subenum.
-   */
+  /** UUT for embedding a subenum. */
   public enum SubenumUUT {
-    A, B
+    A,
+    B
   }
 }

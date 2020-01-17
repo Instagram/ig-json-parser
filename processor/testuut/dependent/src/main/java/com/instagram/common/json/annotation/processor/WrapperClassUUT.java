@@ -6,9 +6,7 @@ import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
 import com.instagram.common.json.annotation.processor.parent.ParentUUT;
 
-/**
- * Wraps {@link ParentUUT}.
- */
+/** Wraps {@link ParentUUT}. */
 @JsonType
 public class WrapperClassUUT {
   public static final String PARENT_KEY = "parent";

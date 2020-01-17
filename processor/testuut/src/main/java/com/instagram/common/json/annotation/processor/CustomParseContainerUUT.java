@@ -2,13 +2,11 @@
 
 package com.instagram.common.json.annotation.processor.uut;
 
-import java.io.IOException;
-
-import com.instagram.common.json.annotation.JsonField;
-import com.instagram.common.json.annotation.JsonType;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.instagram.common.json.annotation.JsonField;
+import com.instagram.common.json.annotation.JsonType;
+import java.io.IOException;
 
 @JsonType
 public class CustomParseContainerUUT {

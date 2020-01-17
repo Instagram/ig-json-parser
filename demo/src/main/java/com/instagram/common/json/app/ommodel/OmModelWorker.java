@@ -2,13 +2,10 @@
 
 package com.instagram.common.json.app.ommodel;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-/**
- * Helper class to parse the model.
- */
+/** Helper class to parse the model. */
 public class OmModelWorker {
   private static final ObjectMapper sObjectMapper = new ObjectMapper();
 

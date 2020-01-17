@@ -2,13 +2,13 @@
 
 package com.instagram.common.json.annotation.util;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
-/**
- * Verifies that we can correctly identify the declared type of fields.
- */
+/** Verifies that we can correctly identify the declared type of fields. */
 public class TypeUtilsTest {
 
   @Test
@@ -84,41 +84,46 @@ public class TypeUtilsTest {
     assertNull(object.integerList__ParseTypeGeneratedClass);
 
     assertFalse(object.integerInheritedList__IsList);
-    assertEquals(object.integerInheritedList__ParseType,
-        TypeUtils.ParseType.UNSUPPORTED.toString());
+    assertEquals(
+        object.integerInheritedList__ParseType, TypeUtils.ParseType.UNSUPPORTED.toString());
     assertNull(object.integerInheritedList__ParseTypeGeneratedClass);
 
     assertFalse(object.unspecifiedInheritedList__IsList);
-    assertEquals(object.unspecifiedInheritedList__ParseType,
-        TypeUtils.ParseType.UNSUPPORTED.toString());
+    assertEquals(
+        object.unspecifiedInheritedList__ParseType, TypeUtils.ParseType.UNSUPPORTED.toString());
     assertNull(object.unspecifiedInheritedList__ParseTypeGeneratedClass);
 
     assertFalse(object.nestedData__IsList);
     assertEquals(object.nestedData__ParseType, TypeInspectionUUT.class.getCanonicalName());
-    assertEquals(object.nestedData__ParseTypeGeneratedClass,
+    assertEquals(
+        object.nestedData__ParseTypeGeneratedClass,
         transformName(TypeInspectionUUT.class.getName()));
 
     assertFalse(object.nestedInnerClassData__IsList);
-    assertEquals(object.nestedInnerClassData__ParseType,
+    assertEquals(
+        object.nestedInnerClassData__ParseType,
         TypeInspectionUUT.InnerClassUUT.class.getCanonicalName());
-    assertEquals(object.nestedInnerClassData__ParseTypeGeneratedClass,
+    assertEquals(
+        object.nestedInnerClassData__ParseTypeGeneratedClass,
         transformName(TypeInspectionUUT.InnerClassUUT.class.getName()));
 
     assertTrue(object.nestedDataList__IsList);
     assertEquals(object.nestedDataList__ParseType, TypeInspectionUUT.class.getCanonicalName());
-    assertEquals(object.nestedDataList__ParseTypeGeneratedClass,
+    assertEquals(
+        object.nestedDataList__ParseTypeGeneratedClass,
         transformName(TypeInspectionUUT.class.getName()));
 
     assertTrue(object.nestedInnerClassDataList__IsList);
-    assertEquals(object.nestedInnerClassDataList__ParseType,
+    assertEquals(
+        object.nestedInnerClassDataList__ParseType,
         TypeInspectionUUT.InnerClassUUT.class.getCanonicalName());
-    assertEquals(object.nestedInnerClassDataList__ParseTypeGeneratedClass,
+    assertEquals(
+        object.nestedInnerClassDataList__ParseTypeGeneratedClass,
         transformName(TypeInspectionUUT.InnerClassUUT.class.getName()));
-
   }
 
   /**
-   * Inner classes are represented in java as OUTER_CLASS$INNER_CLASS.  Since we want to avoid the
+   * Inner classes are represented in java as OUTER_CLASS$INNER_CLASS. Since we want to avoid the
    * usage of $ in the generated class names, we replace the $ with a _.
    */
   private String transformName(String stringName) {

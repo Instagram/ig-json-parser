@@ -1,24 +1,26 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 apply plugin: 'com.android.library'
 
 dependencies {
-  annotationProcessor project(':processor')
-  implementation project(':common')
+    annotationProcessor project(':processor')
+    implementation project(':common')
 }
 
 android {
-  compileSdkVersion 23
-  buildToolsVersion "26.0.2"
-  sourceCompatibility = 1.7
-  targetCompatibility = 1.7
+    compileSdkVersion 23
+    buildToolsVersion "26.0.2"
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
 
-  sourceSets {
-    main {
-      manifest {
-        srcFile "AndroidManifest.xml"
-      }
-      java {
-        srcDir 'src/main/java'
-      }
+    sourceSets {
+        main {
+            manifest {
+                srcFile "AndroidManifest.xml"
+            }
+            java {
+                srcDir 'src/main/java'
+            }
+        }
     }
-  }
 }

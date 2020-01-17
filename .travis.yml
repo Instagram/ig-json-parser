@@ -10,10 +10,10 @@ android:
     - 'android-sdk-license-.+'
 
 before_script:
-    - ./gradlew assemble
+  - ./gradlew assemble
 
 script:
-    - ./gradlew check
+  - ./gradlew check
 
 jdk:
   - oraclejdk8

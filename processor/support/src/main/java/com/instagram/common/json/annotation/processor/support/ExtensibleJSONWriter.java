@@ -3,14 +3,15 @@
 package com.instagram.common.json.annotation.processor.support;
 
 import java.io.Writer;
-
 import org.json.JSONException;
 import org.json.JSONWriter;
 
 /**
  * This is a subclass of {@link JSONWriter} that allows a function to be called within a sequence of
- * commands.  This is syntactic sugar for constructs like:
- * <p/>
+ * commands. This is syntactic sugar for constructs like:
+ *
+ * <p>
+ *
  * <pre>
  *   writer.array()
  *           .value(XXX)
@@ -21,11 +22,12 @@ import org.json.JSONWriter;
  *           .endObject()
  *         .endArray();
  * </pre>
- * <p/>
- * Without this syntactic sugar, one would have to have one block for everything leading up to the
- * function call, the function call, and the remaining items.  This also separates the opening
+ *
+ * <p>Without this syntactic sugar, one would have to have one block for everything leading up to
+ * the function call, the function call, and the remaining items. This also separates the opening
  * <code>array()</code>/<code>object()</code> calls from their closing counterparts.
- * <p/>
+ *
+ * <p>
  */
 public class ExtensibleJSONWriter extends JSONWriter {
 
@@ -41,9 +43,7 @@ public class ExtensibleJSONWriter extends JSONWriter {
     super(writer);
   }
 
-  /**
-   * Execute the {@link Extender#extend(Extender)} method.
-   */
+  /** Execute the {@link Extender#extend(Extender)} method. */
   public ExtensibleJSONWriter extend(Extender extender) throws JSONException {
     extender.extend(this);
     return this;

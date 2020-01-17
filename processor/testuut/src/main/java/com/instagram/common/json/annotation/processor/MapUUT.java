@@ -2,16 +2,13 @@
 
 package com.instagram.common.json.annotation.processor.uut;
 
-import java.util.HashMap;
+import static com.instagram.common.json.annotation.JsonField.TypeMapping.EXACT;
 
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
+import java.util.HashMap;
 
-import static com.instagram.common.json.annotation.JsonField.TypeMapping.EXACT;
-
-/**
- * UUT with different map types
- */
+/** UUT with different map types */
 @JsonType
 public class MapUUT {
 
@@ -26,7 +23,7 @@ public class MapUUT {
   @JsonField(fieldName = STRING_INTEGER_MAP_FIELD_NAME, mapping = EXACT)
   public HashMap<String, Integer> stringIntegerMapField;
 
-  @JsonField(fieldName =  STRING_STRING_MAP_FIELD_NAME)
+  @JsonField(fieldName = STRING_STRING_MAP_FIELD_NAME)
   public HashMap<String, String> stringStringMapField;
 
   @JsonField(fieldName = STRING_LONG_MAP_FIELD_NAME)

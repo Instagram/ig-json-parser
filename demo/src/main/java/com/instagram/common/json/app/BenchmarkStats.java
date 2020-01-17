@@ -5,9 +5,7 @@ package com.instagram.common.json.app;
 import android.os.Debug;
 import android.os.SystemClock;
 
-/**
- * Utility class to gather stats.
- */
+/** Utility class to gather stats. */
 class BenchmarkStats {
   enum State {
     INIT,
@@ -32,9 +30,7 @@ class BenchmarkStats {
     mState = State.INIT;
   }
 
-  /**
-   * Grabs the pre-snapshot.  Forces a {@link System#gc()} before collecting stats.
-   */
+  /** Grabs the pre-snapshot. Forces a {@link System#gc()} before collecting stats. */
   synchronized void before() {
     if (mState != State.INIT) {
       throw new IllegalStateException("unexpected state");
@@ -47,9 +43,7 @@ class BenchmarkStats {
     mBeforeTimestamp = SystemClock.elapsedRealtime();
   }
 
-  /**
-   * Grabs the post-snapshot.
-   */
+  /** Grabs the post-snapshot. */
   synchronized void after() {
     mAfterTimestamp = SystemClock.elapsedRealtime();
     Debug.stopAllocCounting();
@@ -73,9 +67,7 @@ class BenchmarkStats {
 
     StringBuilder sb = new StringBuilder();
 
-    sb.append("elapsed time: ")
-        .append(mAfterTimestamp - mBeforeTimestamp)
-        .append("ms\n");
+    sb.append("elapsed time: ").append(mAfterTimestamp - mBeforeTimestamp).append("ms\n");
     sb.append("pss delta: ")
         .append(mMemoryInfoAfter.dalvikPss - mMemoryInfoBefore.dalvikPss)
         .append("\n");

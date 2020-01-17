@@ -2,6 +2,12 @@
 
 package com.instagram.common.json.annotation.util;
 
+import static javax.tools.Diagnostic.Kind.ERROR;
+import static javax.tools.Diagnostic.Kind.MANDATORY_WARNING;
+import static javax.tools.Diagnostic.Kind.WARNING;
+
+import java.util.Locale;
+import java.util.WeakHashMap;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -10,16 +16,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
 
-import java.util.Locale;
-import java.util.WeakHashMap;
-
-import static javax.tools.Diagnostic.Kind.ERROR;
-import static javax.tools.Diagnostic.Kind.MANDATORY_WARNING;
-import static javax.tools.Diagnostic.Kind.WARNING;
-
-/**
- * Utility functions to write to the compiler log.
- */
+/** Utility functions to write to the compiler log. */
 public class Console {
   // Contains Messagers for which errors have been reported through this class.
   //
@@ -42,9 +39,7 @@ public class Console {
   public static void error(Messager messager, Element element, String message, Object... args) {
     setError(messager);
     messager.printMessage(
-        MANDATORY_WARNING,
-        String.format(Locale.US, "ERROR: " + message, args),
-        element);
+        MANDATORY_WARNING, String.format(Locale.US, "ERROR: " + message, args), element);
   }
 
   public static void warning(Messager messager, String message, Object... args) {
@@ -54,16 +49,16 @@ public class Console {
   /**
    * There's a bug in javac whereby it ignores all generated files if any processor raises an error.
    * This can result in spurious undefined symbol errors that can hide the true problem. Our
-   * workaround is to convert errors to warnings during processing, then come back in the last
-   * round and report an error.
+   * workaround is to convert errors to warnings during processing, then come back in the last round
+   * and report an error.
    */
   public static void reportErrors(RoundEnvironment round, Messager messager) {
     if (round.processingOver() && hasError(messager)) {
       messager.printMessage(
           ERROR,
-          "Errors were encountered during annotation processing. " +
-              "See the warnings above for details. " +
-              "(Errors were converted to warnings to work around a compiler bug.)");
+          "Errors were encountered during annotation processing. "
+              + "See the warnings above for details. "
+              + "(Errors were converted to warnings to work around a compiler bug.)");
     }
   }
 
@@ -75,28 +70,26 @@ public class Console {
     return messagersWithErrors.get(messager) == Boolean.TRUE;
   }
 
-  /**
-   * Returns a messager that swallows all its output.
-   */
+  /** Returns a messager that swallows all its output. */
   public static Messager getNullMessager() {
     return new Messager() {
       @Override
-      public void printMessage(Diagnostic.Kind kind, CharSequence msg) {
-      }
+      public void printMessage(Diagnostic.Kind kind, CharSequence msg) {}
 
       @Override
-      public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e) {
-      }
+      public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e) {}
 
       @Override
-      public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e,
-          AnnotationMirror a) {
-      }
+      public void printMessage(
+          Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a) {}
 
       @Override
-      public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e,
-          AnnotationMirror a, AnnotationValue v) {
-      }
+      public void printMessage(
+          Diagnostic.Kind kind,
+          CharSequence msg,
+          Element e,
+          AnnotationMirror a,
+          AnnotationValue v) {}
     };
   }
 }

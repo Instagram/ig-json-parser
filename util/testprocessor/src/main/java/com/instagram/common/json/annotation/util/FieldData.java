@@ -2,9 +2,7 @@
 
 package com.instagram.common.json.annotation.util;
 
-/**
- * Records the data we gathered about each field.
- */
+/** Records the data we gathered about each field. */
 class FieldData {
 
   boolean mIsList;

@@ -7,9 +7,9 @@ import com.instagram.common.json.annotation.JsonType;
 
 @JsonType
 class Dessert {
-  @JsonField(fieldName="type")
+  @JsonField(fieldName = "type")
   String type;
 
-  @JsonField(fieldName="rating")
+  @JsonField(fieldName = "rating")
   float rating;
 }

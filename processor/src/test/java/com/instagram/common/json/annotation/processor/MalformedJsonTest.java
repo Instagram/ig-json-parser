@@ -2,25 +2,24 @@
 
 package com.instagram.common.json.annotation.processor;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.List;
-
-import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
-import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT;
-import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT__JsonHelper;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.collect.Lists;
+import com.instagram.common.json.annotation.processor.support.ExtensibleJSONWriter;
+import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT;
+import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT__JsonHelper;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.List;
 import org.json.JSONException;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 /**
  * Where we attack the parser with poorly formed json, where structures and arrays are interchanged
- * with scalars.  These are errors that can result in infinite loops or improper termination of
+ * with scalars. These are errors that can result in infinite loops or improper termination of
  * parsing.
  */
 public class MalformedJsonTest {
@@ -33,20 +32,24 @@ public class MalformedJsonTest {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
+    writer
+        .object()
         .key(SimpleParseUUT.STRING_FIELD_NAME)
         .array()
-          .extend(new ExtensibleJSONWriter.Extender() {
-            @Override
-            public void extend(ExtensibleJSONWriter writer) throws JSONException {
-              for (Integer integer : integerList) {
-                writer.value(integer);
+        .extend(
+            new ExtensibleJSONWriter.Extender() {
+              @Override
+              public void extend(ExtensibleJSONWriter writer) throws JSONException {
+                for (Integer integer : integerList) {
+                  writer.value(integer);
+                }
               }
-            }
-          })
-          .endArray()
-        .key(SimpleParseUUT.INT_FIELD_NAME).value(intValue)
-        .key(SimpleParseUUT.INTEGER_FIELD_NAME).value(integerValue)
+            })
+        .endArray()
+        .key(SimpleParseUUT.INT_FIELD_NAME)
+        .value(intValue)
+        .key(SimpleParseUUT.INTEGER_FIELD_NAME)
+        .value(integerValue)
         .endObject();
 
     String inputString = stringWriter.toString();
@@ -64,13 +67,17 @@ public class MalformedJsonTest {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
+    writer
+        .object()
         .key(SimpleParseUUT.STRING_FIELD_NAME)
         .object()
-          .key("garbage").value("123")
+        .key("garbage")
+        .value("123")
         .endObject()
-        .key(SimpleParseUUT.INT_FIELD_NAME).value(intValue)
-        .key(SimpleParseUUT.INTEGER_FIELD_NAME).value(integerValue)
+        .key(SimpleParseUUT.INT_FIELD_NAME)
+        .value(intValue)
+        .key(SimpleParseUUT.INTEGER_FIELD_NAME)
+        .value(integerValue)
         .endObject();
 
     String inputString = stringWriter.toString();
@@ -93,14 +100,20 @@ public class MalformedJsonTest {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
-        .key(SimpleParseUUT.INT_FIELD_NAME).value(intValue)
-        .key(SimpleParseUUT.INTEGER_FIELD_NAME).value(integerValue)
-        .key(SimpleParseUUT.STRING_FIELD_NAME).value(stringValue)
-        .key(SimpleParseUUT.INTEGER_LIST_FIELD_NAME).value(intValue)
+    writer
+        .object()
+        .key(SimpleParseUUT.INT_FIELD_NAME)
+        .value(intValue)
+        .key(SimpleParseUUT.INTEGER_FIELD_NAME)
+        .value(integerValue)
+        .key(SimpleParseUUT.STRING_FIELD_NAME)
+        .value(stringValue)
+        .key(SimpleParseUUT.INTEGER_LIST_FIELD_NAME)
+        .value(intValue)
         .key(SimpleParseUUT.SUBOBJECT_FIELD_NAME)
         .object()
-        .key(SimpleParseUUT.SubobjectParseUUT.INT_FIELD_NAME).value(subIntValue)
+        .key(SimpleParseUUT.SubobjectParseUUT.INT_FIELD_NAME)
+        .value(subIntValue)
         .endObject()
         .endObject();
 
@@ -127,10 +140,14 @@ public class MalformedJsonTest {
     StringWriter stringWriter = new StringWriter();
     ExtensibleJSONWriter writer = new ExtensibleJSONWriter(stringWriter);
 
-    writer.object()
-        .key(SimpleParseUUT.INT_FIELD_NAME).value(intValue)
-        .key(SimpleParseUUT.INTEGER_FIELD_NAME).value(integerValue)
-        .key(SimpleParseUUT.STRING_FIELD_NAME).value(stringValue)
+    writer
+        .object()
+        .key(SimpleParseUUT.INT_FIELD_NAME)
+        .value(intValue)
+        .key(SimpleParseUUT.INTEGER_FIELD_NAME)
+        .value(integerValue)
+        .key(SimpleParseUUT.STRING_FIELD_NAME)
+        .value(stringValue)
         .key(SimpleParseUUT.INTEGER_LIST_FIELD_NAME)
         .array()
         .extend(
@@ -143,7 +160,8 @@ public class MalformedJsonTest {
               }
             })
         .endArray()
-        .key(SimpleParseUUT.SUBOBJECT_FIELD_NAME).value(subIntValue)
+        .key(SimpleParseUUT.SUBOBJECT_FIELD_NAME)
+        .value(subIntValue)
         .endObject();
 
     String inputString = stringWriter.toString();
@@ -157,5 +175,4 @@ public class MalformedJsonTest {
     assertEquals(integerList, uut.integerListField);
     assertNull(uut.subobjectField);
   }
-
 }

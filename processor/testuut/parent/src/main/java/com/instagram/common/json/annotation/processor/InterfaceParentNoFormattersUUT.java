@@ -1,11 +1,12 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+
 package com.instagram.common.json.annotation.processor.parent;
 
 import com.instagram.common.json.annotation.JsonType;
 
 /**
- * An interface to verify that serialization/parsing can work without formatters
- * on the interface itself.
+ * An interface to verify that serialization/parsing can work without formatters on the interface
+ * itself.
  */
 @JsonType
-public interface InterfaceParentNoFormattersUUT {
-}
+public interface InterfaceParentNoFormattersUUT {}

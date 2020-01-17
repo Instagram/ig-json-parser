@@ -2,27 +2,12 @@
 
 package com.instagram.common.json.annotation.processor;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-
-import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT;
-import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT__JsonHelper;
-import com.instagram.common.json.annotation.processor.parent.InterfaceImplementation2UUT;
-import com.instagram.common.json.annotation.processor.parent.InterfaceParentDynamicUUTHelper;
-import com.instagram.common.json.annotation.processor.uut.GetterUUT;
-import com.instagram.common.json.annotation.processor.uut.GetterUUT__JsonHelper;
-import com.instagram.common.json.annotation.processor.uut.EnumUUT;
-import com.instagram.common.json.annotation.processor.uut.EnumUUT__JsonHelper;
-import com.instagram.common.json.annotation.processor.uut.MapUUT;
-import com.instagram.common.json.annotation.processor.uut.MapUUT__JsonHelper;
-import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT;
-import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT__JsonHelper;
+import static com.instagram.common.json.annotation.processor.uut.SimpleParseUUT.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -31,33 +16,46 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
+import com.instagram.common.json.annotation.processor.parent.InterfaceImplementation2UUT;
+import com.instagram.common.json.annotation.processor.parent.InterfaceImplementationUUT;
+import com.instagram.common.json.annotation.processor.parent.InterfaceParentDynamicUUTHelper;
+import com.instagram.common.json.annotation.processor.uut.EnumUUT;
+import com.instagram.common.json.annotation.processor.uut.EnumUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.uut.GetterUUT;
+import com.instagram.common.json.annotation.processor.uut.GetterUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.uut.MapUUT;
+import com.instagram.common.json.annotation.processor.uut.MapUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT;
+import com.instagram.common.json.annotation.processor.uut.SimpleParseUUT__JsonHelper;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 import org.json.JSONException;
 import org.junit.Test;
 
-import static com.instagram.common.json.annotation.processor.uut.SimpleParseUUT.*;
-
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-
 /**
- * Basic serialization tests.  It depends on deserialization working correctly but that's an
+ * Basic serialization tests. It depends on deserialization working correctly but that's an
  * acceptable assumption since if deserialization is broken, {@link DeserializeTest} should fail.
  */
-
 public class SerializeTest {
   public static final String[] FIELD_DECLARATION_ORDER = {
-      INT_FIELD_NAME,
-      INTEGER_FIELD_NAME,
-      FLOAT_FIELD_NAME,
-      FLOAT_OBJ_FIELD_NAME,
-      STRING_FIELD_NAME,
-      INTEGER_LIST_FIELD_NAME,
-      INTEGER_ARRAY_LIST_FIELD_NAME,
-      INTEGER_QUEUE_FIELD_NAME,
-      INTEGER_SET_FIELD_NAME,
-      SUBOBJECT_FIELD_NAME,
-      SUBENUM_FIELD_NAME,
-      SUBENUM_LIST_FIELD_NAME
+    INT_FIELD_NAME,
+    INTEGER_FIELD_NAME,
+    FLOAT_FIELD_NAME,
+    FLOAT_OBJ_FIELD_NAME,
+    STRING_FIELD_NAME,
+    INTEGER_LIST_FIELD_NAME,
+    INTEGER_ARRAY_LIST_FIELD_NAME,
+    INTEGER_QUEUE_FIELD_NAME,
+    INTEGER_SET_FIELD_NAME,
+    SUBOBJECT_FIELD_NAME,
+    SUBENUM_FIELD_NAME,
+    SUBENUM_LIST_FIELD_NAME
   };
 
   @Test
@@ -70,8 +68,8 @@ public class SerializeTest {
     final Set<Integer> integerSet = Sets.newHashSet(1, 2, 3, 4);
     final int subIntValue = 30;
     final SimpleParseUUT.SubenumUUT subEnum = SimpleParseUUT.SubenumUUT.A;
-    final List<SimpleParseUUT.SubenumUUT> subEnumList = Lists.newArrayList(
-        SimpleParseUUT.SubenumUUT.A, SimpleParseUUT.SubenumUUT.B);
+    final List<SimpleParseUUT.SubenumUUT> subEnumList =
+        Lists.newArrayList(SimpleParseUUT.SubenumUUT.A, SimpleParseUUT.SubenumUUT.B);
 
     SimpleParseUUT source = new SimpleParseUUT();
     source.intField = intValue;
@@ -101,8 +99,8 @@ public class SerializeTest {
     assertEquals(source.stringField, parsed.stringField);
     assertEquals(source.integerListField, parsed.integerListField);
     // NOTE: this is because ArrayDeque hilariously does not implement .equals()/.hashcode().
-    assertEquals(Lists.newArrayList(source.integerQueueField),
-        Lists.newArrayList(parsed.integerQueueField));
+    assertEquals(
+        Lists.newArrayList(source.integerQueueField), Lists.newArrayList(parsed.integerQueueField));
     assertEquals(source.integerSetField, parsed.integerSetField);
     assertSame(source.subobjectField.intField, parsed.subobjectField.intField);
     assertSame(source.subenumField, parsed.subenumField);
@@ -137,8 +135,8 @@ public class SerializeTest {
     assertEquals(source.stringField, parsed.stringField);
     assertEquals(source.integerListField, parsed.integerListField);
     // NOTE: this is because ArrayDeque hilariously does not implement .equals()/.hashcode().
-    assertEquals(Lists.newArrayList(source.integerQueueField),
-        Lists.newArrayList(parsed.integerQueueField));
+    assertEquals(
+        Lists.newArrayList(source.integerQueueField), Lists.newArrayList(parsed.integerQueueField));
     assertEquals(source.integerSetField, parsed.integerSetField);
     assertSame(source.subobjectField.intField, parsed.subobjectField.intField);
   }
@@ -230,7 +228,7 @@ public class SerializeTest {
     assertEquals(source.integerField, parsed.integerField);
     assertEquals(source.stringField, parsed.stringField);
     assertEquals(source.integerListField.size() - 1, parsed.integerListField.size());
-    for (int ix = 0; ix < source.integerListField.size() - 1; ix ++) {
+    for (int ix = 0; ix < source.integerListField.size() - 1; ix++) {
       assertEquals(source.integerListField.get(ix), parsed.integerListField.get(ix));
     }
     assertSame(source.subobjectField.intField, parsed.subobjectField.intField);
@@ -307,8 +305,8 @@ public class SerializeTest {
     final Set<Integer> integerSet = Sets.newHashSet(1, 2, 3, 4);
     final int subIntValue = 30;
     final SimpleParseUUT.SubenumUUT subEnum = SimpleParseUUT.SubenumUUT.A;
-    final List<SimpleParseUUT.SubenumUUT> subEnumList = Lists.newArrayList(
-        SimpleParseUUT.SubenumUUT.A, SimpleParseUUT.SubenumUUT.B);
+    final List<SimpleParseUUT.SubenumUUT> subEnumList =
+        Lists.newArrayList(SimpleParseUUT.SubenumUUT.A, SimpleParseUUT.SubenumUUT.B);
 
     SimpleParseUUT source = new SimpleParseUUT();
     source.intField = intValue;
@@ -335,7 +333,8 @@ public class SerializeTest {
 
     // Test that fields appear in the order specified in the class
     for (int i = 0; i < FIELD_DECLARATION_ORDER.length - 1; i++) {
-      assertTrue(inputString.indexOf("\"" + FIELD_DECLARATION_ORDER[i] + "\"")
+      assertTrue(
+          inputString.indexOf("\"" + FIELD_DECLARATION_ORDER[i] + "\"")
               < inputString.indexOf("\"" + FIELD_DECLARATION_ORDER[i + 1] + "\""));
     }
   }
@@ -360,7 +359,8 @@ public class SerializeTest {
   @Test
   public void serializeInterfaceTest() throws IOException {
     StringWriter stringWriter = new StringWriter();
-    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);;
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+    ;
 
     InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
     obj.mStringField = "testValue";
@@ -398,7 +398,8 @@ public class SerializeTest {
     WrapperInterfaceUUT parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
     assertNotNull(parsed);
     assertTrue(parsed.mInterfaceParentWithWrapper instanceof InterfaceImplementationUUT);
-    InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed.mInterfaceParentWithWrapper;
+    InterfaceImplementationUUT parsedObj =
+        (InterfaceImplementationUUT) parsed.mInterfaceParentWithWrapper;
     assertEquals(obj.mStringField, parsedObj.mStringField);
 
     stringWriter = new StringWriter();
@@ -410,14 +411,16 @@ public class SerializeTest {
     parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
     assertNotNull(parsed);
     assertTrue(parsed.mInterfaceParentWithWrapper instanceof InterfaceImplementation2UUT);
-    InterfaceImplementation2UUT parsedObj2 = (InterfaceImplementation2UUT) parsed.mInterfaceParentWithWrapper;
+    InterfaceImplementation2UUT parsedObj2 =
+        (InterfaceImplementation2UUT) parsed.mInterfaceParentWithWrapper;
     assertEquals(obj2.mIntegerField, parsedObj2.mIntegerField);
   }
 
   @Test
   public void serializeInterfaceNoFormattersTest() throws IOException {
     StringWriter stringWriter = new StringWriter();
-    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);;
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+    ;
 
     InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
     obj.mStringField = "testValue";
@@ -430,20 +433,22 @@ public class SerializeTest {
     WrapperInterfaceUUT parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
     assertNotNull(parsed);
     assertTrue(parsed.mInterfaceParentNoFormatters instanceof InterfaceImplementationUUT);
-    InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed.mInterfaceParentNoFormatters;
+    InterfaceImplementationUUT parsedObj =
+        (InterfaceImplementationUUT) parsed.mInterfaceParentNoFormatters;
     assertEquals(obj.mStringField, parsedObj.mStringField);
   }
 
   @Test
   public void serializeInterfaceDynamicTest() throws IOException {
     StringWriter stringWriter = new StringWriter();
-    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);;
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(stringWriter);
+    ;
 
     InterfaceImplementationUUT obj = new InterfaceImplementationUUT();
     obj.mStringField = "testValue";
 
-    InterfaceParentDynamicUUTHelper.DISPATCHER.register(InterfaceImplementationUUT.TYPE_NAME,
-            InterfaceImplementationUUT.ADAPTER);
+    InterfaceParentDynamicUUTHelper.DISPATCHER.register(
+        InterfaceImplementationUUT.TYPE_NAME, InterfaceImplementationUUT.ADAPTER);
     WrapperInterfaceUUT wrapper = new WrapperInterfaceUUT();
     wrapper.mInterfaceParentDynamic = obj;
     WrapperInterfaceUUT__JsonHelper.serializeToJson(jsonGenerator, wrapper, true);
@@ -452,8 +457,8 @@ public class SerializeTest {
     WrapperInterfaceUUT parsed = WrapperInterfaceUUT__JsonHelper.parseFromJson(serialized);
     assertNotNull(parsed);
     assertTrue(parsed.mInterfaceParentDynamic instanceof InterfaceImplementationUUT);
-    InterfaceImplementationUUT parsedObj = (InterfaceImplementationUUT) parsed.mInterfaceParentDynamic;
+    InterfaceImplementationUUT parsedObj =
+        (InterfaceImplementationUUT) parsed.mInterfaceParentDynamic;
     assertEquals(obj.mStringField, parsedObj.mStringField);
   }
-
 }

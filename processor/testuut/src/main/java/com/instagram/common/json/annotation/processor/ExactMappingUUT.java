@@ -2,14 +2,12 @@
 
 package com.instagram.common.json.annotation.processor.uut;
 
+import static com.instagram.common.json.annotation.JsonField.TypeMapping.EXACT;
+
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
 
-import static com.instagram.common.json.annotation.JsonField.TypeMapping.*;
-
-/**
- * UUT for testing the {@link JsonField.TypeMapping#EXACT} mapping.
- */
+/** UUT for testing the {@link JsonField.TypeMapping#EXACT} mapping. */
 @JsonType
 public class ExactMappingUUT {
   public static final String BOOLEAN_FIELD_NAME = "boolean";
