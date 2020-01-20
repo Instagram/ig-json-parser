@@ -2,6 +2,8 @@
 
 package com.instagram.common.json.annotation.processor;
 
+import static org.junit.Assert.assertEquals;
+
 import com.instagram.common.json.annotation.processor.dependent.SubclassUUT;
 import com.instagram.common.json.annotation.processor.dependent.SubclassUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.dependent.SubclassWithAbstractParentUUT;
