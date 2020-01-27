@@ -155,3 +155,10 @@ globally and per-class. The default is to generate serializers for all classes. 
 
 to the command-line arguments of javac. To override the default generation option for a single class, see
 `JsonType.generateSerializer()`.
+
+## Contributing
+
+See the [CONTRIBUTING](.github/CONTRIBUTING.md) file for how to help out.
+
+## License
+ig-json-parser is MIT licensed, as found in the [LICENSE](LICENSE) file.
