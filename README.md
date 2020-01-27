@@ -1,21 +1,18 @@
 
-ig-json-parser
-==============
+# ig-json-parser
 
 [![Build Status](https://travis-ci.org/Instagram/ig-json-parser.svg?branch=master)](https://travis-ci.org/Instagram/ig-json-parser) [![Release](https://jitpack.io/v/Instagram/ig-json-parser.svg)](https://jitpack.io/#Instagram/ig-json-parser)
 
 Fast JSON parser for java projects. 
 
 
-Getting started
-===============
+## Getting started
 
 The easiest way to get started is to look at maven-example.  For more
 comprehensive examples, check out the unit tests or the demo.
 
 
-Gradle
------
+## Gradle
 
 For Java projects, to use this library, add this to your build.gradle file:
 ```groovy
@@ -72,8 +69,7 @@ dependencies {
 
 If you are using other build sytems, please find instructions [here](https://jitpack.io/#Instagram/ig-json-parser)
 
-Requirements for model classes
-------------------------------
+## Requirements for model classes
 
 There should be a package-visible no-argument constructor for each of your
 model classes.  The fields also need to be package-visible.
@@ -96,8 +92,7 @@ class Dessert {
 }
 ```
 
-Serializer/deserializer
------------------------
+## Serializer/deserializer
 
 Compiling your model classes with the annotations will automatically
 generate the serializer and deserializer.  They will be in a generated
@@ -114,8 +109,7 @@ To serialize a class, run:
 String serialized = Dessert__JsonHelper.serializeToJson(dessertObject);
 ```
 
-Supported data types
---------------------
+## Supported data types
 
 The following scalar types are supported:
 * String
@@ -130,8 +124,7 @@ model class.  That model class must also have the `@JsonType` annotation.
 
 Lists of objects are supported either as Java Lists or Queues.
 
-Proguard
-===============
+# Proguard
 
 Add the following lines to your proguard-rules file:
 ```
@@ -139,25 +132,22 @@ Add the following lines to your proguard-rules file:
 -dontwarn javax.annotation.**
 ```
 
-Advanced features
-=================
+# Advanced features
 
-Postprocessing
---------------
+## Postprocessing
 
 TODO: Document this.  See the documentation in
 common/src/main/java/com/instagram/common/json/annotation/JsonType.java in
 the meanwhile.
 
-Customized parsing code
------------------------
+## Customized parsing code
 
 TODO: Document this.  See the documentation in
 common/src/main/java/com/instagram/common/json/annotation/JsonField.java
 in the meanwhile.
 
-Optional serializer generation
-------------------------------
+## Optional serializer generation
+
 To save generating serializer code if you only need deserialization, serializer generation can be disabled or enabled
 globally and per-class. The default is to generate serializers for all classes. To disable generation globally, pass
 
