@@ -53,6 +53,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   private final boolean mOmitSomeMethodBodies;
   private final String mParentInjectedClassName;
   private final JsonType mAnnotation;
+  private final boolean mIsKotlin;
 
   public JsonParserClassData(
       String classPackage,
@@ -64,13 +65,15 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       boolean generateSerializer,
       boolean omitSomeMethodBodies,
       String parentInjectedClassName,
-      JsonType annotation) {
+      JsonType annotation,
+      boolean isKotlin) {
     super(classPackage, qualifiedClassName, simpleClassName, injectedClassName, factory);
     mAbstractClass = abstractClass;
     mGenerateSerializer = generateSerializer;
     mOmitSomeMethodBodies = omitSomeMethodBodies;
     mParentInjectedClassName = parentInjectedClassName;
     mAnnotation = annotation;
+    mIsKotlin = isKotlin;
   }
 
   public boolean generateSerializer() {
@@ -308,21 +311,27 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
         generateCollectionParser(messager, writer, data, member);
         CodeFormatter assignmentFormatter =
-            data.getAssignmentFormatter().orIfEmpty(DEFAULT_ASSIGNMENT_FORMATTER);
+            data.getAssignmentFormatter()
+                .orIfEmpty(
+                    mIsKotlin ? DEFAULT_ASSIGNMENT_FORMATTER_KOTLIN : DEFAULT_ASSIGNMENT_FORMATTER);
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
                 .addParam("field_varname", member)
+                .addParam("field_varname_setter", getSetterName(member))
                 .addParam("extracted_value", "results")
                 .format());
       } else {
         String rValue = generateExtractRvalue(data, messager, member);
         CodeFormatter assignmentFormatter =
-            data.getAssignmentFormatter().orIfEmpty(DEFAULT_ASSIGNMENT_FORMATTER);
+            data.getAssignmentFormatter()
+                .orIfEmpty(
+                    mIsKotlin ? DEFAULT_ASSIGNMENT_FORMATTER_KOTLIN : DEFAULT_ASSIGNMENT_FORMATTER);
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
                 .addParam("field_varname", member)
+                .addParam("field_varname_setter", getSetterName(member))
                 .addParam("extracted_value", rValue)
                 .format());
       }
@@ -461,8 +470,11 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   }
 
   // These are all the default formatters.
-  private static CodeFormatter DEFAULT_ASSIGNMENT_FORMATTER =
+  private static final CodeFormatter DEFAULT_ASSIGNMENT_FORMATTER =
       FIELD_ASSIGNMENT.forString("${object_varname}.${field_varname} = ${extracted_value}");
+
+  private static final CodeFormatter DEFAULT_ASSIGNMENT_FORMATTER_KOTLIN =
+      FIELD_ASSIGNMENT.forString("${object_varname}.${field_varname_setter}(${extracted_value})");
 
   private static Map<TypeUtils.ParseType, CodeFormatter> sExactFormatters =
       new HashMap<TypeUtils.ParseType, CodeFormatter>();
@@ -563,7 +575,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       String member = entry.getKey();
-      if (mAnnotation.useGetters()) {
+      if (mAnnotation.useGetters() || mIsKotlin) {
         member = getGetterName(member);
       }
       TypeData data = entry.getValue();
@@ -676,6 +688,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       .addParam("generator_object", "generator")
                       .addParam("object_varname", "object")
                       .addParam("field_varname", member)
+                      .addParam("field_varname_setter", getSetterName(member))
                       .addParam(
                           "subobject_helper_class",
                           data.getParsableTypeParserClass()
@@ -691,6 +704,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                   .addParam("generator_object", "generator")
                   .addParam("object_varname", "object")
                   .addParam("field_varname", member)
+                  .addParam("field_varname_setter", getSetterName(member))
                   .addParam("json_fieldname", data.getFieldName())
                   .format();
 
@@ -734,11 +748,31 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     return strFormat.format();
   }
 
-  private static String getGetterName(String fieldName) {
-    return "get"
-        + String.valueOf(fieldName.charAt(0)).toUpperCase()
-        + fieldName.substring(1)
-        + "()";
+  private String getGetterName(String fieldName) {
+    if (isKotlinIsSpecialPrefixCase(fieldName)) {
+      return fieldName + "()";
+    } else {
+      return "get" + capitalize(fieldName) + "()";
+    }
+  }
+
+  private String getSetterName(String fieldName) {
+    if (isKotlinIsSpecialPrefixCase(fieldName)) {
+      return "set" + capitalize(fieldName.substring(2));
+    } else {
+      return "set" + capitalize(fieldName);
+    }
+  }
+
+  private boolean isKotlinIsSpecialPrefixCase(String fieldName) {
+    return mIsKotlin
+        && fieldName.length() > 2
+        && fieldName.startsWith("is")
+        && Character.isUpperCase(fieldName.charAt(2));
+  }
+
+  private static String capitalize(String str) {
+    return String.valueOf(str.charAt(0)).toUpperCase() + str.substring(1);
   }
 
   /** used to write a single instance of a parsable object. */

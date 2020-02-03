@@ -14,9 +14,10 @@ import java.util.Set;
 
 public class CodeFormatter {
   public static final Factory VALUE_EXTRACT =
-      new Factory("parser_object", "subobject_class", "subobject_helper_class");
+      new Factory(
+          "parser_object", "parser_object_getter", "subobject_class", "subobject_helper_class");
   public static final Factory FIELD_ASSIGNMENT =
-      new Factory("object_varname", "field_varname", "extracted_value");
+      new Factory("object_varname", "field_varname", "field_varname_setter", "extracted_value");
   public static final Factory FIELD_CODE_SERIALIZATION =
       new Factory(
           "generator_object",

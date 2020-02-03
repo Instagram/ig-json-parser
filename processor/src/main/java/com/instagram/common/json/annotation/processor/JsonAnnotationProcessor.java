@@ -178,6 +178,15 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       return;
     }
 
+    boolean isKotlin = false;
+    try {
+      Class<? extends Annotation> metaDataClass =
+          Class.forName("kotlin.Metadata").asSubclass(Annotation.class);
+      isKotlin = element.getAnnotation(metaDataClass) != null;
+    } catch (ClassNotFoundException e) {
+      // not kotlin
+    }
+
     // Verify containing class visibility is not private.
     if (element.getModifiers().contains(PRIVATE)) {
       error(
@@ -244,7 +253,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
               generateSerializer,
               mOmitSomeMethodBodies,
               parentGeneratedClassName,
-              annotation);
+              annotation,
+              isKotlin);
       mState.mClassElementToInjectorMap.put(typeElement, injector);
     }
   }
