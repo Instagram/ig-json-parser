@@ -6,15 +6,18 @@
  */
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 dependencies {
-    annotationProcessor project(':processor')
+    kapt project(':processor')
     implementation project(':common')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 29
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
 
@@ -22,9 +25,6 @@ android {
         main {
             manifest {
                 srcFile "AndroidManifest.xml"
-            }
-            java {
-                srcDir 'src/main/java'
             }
         }
     }

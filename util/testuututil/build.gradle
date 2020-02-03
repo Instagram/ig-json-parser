@@ -15,6 +15,6 @@ compileJava {
 }
 
 dependencies {
-    compile group: 'com.google.guava', name: 'guava', version: '12.0.1+'
+    compile group: 'com.google.guava', name: 'guava', version: '12.0.1'
     compileOnly project(':util:testprocessor')
 }

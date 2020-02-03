@@ -15,13 +15,13 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1+'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3+'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.2.3'
     compile project(':javawriter')
     compile project(':util')
     compile project(':common')
-    testCompile group: 'com.google.guava', name: 'guava', version: '12.0.1+'
-    testCompile group: 'junit', name: 'junit', version: '4.8.2+'
+    testCompile group: 'com.google.guava', name: 'guava', version: '12.0.1'
+    testCompile group: 'junit', name: 'junit', version: '4.8.2'
     testCompile project(':processor:support')
     testCompile project(':processor:testuut')
     testCompile project(':processor:testuut:dependent')
