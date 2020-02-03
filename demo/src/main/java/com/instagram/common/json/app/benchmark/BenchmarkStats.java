@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package com.instagram.common.json.app;
+package com.instagram.common.json.app.benchmark;
 
 import android.os.Debug;
 import android.os.SystemClock;

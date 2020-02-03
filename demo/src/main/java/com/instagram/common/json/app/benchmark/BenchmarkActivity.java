@@ -5,12 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package com.instagram.common.json.app;
+package com.instagram.common.json.app.benchmark;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Base64;
-import android.util.Base64InputStream;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -21,9 +19,9 @@ import com.instagram.common.json.app.igmodel.IgModelWorker;
 import com.instagram.common.json.app.ommodel.OmListOfModels;
 import com.instagram.common.json.app.ommodel.OmModelRequest;
 import com.instagram.common.json.app.ommodel.OmModelWorker;
+import com.instagram.common.json.app.utils.FileUtilsKt;
 import com.instagram.jsonbenchmark.app.R;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class BenchmarkActivity extends Activity {
   private String mJsonString;
@@ -31,14 +29,9 @@ public class BenchmarkActivity extends Activity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity);
+    setContentView(R.layout.benchmark_activity);
 
-    try {
-      mJsonString = loadFromFile(R.raw.input);
-    } catch (IOException e) {
-      Toast.makeText(this, "yeah, bad things happened", Toast.LENGTH_LONG).show();
-      return;
-    }
+    mJsonString = FileUtilsKt.rawResourceAsString(this, R.raw.benchmark_input);
 
     View.OnClickListener listener =
         new View.OnClickListener() {
@@ -121,36 +114,6 @@ public class BenchmarkActivity extends Activity {
     sb.append("]}");
 
     return sb.toString();
-  }
-
-  private String loadFromFile(int resourceId) throws IOException {
-    InputStreamReader inputStreamReader = null;
-
-    try {
-      // we're doing this absurd thing with encoding the json file in base64 because phabricator
-      // chokes on it otherwise.
-      inputStreamReader =
-          new InputStreamReader(
-              new Base64InputStream(getResources().openRawResource(resourceId), Base64.DEFAULT),
-              "UTF-8");
-      StringBuilder sb = new StringBuilder();
-      char[] buffer = new char[8 * 1024];
-      int bytesRead;
-
-      while ((bytesRead = inputStreamReader.read(buffer)) != -1) {
-        sb.append(buffer, 0, bytesRead);
-      }
-
-      return sb.toString();
-    } finally {
-      try {
-        if (inputStreamReader != null) {
-          inputStreamReader.close();
-        }
-      } catch (IOException ignored) {
-        // ignored
-      }
-    }
   }
 
   int getIterationCount() {

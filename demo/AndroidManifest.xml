@@ -7,21 +7,9 @@
     android:installLocation="auto"
     >
 
-  <uses-sdk
-      android:minSdkVersion="9"
-      android:targetSdkVersion="16"
-      />
-
   <uses-feature
       android:name="android.hardware.screen.portrait"
       android:required="false"
-      />
-
-  <supports-screens
-      android:smallScreens="true"
-      android:normalScreens="true"
-      android:largeScreens="true"
-      android:xlargeScreens="true"
       />
 
   <application
@@ -31,20 +19,33 @@
       android:allowTaskReparenting="true"
       >
 
-    <activity
-        android:name="com.instagram.common.json.app.BenchmarkActivity"
-        android:screenOrientation="portrait"
-        android:configChanges="keyboardHidden|orientation|screenSize"
-        android:windowSoftInputMode="adjustNothing"
-        android:clearTaskOnLaunch="false"
-        android:launchMode="singleTop"
-        android:alwaysRetainTaskState="true"
-        >
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-    </activity>
+      <activity
+          android:name="com.instagram.common.json.app.MainActivity"
+          android:screenOrientation="portrait"
+          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:windowSoftInputMode="adjustNothing"
+          android:clearTaskOnLaunch="false"
+          android:launchMode="singleTop"
+          android:alwaysRetainTaskState="true"
+          >
+          <intent-filter>
+              <action android:name="android.intent.action.MAIN" />
+              <category android:name="android.intent.category.LAUNCHER" />
+          </intent-filter>
+      </activity>
+
+      <activity
+          android:name="com.instagram.common.json.app.benchmark.BenchmarkActivity"
+          android:screenOrientation="portrait"
+          android:configChanges="keyboardHidden|orientation|screenSize"
+          android:windowSoftInputMode="adjustNothing"
+          android:clearTaskOnLaunch="false"
+          android:launchMode="singleTop"
+          android:alwaysRetainTaskState="true"
+          >
+      </activity>
+
+      <activity android:name="com.instagram.common.json.app.playground.PlaygroundActivity" />
 
   </application>
 
