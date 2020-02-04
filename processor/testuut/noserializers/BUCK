@@ -1,0 +1,20 @@
+load("//tools/build_defs/oss:ig_json_parser_defs.bzl", "fb_java_library")
+
+fb_java_library(
+    name = "noserializers",
+    srcs = glob(["**/*.java"]),
+    extra_arguments = [
+        "-AgenerateSerializers=false",
+    ],
+    labels = ["supermodule:android/default/infra.ig_json_parser"],
+    plugins = [
+        "//fbandroid/libraries/ig-json-parser:processor",
+    ],
+    visibility = [
+        "//fbandroid/libraries/ig-json-parser/...",
+    ],
+    deps = [
+        "//fbandroid/libraries/ig-json-parser:runtime",
+        "//fbandroid/third-party/java/jsr-305:jsr-305",
+    ],
+)

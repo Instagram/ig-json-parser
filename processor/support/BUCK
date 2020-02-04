@@ -1,17 +1,16 @@
-load(
-    "//tools/build_defs/oss:ig_json_parser_defs.bzl",
-    "fb_java_library",
-)
+load("//tools/build_defs/oss:ig_json_parser_defs.bzl", "fb_java_library")
 
 fb_java_library(
-    name = "common",
+    name = "support",
     srcs = glob(["src/main/java/**/*.java"]),
     labels = ["supermodule:android/default/infra.ig_json_parser"],
-    required_for_source_only_abi = True,
     visibility = [
         "//fbandroid/libraries/ig-json-parser/...",
     ],
     deps = [
-        "//fbandroid/third-party/java/jackson:core",
+        "//xplat/nuclide/fb-JavaLib/org.json:json",
+    ],
+    exported_deps = [
+        "//xplat/nuclide/fb-JavaLib/org.json:json",
     ],
 )

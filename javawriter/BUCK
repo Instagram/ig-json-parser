@@ -5,6 +5,6 @@ fb_java_library(
     srcs = glob(["src/main/java/**/*.java"]),
     labels = ["supermodule:android/default/infra.ig_json_parser"],
     visibility = [
-        "PUBLIC",
+        "//fbandroid/libraries/ig-json-parser/...",
     ],
 )
