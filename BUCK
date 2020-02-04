@@ -7,7 +7,6 @@ load(
 fb_java_library(
     name = "runtime",
     labels = ["supermodule:android/default/infra.ig_json_parser"],
-    tests = ["//fbandroid/libraries/ig-json-parser/processor:processor-test"],
     visibility = [
         "PUBLIC",
     ],

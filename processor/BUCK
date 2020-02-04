@@ -1,4 +1,3 @@
-load("//tools/build_defs/android:robolectric4_test.bzl", "robolectric4_test")
 load("//tools/build_defs/oss:ig_json_parser_defs.bzl", "fb_java_library", "fb_native")
 
 fb_java_library(
@@ -7,7 +6,6 @@ fb_java_library(
     labels = ["supermodule:android/default/infra.ig_json_parser"],
     resources = glob(["src/main/resources/**"]),
     resources_root = "src/main/resources/",
-    tests = ["//fbandroid/libraries/ig-json-parser/processor:processor-test"],
     visibility = [
         "PUBLIC",
     ],
@@ -31,30 +29,5 @@ fb_native.java_annotation_processor(
     ],
     deps = [
         ":processor-lib",
-    ],
-)
-
-robolectric4_test(
-    name = "processor-test",
-    srcs = glob([
-        "**/test/**/*.kt",
-        "**/test/**/*.java",
-    ]),
-    labels = ["supermodule:android/default/infra.ig_json_parser"],
-    language = "KOTLIN",
-    deps = [
-        "fbsource//third-party/kotlin:kotlin",
-        "fbsource//third-party/kotlin:kotlin-stdlib",
-        "//fbandroid/libraries/ig-json-parser:runtime",
-        "//fbandroid/libraries/ig-json-parser/processor/support:support",
-        "//fbandroid/libraries/ig-json-parser/processor/testuut:testuut",
-        "//fbandroid/libraries/ig-json-parser/processor/testuut/dependent:dependent",
-        "//fbandroid/libraries/ig-json-parser/processor/testuut/kotlin:kotlin",
-        "//fbandroid/libraries/ig-json-parser/processor/testuut/nobodies:nobodies",
-        "//fbandroid/libraries/ig-json-parser/processor/testuut/noserializers:noserializers",
-        "//fbandroid/libraries/ig-json-parser/processor/testuut/parent:parent",
-        "//fbandroid/third-party/java/guava:guava",
-        "//fbandroid/third-party/java/jackson:core",
-        "//fbandroid/third-party/java/junit:junit",
     ],
 )

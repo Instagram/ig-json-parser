@@ -9,7 +9,7 @@ fb_java_library(
     labels = ["supermodule:android/default/infra.ig_json_parser"],
     required_for_source_only_abi = True,
     visibility = [
-        "//fbandroid/libraries/ig-json-parser/...",
+        "PUBLIC",
     ],
     deps = [
         "//fbandroid/third-party/java/jackson:core",
