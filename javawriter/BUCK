@@ -1,0 +1,10 @@
+load("//tools/build_defs/oss:ig_json_parser_defs.bzl", "fb_java_library")
+
+fb_java_library(
+    name = "javawriter",
+    srcs = glob(["src/main/java/**/*.java"]),
+    labels = ["supermodule:android/default/infra.ig_json_parser"],
+    visibility = [
+        "PUBLIC",
+    ],
+)

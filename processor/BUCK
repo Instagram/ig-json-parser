@@ -1,0 +1,33 @@
+load("//tools/build_defs/oss:ig_json_parser_defs.bzl", "fb_java_library", "fb_native")
+
+fb_java_library(
+    name = "processor-lib",
+    srcs = glob(["src/main/java/**/*.java"]),
+    labels = ["supermodule:android/default/infra.ig_json_parser"],
+    resources = glob(["src/main/resources/**"]),
+    resources_root = "src/main/resources/",
+    visibility = [
+        "PUBLIC",
+    ],
+    deps = [
+        "//fbandroid/libraries/ig-json-parser/common:common",
+        "//fbandroid/libraries/ig-json-parser/javawriter:javawriter",
+        "//fbandroid/libraries/ig-json-parser/util:util",
+        "//fbandroid/third-party/java/jackson:core",
+        "//fbandroid/third-party/java/jsr-305:jsr-305",
+        "//third-party/java/commons-lang3:commons-lang3",
+    ],
+)
+
+fb_native.java_annotation_processor(
+    name = "processor",
+    labels = ["supermodule:android/default/infra.ig_json_parser"],
+    processor_class = "com.instagram.common.json.annotation.processor.JsonAnnotationProcessor",
+    supports_abi_generation_from_source = True,
+    visibility = [
+        "PUBLIC",
+    ],
+    deps = [
+        ":processor-lib",
+    ],
+)
