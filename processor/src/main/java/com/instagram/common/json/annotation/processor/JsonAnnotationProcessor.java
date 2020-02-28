@@ -12,12 +12,16 @@ import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD
 import static com.instagram.common.json.annotation.processor.CodeFormatter.VALUE_EXTRACT;
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
+import static javax.lang.model.element.ElementKind.METHOD;
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.PRIVATE;
 
 import com.instagram.common.json.JsonAnnotationProcessorConstants;
+import com.instagram.common.json.annotation.FromJson;
+import com.instagram.common.json.annotation.JsonAdapter;
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
+import com.instagram.common.json.annotation.ToJson;
 import com.instagram.common.json.annotation.util.Console;
 import com.instagram.common.json.annotation.util.ProcessorClassData;
 import com.instagram.common.json.annotation.util.TypeUtils;
@@ -38,6 +42,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -313,6 +318,9 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     }
 
     data.setParseType(mTypeUtils.getParseType(type, JsonType.class));
+
+    boolean skipEnumValidationCheck = setJsonAdapterIfApplicable(type, injector, data, annotation);
+
     if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
       TypeMirror erasedType = mTypes.erasure(type);
       DeclaredType declaredType = (DeclaredType) erasedType;
@@ -343,16 +351,126 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       data.setFormatterImports(typeAnnotation.typeFormatterImports());
     } else if (data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {
       // verify that we have value extract and serializer formatters.
-      if (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter())
-          || (injector.generateSerializer()
-              && StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter()))) {
+      if (!skipEnumValidationCheck
+          && (StringUtil.isNullOrEmpty(annotation.valueExtractFormatter())
+              || (injector.generateSerializer()
+                  && StringUtil.isNullOrEmpty(annotation.serializeCodeFormatter())))) {
         error(
             element,
-            "%s: enums must have a value extract formatter, and a serialize code formatter if serialization generation is enabled",
-            enclosingElement);
+            "%s: Annotate the enum with @%s (see annotation docs for details). "
+                + "If that is undesirable you must have a value extract formatter, "
+                + "and a serialize code formatter if serialization generation is enabled",
+            enclosingElement,
+            JsonAdapter.class.getSimpleName());
       }
       data.setEnumType(type.toString());
     }
+  }
+
+  /**
+   * Sets up JsonAdapter data for the annotation processor if applicable.
+   *
+   * @return true if we can skip enum validation of formatters, as we do not need them if we have a
+   *     json adapter, false otherwise
+   */
+  private boolean setJsonAdapterIfApplicable(
+      TypeMirror type, JsonParserClassData injector, TypeData data, JsonField annotation) {
+    // If there are custom formatters applied, it takes precedence over the json adapter of the
+    // type.
+    boolean eligibleToUseJsonAdapter =
+        data.getParseType() == TypeUtils.ParseType.ENUM_OBJECT
+            && annotation.valueExtractFormatter().isEmpty()
+            && annotation.fieldAssignmentFormatter().isEmpty()
+            && annotation.serializeCodeFormatter().isEmpty();
+
+    boolean skipEnumValidationCheck = false;
+
+    if (eligibleToUseJsonAdapter) {
+      DeclaredType declaredType = (DeclaredType) type;
+      Element typeElement = declaredType.asElement();
+      JsonAdapter adapterAnnotation = typeElement.getAnnotation(JsonAdapter.class);
+      if (adapterAnnotation != null) {
+        TypeElement adapterTypeElement =
+            AnnotationMirrorUtils.getAnnotationValueAsTypeElement(
+                typeElement, mTypes, JsonAdapter.class, "adapterClass");
+
+        ExecutableElement fromJson = null;
+        ExecutableElement toJson = null;
+
+        for (Element enclosedElement : adapterTypeElement.getEnclosedElements()) {
+          if (enclosedElement.getKind() == METHOD) {
+            if (enclosedElement.getAnnotation(FromJson.class) != null) {
+              fromJson = (ExecutableElement) enclosedElement;
+            } else if (enclosedElement.getAnnotation(ToJson.class) != null) {
+              toJson = (ExecutableElement) enclosedElement;
+            }
+          }
+          if (fromJson != null && (!injector.generateSerializer() || toJson != null)) {
+            break;
+          }
+        }
+
+        String qualifiedName = adapterTypeElement.getQualifiedName().toString();
+
+        TypeMirror fromJsonParameterTypeMirror = null;
+
+        // handle fromJson
+        if (fromJson == null) {
+          error(
+              "%s: method with @%s annotation must be present",
+              type, FromJson.class.getSimpleName());
+        } else if (!fromJson.getReturnType().equals(type)) {
+          error(
+              fromJson,
+              "@%s must return the correct type, expected type: %s",
+              FromJson.class.getSimpleName(),
+              type);
+        } else if (fromJson.getParameters().size() != 1) {
+          error(
+              fromJson,
+              "%s: @%s must have exactly one parameter, the json type expected (String, Integer, etc.)",
+              type,
+              FromJson.class.getSimpleName());
+        } else {
+          fromJsonParameterTypeMirror = fromJson.getParameters().get(0).asType();
+          data.setJsonAdapterFromJsonMethod(
+              qualifiedName + "." + fromJson.getSimpleName().toString());
+        }
+
+        // handle toJson
+        if (injector.generateSerializer() && fromJsonParameterTypeMirror != null) {
+          if (toJson == null) {
+            error(
+                "%s: method with @%s annotation must be present",
+                type, ToJson.class.getSimpleName());
+          } else if (toJson.getParameters().size() != 1) {
+            error(
+                toJson,
+                "%s: @%s must have exactly one parameter, the type of the field.",
+                type,
+                ToJson.class.getSimpleName());
+          } else if (!mTypes.isSameType(toJson.getParameters().get(0).asType(), type)) {
+            error(
+                toJson,
+                "@%s must take the correct type, expected type: %s",
+                ToJson.class.getSimpleName(),
+                type);
+          } else if (!toJson.getReturnType().equals(fromJsonParameterTypeMirror)) {
+            error(
+                fromJson,
+                "@%s must return the correct type, expected type: %s",
+                ToJson.class.getSimpleName(),
+                fromJsonParameterTypeMirror);
+          } else {
+            data.setJsonAdapterToJsonMethod(
+                qualifiedName + "." + toJson.getSimpleName().toString());
+          }
+        }
+        data.setJsonAdapterParseType(mTypeUtils.getParseType(fromJsonParameterTypeMirror, null));
+        skipEnumValidationCheck = true;
+      }
+    }
+    return skipEnumValidationCheck;
   }
 
   private boolean isFieldAnnotationValid(

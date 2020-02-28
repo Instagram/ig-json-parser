@@ -327,6 +327,10 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
             data.getAssignmentFormatter()
                 .orIfEmpty(
                     mIsKotlin ? DEFAULT_ASSIGNMENT_FORMATTER_KOTLIN : DEFAULT_ASSIGNMENT_FORMATTER);
+        if (data.getJsonAdapterFromJsonMethod() != null) {
+          // If we have a from json method, we call that method with the value
+          rValue = data.getJsonAdapterFromJsonMethod() + "(" + rValue + ")";
+        }
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
@@ -428,9 +432,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
             member);
       }
       if (data.getMapping() == JsonField.TypeMapping.EXACT) {
-        valueExtractFormatter = sExactFormatters.get(data.getParseType());
+        valueExtractFormatter = sExactFormatters.get(data.getJsonAdapterOrParseType());
       } else if (data.getMapping() == JsonField.TypeMapping.COERCED) {
-        valueExtractFormatter = sCoercedFormatters.get(data.getParseType());
+        valueExtractFormatter = sCoercedFormatters.get(data.getJsonAdapterOrParseType());
       }
     }
 
@@ -457,7 +461,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       return type.getEnumType();
     }
 
-    String javaType = sJavaTypes.get(type.getParseType());
+    String javaType = sJavaTypes.get(type.getJsonAdapterOrParseType());
     if (javaType != null) {
       return javaType;
     }
@@ -588,7 +592,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           CodeFormatter defaultFormat =
               data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT
                   ? PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL
-                  : mCollectionSerializeCalls.get(data.getParseType());
+                  : mCollectionSerializeCalls.get(data.getJsonAdapterOrParseType());
           serializeCode = serializeCode.orIfEmpty(defaultFormat);
 
           // needed to do a typecast for erased types
@@ -636,7 +640,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           CodeFormatter defaultFormat =
               valueTypeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT
                   ? PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL
-                  : mCollectionSerializeCalls.get(valueTypeData.getParseType());
+                  : mCollectionSerializeCalls.get(valueTypeData.getJsonAdapterOrParseType());
           CodeFormatter valueSerializeCode =
               valueTypeData.getSerializeCodeFormatter().orIfEmpty(defaultFormat);
 
@@ -697,7 +701,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       .format())
               .endControlFlow();
         } else {
-          serializeCode = serializeCode.orIfEmpty(mScalarSerializeCalls.get(data.getParseType()));
+          CodeFormatter codeFormatter;
+          if (data.getJsonAdapterToJsonMethod() != null) {
+            codeFormatter = mScalarSerializeJsonAdapterCalls.get(data.getJsonAdapterOrParseType());
+          } else {
+            codeFormatter = mScalarSerializeCalls.get(data.getJsonAdapterOrParseType());
+          }
+          serializeCode = serializeCode.orIfEmpty(codeFormatter);
 
           String statement =
               StrFormat.createStringFormatter(serializeCode)
@@ -706,9 +716,10 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                   .addParam("field_varname", member)
                   .addParam("field_varname_setter", getSetterName(member))
                   .addParam("json_fieldname", data.getFieldName())
+                  .addParam("adapter_method_name", data.getJsonAdapterToJsonMethod())
                   .format();
 
-          switch (data.getParseType()) {
+          switch (data.getJsonAdapterOrParseType()) {
             case BOOLEAN:
             case INTEGER:
             case LONG:
@@ -785,89 +796,79 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           "${subobject_helper_class}.serializeToJson(${generator_object}, ${iterator}, true)");
 
   private static final Map<TypeUtils.ParseType, CodeFormatter> mScalarSerializeCalls =
-      new HashMap<TypeUtils.ParseType, CodeFormatter>();
+      new HashMap<>();
+  private static final Map<TypeUtils.ParseType, CodeFormatter> mScalarSerializeJsonAdapterCalls =
+      new HashMap<>();
   private static final Map<TypeUtils.ParseType, CodeFormatter> mCollectionSerializeCalls =
-      new HashMap<TypeUtils.ParseType, CodeFormatter>();
+      new HashMap<>();
 
   static {
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.BOOLEAN,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeBooleanField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.BOOLEAN_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeBooleanField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.INTEGER,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.INTEGER_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.LONG,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.LONG_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.FLOAT,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.FLOAT_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.DOUBLE,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.DOUBLE_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeNumberField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
-    mScalarSerializeCalls.put(
-        TypeUtils.ParseType.STRING,
-        FIELD_CODE_SERIALIZATION.forString(
-            "${generator_object}.writeStringField(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
+    for (TypeUtils.ParseType value : TypeUtils.ParseType.values()) {
+      String scalarWriteMethod = getScalarWriteMethodName(value);
+      if (scalarWriteMethod != null) {
+        mScalarSerializeCalls.put(
+            value,
+            FIELD_CODE_SERIALIZATION.forString(
+                "${generator_object}."
+                    + scalarWriteMethod
+                    + "(\"${json_fieldname}\", ${object_varname}.${field_varname})"));
+        mScalarSerializeJsonAdapterCalls.put(
+            value,
+            FIELD_CODE_SERIALIZATION.forString(
+                "${generator_object}."
+                    + scalarWriteMethod
+                    + "(\"${json_fieldname}\", ${adapter_method_name}(${object_varname}.${field_varname}))"));
+      }
+      String collectionWriteMethod = getCollectionWriteMethodName(value);
+      if (collectionWriteMethod != null) {
+        mCollectionSerializeCalls.put(
+            value,
+            FIELD_CODE_SERIALIZATION.forString(
+                "${generator_object}." + collectionWriteMethod + "(${iterator})"));
+      }
+    }
+  }
 
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.BOOLEAN,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeBoolean(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.BOOLEAN_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeBoolean(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.INTEGER,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.INTEGER_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.LONG,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.LONG_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.FLOAT,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.FLOAT_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.DOUBLE,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.DOUBLE_OBJECT,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeNumber(${iterator})"));
-    mCollectionSerializeCalls.put(
-        TypeUtils.ParseType.STRING,
-        FIELD_CODE_SERIALIZATION.forString("${generator_object}.writeString(${iterator})"));
+  private static String getScalarWriteMethodName(TypeUtils.ParseType parseType) {
+    switch (parseType) {
+      case BOOLEAN:
+      case BOOLEAN_OBJECT:
+        return "writeBooleanField";
+      case INTEGER:
+      case INTEGER_OBJECT:
+      case LONG:
+      case LONG_OBJECT:
+      case FLOAT:
+      case FLOAT_OBJECT:
+      case DOUBLE:
+      case DOUBLE_OBJECT:
+        return "writeNumberField";
+      case STRING:
+        return "writeStringField";
+      default:
+        return null;
+    }
+  }
+
+  private static String getCollectionWriteMethodName(TypeUtils.ParseType parseType) {
+    switch (parseType) {
+      case BOOLEAN:
+      case BOOLEAN_OBJECT:
+        return "writeBoolean";
+      case INTEGER:
+      case INTEGER_OBJECT:
+      case LONG:
+      case LONG_OBJECT:
+      case FLOAT:
+      case FLOAT_OBJECT:
+      case DOUBLE:
+      case DOUBLE_OBJECT:
+        return "writeNumber";
+      case STRING:
+        return "writeString";
+      default:
+        return null;
+    }
   }
 
   private String mapCollectionTypeToInterfaceType(TypeUtils.CollectionType collectionType) {

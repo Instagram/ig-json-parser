@@ -24,6 +24,7 @@ public class CodeFormatter {
           "object_varname",
           "field_varname",
           "iterator",
+          "adapter_method_name",
           "json_fieldname",
           "subobject_helper_class");
   public static final Factory CLASS_CODE_SERIALIZATION =
