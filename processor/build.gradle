@@ -22,7 +22,7 @@ dependencies {
     compile project(':util')
     compile project(':common')
     testCompile group: 'com.google.guava', name: 'guava', version: '12.0.1'
-    testCompile group: 'junit', name: 'junit', version: '4.8.2'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile project(':processor:support')
     testCompile project(':processor:testuut')
     testCompile project(':processor:testuut:dependent')
@@ -30,4 +30,5 @@ dependencies {
     testCompile project(':processor:testuut:nobodies')
     testCompile project(':processor:testuut:kotlin')
     testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testCompile "com.google.testing.compile:compile-testing:0.18"
 }

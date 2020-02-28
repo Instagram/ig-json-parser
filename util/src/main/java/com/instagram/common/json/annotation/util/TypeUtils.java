@@ -80,7 +80,7 @@ public class TypeUtils {
   }
 
   public ParseType getParseType(
-      TypeMirror typeMirror, Class<? extends Annotation> typeAnnotationClass) {
+      TypeMirror typeMirror, @Nullable Class<? extends Annotation> typeAnnotationClass) {
     if (typeMirror == null) {
       return ParseType.UNSUPPORTED;
     } else if (JAVA_LANG_STRING.equals(typeMirror.toString())) {
@@ -109,7 +109,8 @@ public class TypeUtils {
       DeclaredType type = (DeclaredType) typeMirror;
       Element element = type.asElement();
 
-      Annotation annotation = element.getAnnotation(typeAnnotationClass);
+      Annotation annotation =
+          typeAnnotationClass != null ? element.getAnnotation(typeAnnotationClass) : null;
       if (annotation != null && EnumSet.of(CLASS, INTERFACE).contains(element.getKind())) {
         return ParseType.PARSABLE_OBJECT;
       }
