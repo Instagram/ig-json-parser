@@ -71,6 +71,15 @@ class TypeData {
 
   private boolean mIsInterface;
 
+  /** The parse type of the json adapter. */
+  private TypeUtils.ParseType mJsonAdapterParseType;
+
+  /** The name of the method which converts from json to the adapter type. */
+  private String mJsonAdapterFromJsonMethod;
+
+  /** The name of the method which converts to json from the adapter type. */
+  private String mJsonAdapterToJsonMethod;
+
   String getFieldName() {
     return mFieldName;
   }
@@ -141,6 +150,37 @@ class TypeData {
 
   public void setPackageName(String packageName) {
     mPackageName = packageName;
+  }
+
+  public TypeUtils.ParseType getJsonAdapterOrParseType() {
+    if (getJsonAdapterParseType() != null) {
+      return getJsonAdapterParseType();
+    }
+    return getParseType();
+  }
+
+  public TypeUtils.ParseType getJsonAdapterParseType() {
+    return mJsonAdapterParseType;
+  }
+
+  public void setJsonAdapterParseType(TypeUtils.ParseType jsonAdapterParseType) {
+    this.mJsonAdapterParseType = jsonAdapterParseType;
+  }
+
+  public String getJsonAdapterFromJsonMethod() {
+    return mJsonAdapterFromJsonMethod;
+  }
+
+  public void setJsonAdapterFromJsonMethod(String jsonAdapterFromJsonMethod) {
+    this.mJsonAdapterFromJsonMethod = jsonAdapterFromJsonMethod;
+  }
+
+  public String getJsonAdapterToJsonMethod() {
+    return mJsonAdapterToJsonMethod;
+  }
+
+  public void setJsonAdapterToJsonMethod(String jsonAdapterToJsonMethod) {
+    this.mJsonAdapterToJsonMethod = jsonAdapterToJsonMethod;
   }
 
   String getParsableType() {
