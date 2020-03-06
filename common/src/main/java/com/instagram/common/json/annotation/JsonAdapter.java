@@ -8,7 +8,7 @@
 package com.instagram.common.json.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -68,7 +68,7 @@ import java.lang.annotation.Target;
  * classes for nested structures which saves you from having to create an adapter entirely! Feel
  * free to put up a diff or proposal to broaden this if you discover other valid use cases.
  */
-@Retention(SOURCE)
+@Retention(CLASS)
 @Target(TYPE)
 public @interface JsonAdapter {
   /**

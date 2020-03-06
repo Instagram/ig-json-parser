@@ -419,7 +419,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
           error(
               "%s: method with @%s annotation must be present",
               type, FromJson.class.getSimpleName());
-        } else if (!fromJson.getReturnType().equals(type)) {
+        } else if (!mTypes.isSameType(fromJson.getReturnType(), type)) {
           error(
               fromJson,
               "@%s must return the correct type, expected type: %s",
@@ -455,7 +455,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
                 "@%s must take the correct type, expected type: %s",
                 ToJson.class.getSimpleName(),
                 type);
-          } else if (!toJson.getReturnType().equals(fromJsonParameterTypeMirror)) {
+          } else if (!mTypes.isSameType(toJson.getReturnType(), fromJsonParameterTypeMirror)) {
             error(
                 fromJson,
                 "@%s must return the correct type, expected type: %s",
