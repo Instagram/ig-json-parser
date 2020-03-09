@@ -719,7 +719,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                   .addParam("adapter_method_name", data.getJsonAdapterToJsonMethod())
                   .format();
 
-          switch (data.getJsonAdapterOrParseType()) {
+          switch (data.getParseType()) {
             case BOOLEAN:
             case INTEGER:
             case LONG:
