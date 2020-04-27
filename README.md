@@ -67,7 +67,7 @@ dependencies {
 ```
 
 
-If you are using other build sytems, please find instructions [here](https://jitpack.io/#Instagram/ig-json-parser)
+If you are using other build systems, please find instructions [here](https://jitpack.io/#Instagram/ig-json-parser)
 
 ## Requirements for model classes
 
