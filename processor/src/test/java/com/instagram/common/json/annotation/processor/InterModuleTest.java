@@ -15,9 +15,13 @@ import com.instagram.common.json.annotation.processor.dependent.SubclassWithAbst
 import com.instagram.common.json.annotation.processor.dependent.SubclassWithAbstractParentUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.dependent.WrapperClassUUT;
 import com.instagram.common.json.annotation.processor.dependent.WrapperClassUUT__JsonHelper;
+import com.instagram.common.json.annotation.processor.dependent.WrapperEnumUUT;
+import com.instagram.common.json.annotation.processor.dependent.WrapperEnumUUT__JsonHelper;
 import com.instagram.common.json.annotation.processor.parent.ParentUUT;
 import java.io.IOException;
-import org.json.JSONException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import org.junit.Test;
 
 /** Try to do stuff across modules. */
@@ -25,7 +29,7 @@ public class InterModuleTest {
 
   /** Subclasses a java object in a different class. */
   @Test
-  public void subclassingTest() throws IOException, JSONException {
+  public void subclassingTest() throws IOException {
     final int intValue = 25;
     final String stringValue = "hello world\r\n\'\"";
     final int subIntValue = 30;
@@ -47,7 +51,7 @@ public class InterModuleTest {
 
   /** Subclasses an abstract java object in a different class. */
   @Test
-  public void abstractSubclassingTest() throws IOException, JSONException {
+  public void abstractSubclassingTest() throws IOException {
     final int intValue = 25;
     final String stringValue = "hello world\r\n\'\"";
     final int subIntValue = 30;
@@ -70,7 +74,7 @@ public class InterModuleTest {
 
   /** Includes a java object in a different class. */
   @Test
-  public void wrapperTest() throws IOException, JSONException {
+  public void wrapperTest() throws IOException {
     final int intValue = 25;
     final String stringValue = "hello world\r\n\'\"";
 
@@ -86,5 +90,41 @@ public class InterModuleTest {
 
     assertEquals(uut.parent.parentInt, parsed.parent.parentInt);
     assertEquals(uut.parent.parentString, parsed.parent.parentString);
+  }
+
+  /** Includes enum collections in a different class. */
+  @Test
+  public void enumListAndMapWrappers() throws IOException {
+    WrapperEnumUUT uut = new WrapperEnumUUT();
+    List<MyEnumHolder> list = new ArrayList<>();
+    MyEnumHolder enumHolder1 = new MyEnumHolder(MyEnum.FOO);
+    MyEnumHolder enumHolder2 = new MyEnumHolder(MyEnum.BAR);
+
+    list.add(enumHolder1);
+    list.add(enumHolder2);
+    uut.mMyEnumList = list;
+    HashMap<String, MyEnumHolder> map = new HashMap<>();
+    map.put("key1", enumHolder1);
+    map.put("key2", enumHolder2);
+    uut.mMyEnumMap = map;
+
+    String serialized = WrapperEnumUUT__JsonHelper.serializeToJson(uut);
+    WrapperEnumUUT parsed = WrapperEnumUUT__JsonHelper.parseFromJson(serialized);
+
+    assertEquals(uut.mMyEnumList.size(), parsed.mMyEnumList.size());
+    assertEquals(
+        uut.mMyEnumList.get(0).getMyEnum().getServerValue(),
+        parsed.mMyEnumList.get(0).getMyEnum().getServerValue());
+    assertEquals(
+        uut.mMyEnumList.get(1).getMyEnum().getServerValue(),
+        parsed.mMyEnumList.get(1).getMyEnum().getServerValue());
+
+    assertEquals(uut.mMyEnumMap.size(), 2);
+    assertEquals(
+        uut.mMyEnumMap.get("key1").getMyEnum().getServerValue(),
+        parsed.mMyEnumMap.get("key1").getMyEnum().getServerValue());
+    assertEquals(
+        uut.mMyEnumMap.get("key2").getMyEnum().getServerValue(),
+        parsed.mMyEnumMap.get("key2").getMyEnum().getServerValue());
   }
 }
