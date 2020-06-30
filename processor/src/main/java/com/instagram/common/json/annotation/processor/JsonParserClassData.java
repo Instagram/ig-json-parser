@@ -322,21 +322,16 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                 .addParam("extracted_value", "results")
                 .format());
       } else {
-        String rValue = generateExtractRvalue(data, messager, member);
         CodeFormatter assignmentFormatter =
             data.getAssignmentFormatter()
                 .orIfEmpty(
                     mIsKotlin ? DEFAULT_ASSIGNMENT_FORMATTER_KOTLIN : DEFAULT_ASSIGNMENT_FORMATTER);
-        if (data.getJsonAdapterFromJsonMethod() != null) {
-          // If we have a from json method, we call that method with the value
-          rValue = data.getJsonAdapterFromJsonMethod() + "(" + rValue + ")";
-        }
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
                 .addParam("field_varname", member)
                 .addParam("field_varname_setter", getSetterName(member))
-                .addParam("extracted_value", rValue)
+                .addParam("extracted_value", generateExtractRvalue(data, messager, member))
                 .format());
       }
 
@@ -449,7 +444,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           data.getParsableTypeParserClass() + JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX);
     }
 
-    return strFormat.format();
+    String rValue = strFormat.format();
+    if (data.getJsonAdapterFromJsonMethod() != null) {
+      // If we have a from json method, we call that method with the value
+      rValue = data.getJsonAdapterFromJsonMethod() + "(" + rValue + ")";
+    }
+    return rValue;
   }
 
   private String getJavaType(Messager messager, TypeData type) {
