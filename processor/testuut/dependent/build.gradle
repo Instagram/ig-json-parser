@@ -17,4 +17,5 @@ dependencies {
     compile project(':common')
     compile project(':processor')
     compile project(':processor:testuut:parent')
+    compile project(':processor:testuut:kotlin')
 }
