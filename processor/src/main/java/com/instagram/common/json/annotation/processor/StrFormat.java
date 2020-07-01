@@ -20,7 +20,7 @@ class StrFormat {
 
   private StrFormat(String formatString, Set<String> supportedTokens) {
     mFormatString = formatString;
-    mInternalMap = new HashMap<String, String>();
+    mInternalMap = new HashMap<>();
     mSupportedTokens = supportedTokens;
   }
 

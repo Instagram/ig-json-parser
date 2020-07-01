@@ -29,7 +29,7 @@ public class InterModuleTest {
 
   /** Subclasses a java object in a different class. */
   @Test
-  public void subclassingTest() throws IOException {
+  public void subclassing_serialize_parse() throws IOException {
     final int intValue = 25;
     final String stringValue = "hello world\r\n\'\"";
     final int subIntValue = 30;
@@ -51,7 +51,7 @@ public class InterModuleTest {
 
   /** Subclasses an abstract java object in a different class. */
   @Test
-  public void abstractSubclassingTest() throws IOException {
+  public void abstractSubclassing_serialize_parse() throws IOException {
     final int intValue = 25;
     final String stringValue = "hello world\r\n\'\"";
     final int subIntValue = 30;
@@ -74,7 +74,7 @@ public class InterModuleTest {
 
   /** Includes a java object in a different class. */
   @Test
-  public void wrapperTest() throws IOException {
+  public void simpleWrapper_seralize_parse() throws IOException {
     final int intValue = 25;
     final String stringValue = "hello world\r\n\'\"";
 
@@ -94,7 +94,7 @@ public class InterModuleTest {
 
   /** Includes enum collections in a different class. */
   @Test
-  public void enumListAndMapWrappers() throws IOException {
+  public void enumListAndMapWrappers_serialize_parse() throws IOException {
     WrapperEnumUUT uut = new WrapperEnumUUT();
     List<MyEnumHolder> list = new ArrayList<>();
     MyEnumHolder enumHolder1 = new MyEnumHolder(MyEnum.FOO);
