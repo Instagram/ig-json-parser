@@ -127,4 +127,31 @@ public class InterModuleTest {
         uut.mMyEnumMap.get("key2").getMyEnum().getServerValue(),
         parsed.mMyEnumMap.get("key2").getMyEnum().getServerValue());
   }
+
+  /** Includes a collection of generics */
+  @Test
+  public void collectionOfGenerics_serialize_parse() throws IOException {
+    WrapperAnimal animalWrapper = new WrapperAnimal();
+    List<Animal<?>> animals = new ArrayList<>();
+    Dog d1 = new Dog();
+    d1.setName("Alice");
+    Dog d2 = new Dog();
+    d2.setName("Bob");
+    animals.add(d1);
+    animals.add(d2);
+    animalWrapper.setAnimals(animals);
+
+    WrapperWildcardHelper.Companion.registerJsonTypes();
+    String serialized = WrapperAnimal__JsonHelper.serializeToJson(animalWrapper);
+    WrapperAnimal parsed = WrapperAnimal__JsonHelper.parseFromJson(serialized);
+    assertEquals(parsed.animals.size(), 2);
+
+    Animal a1 = parsed.animals.get(0);
+    assertEquals(a1.getId(), "DogAlice");
+    assertEquals(((DogParams) a1.buildParams(a1.getName())).nameLength(), 5);
+
+    Animal a2 = parsed.animals.get(1);
+    assertEquals(a2.getId(), "DogBob");
+    assertEquals(((DogParams) a2.buildParams(a2.getName())).nameLength(), 3);
+  }
 }

@@ -42,6 +42,7 @@ public class TypeUtils {
     STRING,
     PARSABLE_OBJECT,
     ENUM_OBJECT,
+    WILDCARD,
   }
 
   public enum CollectionType {
@@ -105,6 +106,9 @@ public class TypeUtils {
       return ParseType.DOUBLE;
     } else if (JAVA_LANG_DOUBLE.equals(typeMirror.toString())) {
       return ParseType.DOUBLE_OBJECT;
+    } else if (typeMirror.getKind() == TypeKind.WILDCARD) {
+      // If it's a wildcard, assume that annotations are added to properly parse it.
+      return ParseType.PARSABLE_OBJECT;
     } else if (typeMirror instanceof DeclaredType) {
       DeclaredType type = (DeclaredType) typeMirror;
       Element element = type.asElement();

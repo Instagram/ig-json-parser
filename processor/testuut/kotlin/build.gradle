@@ -13,6 +13,7 @@ dependencies {
     compile project(':common')
     compile project(':common')
     compile project(':processor')
+    compile project(':processor:testuut:parent')
     kapt project(':processor')
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

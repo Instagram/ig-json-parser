@@ -31,4 +31,5 @@ dependencies {
     testCompile project(':processor:testuut:kotlin')
     testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     testCompile "com.google.testing.compile:compile-testing:0.18"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
