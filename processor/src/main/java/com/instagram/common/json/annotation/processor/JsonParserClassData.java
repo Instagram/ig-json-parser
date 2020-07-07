@@ -593,7 +593,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
   private String getJavaType(Messager messager, TypeData type) {
     if (type.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
-      return type.getParsableType();
+      StringBuilder sb = new StringBuilder();
+      sb.append(type.getParsableType());
+      if (type.isWildcard() && mIsKotlin) {
+        sb.append("<?>");
+      }
+      return sb.toString();
     }
 
     if (type.getParseType() == TypeUtils.ParseType.ENUM_OBJECT) {

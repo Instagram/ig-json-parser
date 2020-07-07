@@ -71,6 +71,8 @@ class TypeData {
 
   private boolean mIsInterface;
 
+  private boolean mIsWildcard;
+
   /** The parse type of the json adapter. */
   private TypeUtils.ParseType mJsonAdapterParseType;
 
@@ -231,15 +233,19 @@ class TypeData {
     return mIsInterface;
   }
 
-  public void setInterface(boolean isInterface) {
-    mIsInterface = isInterface;
-  }
-
   void setFormatterImports(String[] formatterImports) {
     mFormatterImports = Arrays.asList(formatterImports);
   }
 
   List<String> getFormatterImports() {
     return mFormatterImports == null ? Collections.<String>emptyList() : mFormatterImports;
+  }
+
+  public boolean isWildcard() {
+    return mIsWildcard;
+  }
+
+  public void setIsWildcard(boolean wildcard) {
+    mIsWildcard = wildcard;
   }
 }
