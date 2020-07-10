@@ -3,7 +3,7 @@
 
 [![Build Status](https://travis-ci.org/Instagram/ig-json-parser.svg?branch=master)](https://travis-ci.org/Instagram/ig-json-parser) [![Release](https://jitpack.io/v/Instagram/ig-json-parser.svg)](https://jitpack.io/#Instagram/ig-json-parser)
 
-Fast JSON parser for java projects. 
+Fast JSON parser for java projects.
 
 
 ## Getting started
@@ -26,7 +26,7 @@ allprojects {
 
 dependencies {
   implementation 'com.github.instagram.ig-json-parser:runtime:master-SNAPSHOT' // the runtime
-  implementation 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT' // the annotation processor 
+  implementation 'com.github.instagram.ig-json-parser:processor:master-SNAPSHOT' // the annotation processor
 }
 ```
 
@@ -67,7 +67,7 @@ dependencies {
 ```
 
 
-If you are using other build sytems, please find instructions [here](https://jitpack.io/#Instagram/ig-json-parser)
+If you are using other build systems, please find instructions [here](https://jitpack.io/#Instagram/ig-json-parser)
 
 ## Requirements for model classes
 
@@ -119,10 +119,14 @@ The following scalar types are supported:
 * float/Float
 * double/Double
 
+The following collection types are supported:
+* List/ArrayList
+* Queue/ArrayDeque
+* Map/HashMap
+* Set/HashSet
+
 If a json field is another dictionary, it can be represented by another
 model class.  That model class must also have the `@JsonType` annotation.
-
-Lists of objects are supported either as Java Lists or Queues.
 
 # Proguard
 
@@ -136,15 +140,49 @@ Add the following lines to your proguard-rules file:
 
 ## Postprocessing
 
-TODO: Document this.  See the documentation in
-common/src/main/java/com/instagram/common/json/annotation/JsonType.java in
-the meanwhile.
+If you need to process your JSON after a first pass, you can change your `@JsonType` annotation to be `@JsonType(postprocess = true)` and add a method to your code and add a method `YourClass postprocess()` which will be called after the JSON is processed (see: `QuestionableDesignChoice` in the example below)
+
+```java
+  @JsonType
+  public class Example {
+    @JsonField(fieldName = "container")
+    Container mContainer;
+
+    @JsonType
+    public static class Container {
+        @JsonField(fieldName = "questionable_design_choice")
+        List<QuestionableDesignChoice> mQuestionableDesignChoice;
+    }
+
+    @JsonType(postprocessingEnabled = true)
+    public static class QuestionableDesignChoice {
+        @JsonField(fieldName = "property")
+        String mProperty;
+
+        QuestionableDesignChoice postprocess() {
+          // post-process things here...
+          return this;
+        }
+    }
+}
+```
 
 ## Customized parsing code
 
-TODO: Document this.  See the documentation in
-common/src/main/java/com/instagram/common/json/annotation/JsonField.java
-in the meanwhile.
+Parsing the supported data types is straightforward. For enums or built-in Java classes, you will need to add customized parsing.
+
+**Value extract formatters** override how we extract the value from the `JsonParser` object, while **serialize code formatters** override how we serialize a java field back to json. We use the serde for PointF in the example below, where a point is represented as an array in json.
+```java
+  @JsonField(
+      fieldName = "position",
+      valueExtractFormatter =
+          "com.instagram.common.json.android.JsonTypeHelper.deserializePointF(${parser_object})",
+      serializeCodeFormatter =
+          "com.instagram.common.json.android.JsonTypeHelper.serializePointF("
+              + "${generator_object}, \"${json_fieldname}\", ${object_varname}.${field_varname})")
+  @Nullable
+  protected PointF mPosition;
+```
 
 ## Optional serializer generation
 
@@ -156,9 +194,9 @@ globally and per-class. The default is to generate serializers for all classes. 
 to the command-line arguments of javac. To override the default generation option for a single class, see
 `JsonType.generateSerializer()`.
 
-## Contributing
+# Contributing
 
 See the [CONTRIBUTING](.github/CONTRIBUTING.md) file for how to help out.
 
-## License
+# License
 ig-json-parser is MIT licensed, as found in the [LICENSE](LICENSE) file.
