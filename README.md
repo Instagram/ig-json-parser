@@ -200,3 +200,7 @@ See the [CONTRIBUTING](.github/CONTRIBUTING.md) file for how to help out.
 
 # License
 ig-json-parser is MIT licensed, as found in the [LICENSE](LICENSE) file.
+
+# Privacy Policy and Terms of Use
+- [Privacy Policy](https://opensource.facebook.com/legal/privacy)
+- [Terms of Use](https://opensource.facebook.com/legal/terms)
