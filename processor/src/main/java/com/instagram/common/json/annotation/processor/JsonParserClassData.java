@@ -595,7 +595,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     if (type.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
       StringBuilder sb = new StringBuilder();
       sb.append(type.getParsableType());
-      if (type.isWildcard() && mIsKotlin) {
+      if (type.isWildcard() && type.isInterface() && mIsKotlin) {
         sb.append("<?>");
       }
       return sb.toString();
