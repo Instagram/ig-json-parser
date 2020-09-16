@@ -199,7 +199,7 @@ to the command-line arguments of javac. To override the default generation optio
 See the [CONTRIBUTING](.github/CONTRIBUTING.md) file for how to help out. Contributions are always welcome!
 
 # License
-ig-json-parser is MIT licensed, as found in the [LICENSE](LICENSE) file.
+ig-json-parser is MIT licensed, as found below or in the [LICENSE](LICENSE) file.
 
 ```Groovy
 MIT License
