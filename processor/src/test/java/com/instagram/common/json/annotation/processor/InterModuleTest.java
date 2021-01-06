@@ -96,36 +96,61 @@ public class InterModuleTest {
   @Test
   public void enumListAndMapWrappers_serialize_parse() throws IOException {
     WrapperEnumUUT uut = new WrapperEnumUUT();
-    List<MyEnumHolder> list = new ArrayList<>();
-    MyEnumHolder enumHolder1 = new MyEnumHolder(MyEnum.FOO);
-    MyEnumHolder enumHolder2 = new MyEnumHolder(MyEnum.BAR);
 
-    list.add(enumHolder1);
-    list.add(enumHolder2);
+    List<MyEnum> list = new ArrayList<>();
+
+    list.add(MyEnum.FOO);
+    list.add(MyEnum.BAR);
     uut.mMyEnumList = list;
-    HashMap<String, MyEnumHolder> map = new HashMap<>();
-    map.put("key1", enumHolder1);
-    map.put("key2", enumHolder2);
+    HashMap<String, MyEnum> map = new HashMap<>();
+    map.put("key1", MyEnum.FOO);
+    map.put("key2", MyEnum.BAR);
     uut.mMyEnumMap = map;
 
     String serialized = WrapperEnumUUT__JsonHelper.serializeToJson(uut);
     WrapperEnumUUT parsed = WrapperEnumUUT__JsonHelper.parseFromJson(serialized);
 
-    assertEquals(uut.mMyEnumList.size(), parsed.mMyEnumList.size());
-    assertEquals(
-        uut.mMyEnumList.get(0).getMyEnum().getServerValue(),
-        parsed.mMyEnumList.get(0).getMyEnum().getServerValue());
-    assertEquals(
-        uut.mMyEnumList.get(1).getMyEnum().getServerValue(),
-        parsed.mMyEnumList.get(1).getMyEnum().getServerValue());
+    assertEquals(parsed.mMyEnumList.size(), 2);
+    assertEquals(parsed.mMyEnumList.get(0).getServerValue(), MyEnum.FOO.getServerValue());
+    assertEquals(parsed.mMyEnumList.get(1).getServerValue(), MyEnum.BAR.getServerValue());
 
-    assertEquals(uut.mMyEnumMap.size(), 2);
+    assertEquals(parsed.mMyEnumMap.size(), 2);
+    assertEquals(parsed.mMyEnumMap.get("key1").getServerValue(), MyEnum.FOO.getServerValue());
+    assertEquals(parsed.mMyEnumMap.get("key2").getServerValue(), MyEnum.BAR.getServerValue());
+  }
+
+  /** Includes enum collections in a different class. */
+  @Test
+  public void enumHolderListAndMapWrappers_serialize_parse() throws IOException {
+    WrapperEnumUUT uut = new WrapperEnumUUT();
+    List<MyEnumHolder> holderList = new ArrayList<>();
+    MyEnumHolder enumHolder1 = new MyEnumHolder(MyEnum.FOO);
+    MyEnumHolder enumHolder2 = new MyEnumHolder(MyEnum.BAR);
+
+    holderList.add(enumHolder1);
+    holderList.add(enumHolder2);
+    uut.mMyEnumHolderList = holderList;
+    HashMap<String, MyEnumHolder> holderMap = new HashMap<>();
+    holderMap.put("key1", enumHolder1);
+    holderMap.put("key2", enumHolder2);
+    uut.mMyEnumHolderMap = holderMap;
+
+    String serialized = WrapperEnumUUT__JsonHelper.serializeToJson(uut);
+    WrapperEnumUUT parsed = WrapperEnumUUT__JsonHelper.parseFromJson(serialized);
+
+    assertEquals(parsed.mMyEnumHolderList.size(), 2);
     assertEquals(
-        uut.mMyEnumMap.get("key1").getMyEnum().getServerValue(),
-        parsed.mMyEnumMap.get("key1").getMyEnum().getServerValue());
+        parsed.mMyEnumHolderList.get(0).getMyEnum().getServerValue(), MyEnum.FOO.getServerValue());
     assertEquals(
-        uut.mMyEnumMap.get("key2").getMyEnum().getServerValue(),
-        parsed.mMyEnumMap.get("key2").getMyEnum().getServerValue());
+        parsed.mMyEnumHolderList.get(1).getMyEnum().getServerValue(), MyEnum.BAR.getServerValue());
+
+    assertEquals(parsed.mMyEnumHolderMap.size(), 2);
+    assertEquals(
+        parsed.mMyEnumHolderMap.get("key1").getMyEnum().getServerValue(),
+        MyEnum.FOO.getServerValue());
+    assertEquals(
+        parsed.mMyEnumHolderMap.get("key2").getMyEnum().getServerValue(),
+        MyEnum.BAR.getServerValue());
   }
 
   /** Includes a collection of generics */

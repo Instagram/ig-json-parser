@@ -635,6 +635,16 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
         if (!TypeUtils.isMapType(valueTypeData.getCollectionType())) {
 
+          if (valueTypeData.getJsonAdapterToJsonMethod() != null) {
+            String collectionWriteMethod =
+                getCollectionWriteMethodName(valueTypeData.getJsonAdapterParseType());
+            serializeCode =
+                FIELD_CODE_SERIALIZATION.forString(
+                    "${generator_object}."
+                        + collectionWriteMethod
+                        + "(${adapter_method_name}(${iterator}))");
+          }
+
           CodeFormatter defaultFormat =
               valueTypeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT
                   ? PARSABLE_OBJECT_COLLECTION_SERIALIZE_CALL
@@ -670,6 +680,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                           valueTypeData.getParsableTypeParserClass()
                               + JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
                       .addParam("subobject", "element")
+                      .addParam("adapter_method_name", valueTypeData.getJsonAdapterToJsonMethod())
                       .format())
               .endControlFlow()
               .endControlFlow()
@@ -689,6 +700,16 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                   : mCollectionSerializeCalls.get(valueTypeData.getJsonAdapterOrParseType());
           CodeFormatter valueSerializeCode =
               valueTypeData.getSerializeCodeFormatter().orIfEmpty(defaultFormat);
+
+          if (valueTypeData.getJsonAdapterToJsonMethod() != null) {
+            String collectionWriteMethod =
+                getCollectionWriteMethodName(valueTypeData.getJsonAdapterParseType());
+            valueSerializeCode =
+                FIELD_CODE_SERIALIZATION.forString(
+                    "${generator_object}."
+                        + collectionWriteMethod
+                        + "(${adapter_method_name}(${iterator}))");
+          }
 
           writer
               .beginControlFlow("if (object." + member + " != null)")
@@ -791,7 +812,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     StrFormat strFormat =
         StrFormat.createStringFormatter(valueSerializeCode)
             .addParam("generator_object", "generator")
-            .addParam("iterator", "entry.getValue()");
+            .addParam("iterator", "entry.getValue()")
+            .addParam("adapter_method_name", valueTypeData.getJsonAdapterToJsonMethod());
 
     if (valueTypeData.hasParserHelperClass()) {
       strFormat.addParam(
