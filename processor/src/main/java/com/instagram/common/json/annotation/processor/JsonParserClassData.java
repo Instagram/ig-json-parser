@@ -496,7 +496,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   /** This writes the code to properly parse an array. */
   private void generateArrayParser(
       Messager messager, JavaWriter writer, TypeData data, String member) throws IOException {
-    String innerType = getJavaType(messager, data);
+    String innerType = getJavaType(data);
     String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
     String concreteType = mapCollectionTypeToConcreteType(data.getCollectionType());
 
@@ -519,8 +519,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     TypeData keyTypeData = new TypeData();
     keyTypeData.setParseType(TypeUtils.ParseType.STRING);
 
-    String keyType = getJavaType(messager, keyTypeData);
-    String valueType = getJavaType(messager, valueTypeData);
+    String keyType = getJavaType(keyTypeData);
+    String valueType = getJavaType(valueTypeData);
 
     String interfaceType = mapCollectionTypeToInterfaceType(valueTypeData.getCollectionType());
     String concreteType = mapCollectionTypeToConcreteType(valueTypeData.getCollectionType());
@@ -591,7 +591,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     return rValue;
   }
 
-  private String getJavaType(Messager messager, TypeData type) {
+  private String getJavaType(TypeData type) {
     if (type.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
       StringBuilder sb = new StringBuilder();
       sb.append(type.getParsableType());
@@ -654,7 +654,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           // needed to do a typecast for erased types
           String interfaceType =
               mapCollectionTypeToInterfaceType(valueTypeData.getCollectionType());
-          String listType = getJavaType(messager, entry.getValue());
+          String listType = getJavaType(entry.getValue());
           writer
               .beginControlFlow("if (object." + member + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", valueTypeData.getFieldName())
@@ -691,8 +691,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           TypeData keyTypeData = new TypeData();
           keyTypeData.setParseType(TypeUtils.ParseType.STRING);
 
-          String keyType = getJavaType(messager, keyTypeData);
-          String valueType = getJavaType(messager, valueTypeData);
+          String keyType = getJavaType(keyTypeData);
+          String valueType = getJavaType(valueTypeData);
 
           CodeFormatter defaultFormat =
               valueTypeData.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT
