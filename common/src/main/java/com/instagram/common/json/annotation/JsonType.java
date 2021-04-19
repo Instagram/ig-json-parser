@@ -32,6 +32,55 @@ public @interface JsonType {
   }
 
   /**
+   * Strict mode is currently "in development" so the following will be subject to change.
+   *
+   * <p>Strict mode is not supported when subclassing a class annotated with JsonType.
+   *
+   * <p>This annotation specifies the model should be rendered with strict parsing enabled. Strict
+   * mode is a Kotlin first mode which leverages the advantages of Kotlin data classes. Here is an
+   * example Kotlin data class annotated in strict mode: <code>
+   * @JsonType(strict = true)
+   * data class KotlinImmutableObject(
+   * @JsonField(fieldName = "data1") val data1: String,
+   * @JsonField(fieldName = "data2") val data2: Int
+   * ) {
+   * @JsonField(fieldName = "data3") var data3: String? = null
+   * }
+   * </code>
+   *
+   * <p>If you would like to annotate a java class, you can use strict mode, but there are naming
+   * requirements for construct params and getter functions on the java class in order for this to
+   * work: <code>
+   * @JsonType(strict = true)
+   * public class ImmutableObject {
+   * private final String mData1;
+   * private final Integer mData2;
+   *
+   * @JsonField(fieldName = "data3")
+   * Integer mData3;
+   *
+   * public ImmutableObject(
+   * @JsonField(fieldName = "data1") String data1, @JsonField(fieldName = "data2") Integer data2) {
+   * mData1 = data1;
+   * mData2 = data2;
+   * }
+   *
+   * public String getData1() {
+   * return mData1;
+   * }
+   *
+   * public Integer getData2() {
+   * return mData2;
+   * }
+   * }
+   * </code>
+   *
+   * <p>Note that the params data1 and data2 have getters with the name getData1 and getData2. These
+   * methods are not required when generateSerializer = TriState.NO
+   */
+  boolean strict() default false;
+
+  /**
    * This annotation specifies that a method with the name specified by {@link
    * #POSTPROCESSING_METHOD_NAME} (currently "postprocess") on the class that is being generated
    * that should be called once parsing is finished.

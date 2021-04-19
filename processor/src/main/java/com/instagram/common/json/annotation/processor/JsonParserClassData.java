@@ -9,6 +9,7 @@ package com.instagram.common.json.annotation.processor;
 
 import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_ASSIGNMENT;
 import static com.instagram.common.json.annotation.processor.CodeFormatter.FIELD_CODE_SERIALIZATION;
+import static com.instagram.common.json.annotation.processor.CodeFormatter.LOCAL_ASSIGNMENT;
 import static com.instagram.common.json.annotation.processor.CodeFormatter.VALUE_EXTRACT;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PROTECTED;
@@ -37,6 +38,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -55,6 +57,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
   private static final CodeFormatter DEFAULT_ASSIGNMENT_FORMATTER_KOTLIN =
       FIELD_ASSIGNMENT.forString("${object_varname}.${field_varname_setter}(${extracted_value})");
+  private static final CodeFormatter LOCAL_ASSIGNMENT_FORMATTER =
+      LOCAL_ASSIGNMENT.forString("${local_varname} = ${extracted_value}");
 
   private static final Map<TypeUtils.ParseType, CodeFormatter> sExactFormatters = new HashMap<>();
   private static final Map<TypeUtils.ParseType, CodeFormatter> sCoercedFormatters = new HashMap<>();
@@ -142,6 +146,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     sJavaTypes.put(TypeUtils.ParseType.FLOAT_OBJECT, "Float");
     sJavaTypes.put(TypeUtils.ParseType.DOUBLE_OBJECT, "Double");
     sJavaTypes.put(TypeUtils.ParseType.STRING, "String");
+
+    // We deserialize primitives to objects in strict mode
+    sJavaTypes.put(TypeUtils.ParseType.BOOLEAN, "Boolean");
+    sJavaTypes.put(TypeUtils.ParseType.INTEGER, "Integer");
+    sJavaTypes.put(TypeUtils.ParseType.LONG, "Long");
+    sJavaTypes.put(TypeUtils.ParseType.FLOAT, "Float");
+    sJavaTypes.put(TypeUtils.ParseType.DOUBLE, "Double");
   }
 
   /** used to write a single instance of a parsable object. */
@@ -193,6 +204,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   private final String mParentInjectedClassName;
   private final JsonType mAnnotation;
   private final boolean mIsKotlin;
+  private final boolean mIsStrict;
 
   public JsonParserClassData(
       String classPackage,
@@ -205,7 +217,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       boolean omitSomeMethodBodies,
       String parentInjectedClassName,
       JsonType annotation,
-      boolean isKotlin) {
+      boolean isKotlin,
+      boolean isStrict) {
     super(classPackage, qualifiedClassName, simpleClassName, injectedClassName, factory);
     mAbstractClass = abstractClass;
     mGenerateSerializer = generateSerializer;
@@ -213,6 +226,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     mParentInjectedClassName = parentInjectedClassName;
     mAnnotation = annotation;
     mIsKotlin = isKotlin;
+    mIsStrict = isStrict;
   }
 
   public boolean generateSerializer() {
@@ -279,64 +293,128 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               ? ("instance." + JsonType.POSTPROCESSING_METHOD_NAME + "()")
               : "instance";
 
-      if (!mAbstractClass) {
+      if (mIsStrict) {
+        if (!mAbstractClass) {
+          final String simpleClassName = mSimpleClassName;
+          writer
+              .beginMethod(
+                  mSimpleClassName,
+                  "parseFromJson",
+                  EnumSet.of(getParseMethodVisibility(), STATIC),
+                  Arrays.asList("JsonParser", "jp"),
+                  Collections.singletonList("IOException"))
+              .emitSingleLineComment("validate that we're on the right token")
+              .beginControlFlow("if (jp.getCurrentToken() != JsonToken.START_OBJECT)")
+              .emitStatement("jp.skipChildren()")
+              .emitStatement("return null")
+              .endControlFlow()
+              .emitWithGenerator(
+                  new JavaWriter.JavaGenerator() {
+                    @Override
+                    public void emitJava(JavaWriter writer) throws IOException {
+                      JsonParserClassData.this.writeDeclareFields(messager, writer);
+                    }
+                  })
+              .emitEmptyLine()
+              .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
+              .emitStatement("String fieldName = jp.getCurrentName()")
+              .emitStatement("jp.nextToken()")
+              .emitWithGenerator(
+                  new JavaWriter.JavaGenerator() {
+                    @Override
+                    public void emitJava(JavaWriter writer) throws IOException {
+                      JsonParserClassData.this.writeProcessFields(messager, writer);
+                    }
+                  })
+              // always skip children.  if we expected an array or an object, we would have
+              // consumed the START_ARRAY or START_OBJECT.  therefore, we would only skip
+              // forward if we're seeing something unexpected.
+              .emitStatement("jp.skipChildren()")
+              .endControlFlow()
+              .emitEmptyLine()
+              .emitWithGenerator(
+                  new JavaWriter.JavaGenerator() {
+                    @Override
+                    public void emitJava(JavaWriter writer) throws IOException {
+                      JsonParserClassData.this.writeCreateInstance(
+                          simpleClassName, messager, writer);
+                    }
+                  })
+              .emitEmptyLine()
+              .emitWithGenerator(
+                  new JavaWriter.JavaGenerator() {
+                    @Override
+                    public void emitJava(JavaWriter writer) throws IOException {
+                      JsonParserClassData.this.writeFieldAssignments(
+                          simpleClassName, messager, writer);
+                    }
+                  })
+              .emitEmptyLine()
+              .emitStatement("return %s", returnValue)
+              .endMethod()
+              .emitEmptyLine();
+        }
+
+      } else {
+        if (!mAbstractClass) {
+          writer
+              .beginMethod(
+                  mSimpleClassName,
+                  "parseFromJson",
+                  EnumSet.of(getParseMethodVisibility(), STATIC),
+                  Arrays.asList("JsonParser", "jp"),
+                  Collections.singletonList("IOException"))
+              .emitStatement("%s instance = new %s()", mSimpleClassName, mSimpleClassName)
+              .emitEmptyLine()
+              .emitSingleLineComment("validate that we're on the right token")
+              .beginControlFlow("if (jp.getCurrentToken() != JsonToken.START_OBJECT)")
+              .emitStatement("jp.skipChildren()")
+              .emitStatement("return null")
+              .endControlFlow()
+              .emitEmptyLine()
+              .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
+              .emitStatement("String fieldName = jp.getCurrentName()")
+              .emitStatement("jp.nextToken()")
+              .emitStatement("processSingleField(instance, fieldName, jp)")
+              // always skip children.  if we expected an array or an object, we would have
+              // consumed the START_ARRAY or START_OBJECT.  therefore, we would only skip
+              // forward if we're seeing something unexpected.
+              .emitStatement("jp.skipChildren()")
+              .endControlFlow()
+              .emitEmptyLine()
+              .emitStatement("return %s", returnValue)
+              .endMethod()
+              .emitEmptyLine();
+        }
+
         writer
             .beginMethod(
-                mSimpleClassName,
-                "parseFromJson",
+                "boolean",
+                "processSingleField",
                 EnumSet.of(getParseMethodVisibility(), STATIC),
-                Arrays.asList("JsonParser", "jp"),
-                Collections.singletonList("IOException"))
-            .emitStatement("%s instance = new %s()", mSimpleClassName, mSimpleClassName)
-            .emitEmptyLine()
-            .emitSingleLineComment("validate that we're on the right token")
-            .beginControlFlow("if (jp.getCurrentToken() != JsonToken.START_OBJECT)")
-            .emitStatement("jp.skipChildren()")
-            .emitStatement("return null")
-            .endControlFlow()
-            .emitEmptyLine()
-            .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
-            .emitStatement("String fieldName = jp.getCurrentName()")
-            .emitStatement("jp.nextToken()")
-            .emitStatement("processSingleField(instance, fieldName, jp)")
-            // always skip children.  if we expected an array or an object, we would have
-            // consumed the START_ARRAY or START_OBJECT.  therefore, we would only skip
-            // forward if we're seeing something unexpected.
-            .emitStatement("jp.skipChildren()")
-            .endControlFlow()
-            .emitEmptyLine()
-            .emitStatement("return %s", returnValue)
+                Arrays.asList(
+                    mSimpleClassName, "instance", "String", "fieldName", "JsonParser", "jp"),
+                Arrays.asList("IOException"))
+            .emitWithGenerator(
+                new JavaWriter.JavaGenerator() {
+                  @Override
+                  public void emitJava(JavaWriter writer) throws IOException {
+                    JsonParserClassData.this.writeFields(messager, writer);
+
+                    // if we reached here, we need to call the superclasses processSingleField
+                    // method.
+                    if (mParentInjectedClassName != null) {
+                      writer.emitStatement(
+                          "return %s.processSingleField(instance, fieldName, jp)",
+                          mParentInjectedClassName);
+                    } else {
+                      writer.emitStatement("return false");
+                    }
+                  }
+                })
             .endMethod()
             .emitEmptyLine();
       }
-
-      writer
-          .beginMethod(
-              "boolean",
-              "processSingleField",
-              EnumSet.of(getParseMethodVisibility(), STATIC),
-              Arrays.asList(
-                  mSimpleClassName, "instance", "String", "fieldName", "JsonParser", "jp"),
-              Arrays.asList("IOException"))
-          .emitWithGenerator(
-              new JavaWriter.JavaGenerator() {
-                @Override
-                public void emitJava(JavaWriter writer) throws IOException {
-                  JsonParserClassData.this.writeFields(messager, writer);
-
-                  // if we reached here, we need to call the superclasses processSingleField
-                  // method.
-                  if (mParentInjectedClassName != null) {
-                    writer.emitStatement(
-                        "return %s.processSingleField(instance, fieldName, jp)",
-                        mParentInjectedClassName);
-                  } else {
-                    writer.emitStatement("return false");
-                  }
-                }
-              })
-          .endMethod()
-          .emitEmptyLine();
 
       if (!mAbstractClass) {
         writer
@@ -425,15 +503,90 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
    * <p>NOTE: This could be optimized further by building a radix trie, and building out the if-else
    * block from traversing the radix trie.
    */
-  private void writeFields(Messager messager, JavaWriter writer) throws IOException {
+  private void writeDeclareFields(Messager messager, JavaWriter writer) throws IOException {
+    if (mOmitSomeMethodBodies) {
+      return;
+    }
+
+    for (Map.Entry<String, TypeData> entry : getIterator()) {
+      TypeData data = entry.getValue();
+      String typeExpression = null;
+      if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
+        if (TypeUtils.isMapType(data.getCollectionType())) {
+          TypeData keyTypeData = new TypeData();
+          keyTypeData.setParseType(TypeUtils.ParseType.STRING);
+          String keyType = getJavaType(keyTypeData);
+          String valueType = getJavaType(data);
+          String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
+          writer.emitStatement(
+              "%s<%s, %s> %s = null;", interfaceType, keyType, valueType, data.getFieldName());
+        } else {
+          String innerType = getJavaType(data);
+          String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
+          writer.emitStatement("%s<%s> %s = null;", interfaceType, innerType, data.getFieldName());
+        }
+      } else {
+        writer.emitStatement("%s %s = null;", getJavaType(data), data.getFieldName());
+      }
+    }
+  }
+
+  private void writeCreateInstance(String simpleClassName, Messager messager, JavaWriter writer)
+      throws IOException {
+    if (mOmitSomeMethodBodies) {
+      return;
+    }
+
+    StringBuilder args = new StringBuilder();
+    boolean hasFirst = false;
+    for (Map.Entry<String, TypeData> entry : getIterator()) {
+      TypeData data = entry.getValue();
+      if (data.getDeserializeType() == TypeData.DeserializeType.PARAM) {
+        if (hasFirst) {
+          args.append(",");
+        }
+        args.append(data.getFieldName());
+        hasFirst = true;
+      }
+    }
+
+    writer.emitStatement(
+        "%s instance = new %s(%s)", simpleClassName, simpleClassName, args.toString());
+  }
+
+  private void writeFieldAssignments(String simpleClassName, Messager messager, JavaWriter writer)
+      throws IOException {
+    if (mOmitSomeMethodBodies) {
+      return;
+    }
+
+    List<String> args = new ArrayList<>();
+    for (Map.Entry<String, TypeData> entry : getIterator()) {
+      TypeData data = entry.getValue();
+      if (data.getDeserializeType() == TypeData.DeserializeType.FIELD) {
+        args.add(data.getFieldName());
+        writer.emitStatement("instance.%s = %s", data.getMemberVariableName(), data.getFieldName());
+      } else if (data.getDeserializeType() == TypeData.DeserializeType.SETTER) {
+        writer.emitStatement("instance.%s(%s)", data.getSetterName(), data.getFieldName());
+      }
+    }
+  }
+
+  /**
+   * This writes the if-else block for the fields in this class.
+   *
+   * <p>NOTE: This could be optimized further by building a radix trie, and building out the if-else
+   * block from traversing the radix trie.
+   */
+  private void writeProcessFields(Messager messager, JavaWriter writer) throws IOException {
     if (mOmitSomeMethodBodies) {
       return;
     }
 
     boolean firstEntry = true;
     for (Map.Entry<String, TypeData> entry : getIterator()) {
-      String member = entry.getKey();
       TypeData data = entry.getValue();
+      String member = data.getMemberVariableName();
 
       String condition = "\"" + data.getFieldName() + "\".equals(fieldName)";
 
@@ -450,14 +603,70 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
         generateCollectionParser(messager, writer, data, member);
         CodeFormatter assignmentFormatter =
+            data.getAssignmentFormatter().orIfEmpty(LOCAL_ASSIGNMENT_FORMATTER);
+        writer.emitStatement(
+            StrFormat.createStringFormatter(assignmentFormatter)
+                .addParam("local_varname", data.getFieldName())
+                .addParam("extracted_value", "results")
+                .format());
+      } else {
+        CodeFormatter assignmentFormatter =
+            data.getAssignmentFormatter().orIfEmpty(LOCAL_ASSIGNMENT_FORMATTER);
+        writer.emitStatement(
+            StrFormat.createStringFormatter(assignmentFormatter)
+                .addParam("local_varname", data.getFieldName())
+                .addParam("extracted_value", generateExtractRvalue(data, messager, member))
+                .format());
+      }
+
+      firstEntry = false;
+    }
+
+    if (!firstEntry) {
+      writer.endControlFlow();
+    }
+  }
+
+  /**
+   * This writes the if-else block for the fields in this class.
+   *
+   * <p>NOTE: This could be optimized further by building a radix trie, and building out the if-else
+   * block from traversing the radix trie.
+   */
+  private void writeFields(Messager messager, JavaWriter writer) throws IOException {
+    if (mOmitSomeMethodBodies) {
+      return;
+    }
+
+    boolean firstEntry = true;
+    for (Map.Entry<String, TypeData> entry : getIterator()) {
+      TypeData data = entry.getValue();
+      String memberVariable = data.getMemberVariableName();
+      String setterName = data.getSetterName();
+
+      String condition = "\"" + data.getFieldName() + "\".equals(fieldName)";
+
+      for (String alternateFieldName : data.getAlternateFieldNames()) {
+        condition += "|| \"" + alternateFieldName + "\".equals(fieldName)";
+      }
+
+      if (firstEntry) {
+        writer.beginControlFlow("if (" + condition + ")");
+      } else {
+        writer.nextControlFlow("else if (" + condition + ")");
+      }
+
+      if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
+        generateCollectionParser(messager, writer, data, memberVariable);
+        CodeFormatter assignmentFormatter =
             data.getAssignmentFormatter()
                 .orIfEmpty(
                     mIsKotlin ? DEFAULT_ASSIGNMENT_FORMATTER_KOTLIN : DEFAULT_ASSIGNMENT_FORMATTER);
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
-                .addParam("field_varname", member)
-                .addParam("field_varname_setter", getSetterName(member))
+                .addParam("field_varname", memberVariable)
+                .addParam("field_varname_setter", setterName)
                 .addParam("extracted_value", "results")
                 .format());
       } else {
@@ -468,9 +677,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
                 .addParam("object_varname", "instance")
-                .addParam("field_varname", member)
-                .addParam("field_varname_setter", getSetterName(member))
-                .addParam("extracted_value", generateExtractRvalue(data, messager, member))
+                .addParam("field_varname", memberVariable)
+                .addParam("field_varname_setter", setterName)
+                .addParam("extracted_value", generateExtractRvalue(data, messager, memberVariable))
                 .format());
       }
 
@@ -558,10 +767,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         Console.error(
             messager,
             "Interface %s cannot be parsed without a valueExtractFormatter "
-                + "on either the interface's %s or field's %s annotation. (%s.%s)",
+                + "on either the interface's JsonType or field's JsonField annotation. (%s.%s)",
             data.getParsableType(),
-            JsonType.class.getSimpleName(),
-            JsonField.class.getSimpleName(),
             mSimpleClassName,
             member);
       }
@@ -613,6 +820,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     throw new IllegalStateException(
         "Could not divine java type for "
             + type.getFieldName()
+            + " of type "
+            + type.getJsonAdapterOrParseType().toString()
             + " in class "
             + mQualifiedClassName);
   }
@@ -624,11 +833,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     }
 
     for (Map.Entry<String, TypeData> entry : getIterator()) {
-      String member = entry.getKey();
-      if (mAnnotation.useGetters() || mIsKotlin) {
-        member = getGetterName(member);
-      }
       TypeData valueTypeData = entry.getValue();
+      String accessor = null;
+      if (valueTypeData.getSerializeType() == TypeData.SerializeType.GETTER) {
+        accessor = valueTypeData.getGetterName() + "()";
+      } else {
+        accessor = valueTypeData.getMemberVariableName();
+      }
       CodeFormatter serializeCode = valueTypeData.getSerializeCodeFormatter();
 
       if (valueTypeData.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
@@ -656,7 +867,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               mapCollectionTypeToInterfaceType(valueTypeData.getCollectionType());
           String listType = getJavaType(entry.getValue());
           writer
-              .beginControlFlow("if (object." + member + " != null)")
+              .beginControlFlow("if (object." + accessor + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", valueTypeData.getFieldName())
               .emitStatement("generator.writeStartArray()")
               .beginControlFlow(
@@ -668,7 +879,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       + listType
                       + ">)"
                       + "object."
-                      + member
+                      + accessor
                       + ")")
               .beginControlFlow("if (element != null)")
               .emitStatement(
@@ -712,7 +923,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           }
 
           writer
-              .beginControlFlow("if (object." + member + " != null)")
+              .beginControlFlow("if (object." + accessor + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", valueTypeData.getFieldName())
               .emitStatement("generator.writeStartObject()")
               .beginControlFlow(
@@ -722,7 +933,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
                       + valueType
                       + "> entry : "
                       + "object."
-                      + member
+                      + accessor
                       + ".entrySet())")
               .emitStatement("generator.writeFieldName(entry.getKey().toString())")
               .beginControlFlow("if (entry.getValue() == null)")
@@ -742,29 +953,27 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               Console.error(
                   messager,
                   "Interface %s cannot be serialized without a serializeCodeFormatter "
-                      + "on either the interface's %s or field's %s annotation. (%s.%s)",
+                      + "on either the interface's JsonType or field's JsonField annotation. (%s.%s)",
                   valueTypeData.getParsableType(),
-                  JsonType.class.getSimpleName(),
-                  JsonField.class.getSimpleName(),
                   mSimpleClassName,
-                  member);
+                  accessor);
             }
             serializeCode = PARSABLE_OBJECT_SERIALIZE_CALL;
           }
           writer
-              .beginControlFlow("if (object." + member + " != null)")
+              .beginControlFlow("if (object." + accessor + " != null)")
               .emitStatement("generator.writeFieldName(\"%s\")", valueTypeData.getFieldName())
               .emitStatement(
                   StrFormat.createStringFormatter(serializeCode)
                       .addParam("generator_object", "generator")
                       .addParam("object_varname", "object")
-                      .addParam("field_varname", member)
-                      .addParam("field_varname_setter", getSetterName(member))
+                      .addParam("field_varname", accessor)
+                      .addParam("field_varname_setter", valueTypeData.getSetterName())
                       .addParam(
                           "subobject_helper_class",
                           valueTypeData.getParsableTypeParserClass()
                               + JsonAnnotationProcessorConstants.HELPER_CLASS_SUFFIX)
-                      .addParam("subobject", "object." + member)
+                      .addParam("subobject", "object." + accessor)
                       .format())
               .endControlFlow();
         } else {
@@ -781,8 +990,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               StrFormat.createStringFormatter(serializeCode)
                   .addParam("generator_object", "generator")
                   .addParam("object_varname", "object")
-                  .addParam("field_varname", member)
-                  .addParam("field_varname_setter", getSetterName(member))
+                  .addParam("field_varname", accessor)
+                  .addParam("field_varname_setter", valueTypeData.getSetterName())
                   .addParam("json_fieldname", valueTypeData.getFieldName())
                   .addParam("adapter_method_name", valueTypeData.getJsonAdapterToJsonMethod())
                   .format();
@@ -798,7 +1007,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
 
             default:
               writer
-                  .beginControlFlow("if (object." + member + " != null)")
+                  .beginControlFlow("if (object." + accessor + " != null)")
                   .emitStatement(statement)
                   .endControlFlow();
           }
@@ -852,7 +1061,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
   }
 
   private static String capitalize(String str) {
-    return String.valueOf(str.charAt(0)).toUpperCase() + str.substring(1);
+    return String.valueOf(str.charAt(0)).toUpperCase(Locale.getDefault()) + str.substring(1);
   }
 
   private static String getScalarWriteMethodName(TypeUtils.ParseType parseType) {

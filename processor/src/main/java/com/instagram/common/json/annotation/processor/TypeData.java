@@ -21,8 +21,26 @@ import javax.annotation.Nullable;
  */
 class TypeData {
 
+  enum DeserializeType {
+    NONE,
+    FIELD,
+    PARAM,
+    SETTER,
+  }
+
+  enum SerializeType {
+    NONE,
+    FIELD,
+    GETTER,
+  }
+
   /** {@link JsonField#fieldName()} */
   private String mFieldName;
+
+  /** How to populate the data of a deserialized field. */
+  private DeserializeType mDeserializeType = DeserializeType.NONE;
+
+  private SerializeType mSerializeType = SerializeType.NONE;
 
   /** {@link JsonField#alternateFieldNames()} */
   private String[] mAlternateFieldNames;
@@ -82,12 +100,65 @@ class TypeData {
   /** The name of the method which converts to json from the adapter type. */
   private String mJsonAdapterToJsonMethod;
 
+  private String mMemberVariableName;
+  private Integer mConstructorArgIndex;
+  private String mSetterName;
+  private String mGetterName;
+
+  DeserializeType getDeserializeType() {
+    return mDeserializeType;
+  }
+
+  void setDeserializeType(DeserializeType deserializeType) {
+    this.mDeserializeType = deserializeType;
+  }
+
+  SerializeType getSerializeType() {
+    return mSerializeType;
+  }
+
+  void setSerializeType(SerializeType serializeType) {
+    this.mSerializeType = serializeType;
+  }
+
   String getFieldName() {
     return mFieldName;
   }
 
   void setFieldName(String fieldName) {
     this.mFieldName = fieldName;
+  }
+
+  String getMemberVariableName() {
+    return mMemberVariableName;
+  }
+
+  void setMemberVariableName(String memberVariableName) {
+    this.mMemberVariableName = memberVariableName;
+  }
+
+  String getSetterName() {
+    return mSetterName;
+  }
+
+  void setSetterName(String setterName) {
+    this.mSetterName = setterName;
+  }
+
+  String getGetterName() {
+    return mGetterName;
+  }
+
+  void setGetterName(String getterName) {
+    this.mGetterName = getterName;
+  }
+
+  Integer getConstructorArgIndex() {
+    return mConstructorArgIndex;
+  }
+
+  void setConstructorArgIndex(Integer constructorArgIndex) {
+    this.mConstructorArgIndex = constructorArgIndex;
   }
 
   public String[] getAlternateFieldNames() {

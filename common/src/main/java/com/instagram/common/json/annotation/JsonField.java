@@ -8,6 +8,7 @@
 package com.instagram.common.json.annotation;
 
 import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import java.lang.annotation.Retention;
@@ -18,7 +19,7 @@ import java.lang.annotation.Target;
  * processor which fields exist, and how they may to/from the json object.
  */
 @Retention(SOURCE)
-@Target(FIELD)
+@Target({PARAMETER, FIELD})
 public @interface JsonField {
   /**
    * This controls how we deal with type mismatches. If a {@link TypeMapping#EXACT} mapping is

@@ -13,6 +13,7 @@ import static com.instagram.common.json.annotation.processor.CodeFormatter.VALUE
 import static javax.lang.model.element.ElementKind.CLASS;
 import static javax.lang.model.element.ElementKind.INTERFACE;
 import static javax.lang.model.element.ElementKind.METHOD;
+import static javax.lang.model.element.ElementKind.PARAMETER;
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.PRIVATE;
 
@@ -32,6 +33,7 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -44,6 +46,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -169,6 +172,17 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     }
   }
 
+  private boolean isTypeElementKotlin(TypeElement typeElement) {
+    try {
+      Class<? extends Annotation> metaDataClass =
+          Class.forName("kotlin.Metadata").asSubclass(Annotation.class);
+      return typeElement.getAnnotation(metaDataClass) != null;
+    } catch (ClassNotFoundException e) {
+      // not kotlin
+    }
+    return false;
+  }
+
   /**
    * This processes a single class that is annotated with {@link JsonType}. It verifies that the
    * class is public and creates an {@link ProcessorClassData} for it.
@@ -183,21 +197,29 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       return;
     }
 
-    boolean isKotlin = false;
-    try {
-      Class<? extends Annotation> metaDataClass =
-          Class.forName("kotlin.Metadata").asSubclass(Annotation.class);
-      isKotlin = element.getAnnotation(metaDataClass) != null;
-    } catch (ClassNotFoundException e) {
-      // not kotlin
+    if (annotation.strict()) {
+      TypeMirror typeMirror = typeElement.getSuperclass();
+      while (typeMirror instanceof DeclaredType) {
+        TypeElement parentTypeElement = (TypeElement) ((DeclaredType) typeMirror).asElement();
+        if (parentTypeElement.getAnnotation(JsonType.class) != null) {
+          error(
+              element,
+              "@JsonType strict=true can not be applied to classes that subclass other JsonType classes. (%s,%s)",
+              typeElement.getQualifiedName(),
+              parentTypeElement.getQualifiedName());
+          return;
+        }
+        typeMirror = parentTypeElement.getSuperclass();
+      }
     }
+
+    boolean isKotlin = isTypeElementKotlin(typeElement);
 
     // Verify containing class visibility is not private.
     if (element.getModifiers().contains(PRIVATE)) {
       error(
           element,
-          "@%s %s may not be applied to private classes. (%s.%s)",
-          JsonType.class.getSimpleName(),
+          "@JsonType %s may not be applied to private classes. (%s.%s)",
           typeElement.getQualifiedName(),
           element.getSimpleName());
       return;
@@ -259,7 +281,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
               mOmitSomeMethodBodies,
               parentGeneratedClassName,
               annotation,
-              isKotlin);
+              isKotlin,
+              annotation.strict());
       mState.mClassElementToInjectorMap.put(typeElement, injector);
     }
   }
@@ -287,20 +310,57 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
    * and then gathers data on the declared type of the field.
    */
   private void processFieldAnnotation(Element element) {
-    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
 
     // Verify common generated code restrictions.
-    if (!isFieldAnnotationValid(JsonField.class, element)) {
+    if (!isFieldAnnotationValid(element)) {
       return;
     }
 
+    TypeElement classElement = null;
+
+    if (element.getKind() == PARAMETER) {
+      Element constructorElement = (Element) element.getEnclosingElement();
+      classElement = (TypeElement) constructorElement.getEnclosingElement();
+    } else {
+      classElement = (TypeElement) element.getEnclosingElement();
+    }
+    JsonType jsonTypeAnnotation = classElement.getAnnotation(JsonType.class);
+
+    boolean isStrict = jsonTypeAnnotation.strict();
+
+    boolean isKotlin = isTypeElementKotlin(classElement);
+
     TypeMirror type = element.asType();
 
-    JsonParserClassData injector = mState.mClassElementToInjectorMap.get(enclosingElement);
-
-    TypeData data = injector.getOrCreateRecord(element.getSimpleName().toString());
+    JsonParserClassData injector = mState.mClassElementToInjectorMap.get(classElement);
 
     JsonField annotation = element.getAnnotation(JsonField.class);
+
+    TypeData data = injector.getOrCreateRecord(annotation.fieldName().toString());
+
+    if (isStrict && element.getKind() == PARAMETER) {
+      data.setDeserializeType(TypeData.DeserializeType.PARAM);
+      data.setSerializeType(TypeData.SerializeType.GETTER);
+      String getterName = getGetterName(element.getSimpleName().toString(), isKotlin);
+      data.setGetterName(getterName);
+    } else if (isKotlin) {
+      data.setDeserializeType(TypeData.DeserializeType.SETTER);
+      String setterName = getSetterName(element.getSimpleName().toString(), isKotlin);
+      data.setSetterName(setterName);
+      data.setSerializeType(TypeData.SerializeType.GETTER);
+      String getterName = getGetterName(element.getSimpleName().toString(), isKotlin);
+      data.setGetterName(getterName);
+    } else {
+      data.setDeserializeType(TypeData.DeserializeType.FIELD);
+      data.setMemberVariableName(element.getSimpleName().toString());
+      if (jsonTypeAnnotation.useGetters()) {
+        data.setSerializeType(TypeData.SerializeType.GETTER);
+        String getterName = getGetterName(element.getSimpleName().toString(), isKotlin);
+        data.setGetterName(getterName);
+      } else {
+        data.setSerializeType(TypeData.SerializeType.FIELD);
+      }
+    }
 
     data.setFieldName(annotation.fieldName());
     data.setAlternateFieldNames(annotation.alternateFieldNames());
@@ -361,7 +421,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
             "%s: Annotate the enum with @%s (see annotation docs for details). "
                 + "If that is undesirable you must have a value extract formatter, "
                 + "and a serialize code formatter if serialization generation is enabled",
-            enclosingElement,
+            classElement,
             JsonAdapter.class.getSimpleName());
       }
       data.setEnumType(type.toString());
@@ -474,45 +534,113 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     return skipEnumValidationCheck;
   }
 
-  private boolean isFieldAnnotationValid(
-      Class<? extends Annotation> annotationClass, Element element) {
-    TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+  private boolean isFieldAnnotationValid(Element element) {
+    TypeElement classElement = null;
+    boolean maybeCheckGetter = false;
+    if (element.getKind() == PARAMETER) {
+      ExecutableElement constructorElement = (ExecutableElement) element.getEnclosingElement();
+
+      classElement = (TypeElement) constructorElement.getEnclosingElement();
+
+      Annotation jsonType = classElement.getAnnotation(JsonType.class);
+      if (jsonType != null && ((JsonType) jsonType).strict()) {
+        for (VariableElement variableElement : constructorElement.getParameters()) {
+          Annotation annotation = variableElement.getAnnotation(JsonField.class);
+          if (annotation == null) {
+            error(
+                constructorElement,
+                "There must be a JsonField annotation for every parameter in %s. The parameter %s does not have one.",
+                constructorElement.getSimpleName(),
+                variableElement.getSimpleName());
+            return false;
+          }
+        }
+      }
+
+      maybeCheckGetter = true;
+    } else {
+      classElement = (TypeElement) element.getEnclosingElement();
+    }
 
     // Verify containing type.
-    if (enclosingElement.getKind() != CLASS) {
+    if (classElement.getKind() != CLASS) {
       error(
-          enclosingElement,
-          "@%s field may only be contained in classes. (%s.%s)",
-          annotationClass.getSimpleName(),
-          enclosingElement.getQualifiedName(),
+          classElement,
+          "JsonField field may only be contained in classes. (%s.%s)",
+          classElement.getQualifiedName(),
           element.getSimpleName());
       return false;
     }
 
-    Annotation annotation = enclosingElement.getAnnotation(JsonType.class);
+    Annotation annotation = classElement.getAnnotation(JsonType.class);
+
     if (annotation == null) {
       error(
-          enclosingElement,
-          "@%s field may only be contained in classes annotated with @%s (%s.%s)",
-          annotationClass.getSimpleName(),
-          JsonType.class.toString(),
-          enclosingElement.getQualifiedName(),
+          classElement,
+          "JsonField field may only be contained in classes annotated with @JsonType (%s.%s)",
+          classElement.getQualifiedName(),
           element.getSimpleName());
       return false;
+    }
+
+    if (maybeCheckGetter && ((JsonType) annotation).generateSerializer() != JsonType.TriState.NO) {
+      boolean isKotlin = isTypeElementKotlin(classElement);
+      String getterName = getGetterName(element.getSimpleName().toString(), isKotlin);
+      boolean foundGetter = false;
+      for (Element enclosedElement : classElement.getEnclosedElements()) {
+        if (enclosedElement.getSimpleName().toString().equals(getterName)) {
+          foundGetter = true;
+        }
+      }
+      if (!foundGetter) {
+        error(
+            classElement,
+            "Found param (%s) annotated with JsonField but expected getter on class %s with name %s.",
+            element.getSimpleName(),
+            classElement.getQualifiedName(),
+            getterName);
+        return false;
+      }
     }
 
     // Verify containing class visibility is not private.
-    if (enclosingElement.getModifiers().contains(PRIVATE)) {
+    if (classElement.getModifiers().contains(PRIVATE)) {
       error(
-          enclosingElement,
-          "@%s %s may not be contained in private classes. (%s.%s)",
-          annotationClass.getSimpleName(),
-          enclosingElement.getQualifiedName(),
+          classElement,
+          "@JsonField %s may not be contained in private classes. (%s.%s)",
+          classElement.getQualifiedName(),
           element.getSimpleName());
       return false;
     }
 
     return true;
+  }
+
+  private String getGetterName(String fieldName, boolean isKotlin) {
+    if (isKotlinIsSpecialPrefixCase(fieldName, isKotlin)) {
+      return fieldName;
+    } else {
+      return "get" + capitalize(fieldName);
+    }
+  }
+
+  private String getSetterName(String fieldName, boolean isKotlin) {
+    if (isKotlinIsSpecialPrefixCase(fieldName, isKotlin)) {
+      return "set" + capitalize(fieldName.substring(2));
+    } else {
+      return "set" + capitalize(fieldName);
+    }
+  }
+
+  private boolean isKotlinIsSpecialPrefixCase(String fieldName, boolean isKotlin) {
+    return isKotlin
+        && fieldName.length() > 2
+        && fieldName.startsWith("is")
+        && Character.isUpperCase(fieldName.charAt(2));
+  }
+
+  private static String capitalize(String str) {
+    return String.valueOf(str.charAt(0)).toUpperCase(Locale.getDefault()) + str.substring(1);
   }
 
   private void error(String message, Object... args) {

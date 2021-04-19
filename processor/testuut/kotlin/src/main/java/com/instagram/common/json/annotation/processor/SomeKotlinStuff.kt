@@ -20,6 +20,6 @@ data class SomeKotlinStuff(
 
 @JsonType
 data class Nested(
-    @JsonField(fieldName = "foo") var foo: String? = null,
+    @JsonField(fieldName = "foo") var foo: Int? = null,
     @JsonField(fieldName = "bar") var bar: String? = null
 )

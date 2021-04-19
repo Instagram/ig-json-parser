@@ -18,6 +18,7 @@ public class CodeFormatter {
           "parser_object", "parser_object_getter", "subobject_class", "subobject_helper_class");
   public static final Factory FIELD_ASSIGNMENT =
       new Factory("object_varname", "field_varname", "field_varname_setter", "extracted_value");
+  public static final Factory LOCAL_ASSIGNMENT = new Factory("local_varname", "extracted_value");
   public static final Factory FIELD_CODE_SERIALIZATION =
       new Factory(
           "generator_object",
