@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.instagram.common.json.JsonAnnotationProcessorConstants;
+import com.instagram.common.json.JsonCallback;
 import com.instagram.common.json.JsonFactoryHolder;
 import com.instagram.common.json.JsonHelper;
 import com.instagram.common.json.annotation.JsonField;
@@ -257,6 +258,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           JsonToken.class,
           JsonFactoryHolder.class,
           JsonHelper.class);
+      if (mIsStrict) {
+        writer.emitImports(JsonCallback.class);
+      }
 
       Set<String> imports = new HashSet<String>();
       // Add any additional imports from this class's annotations.
@@ -331,6 +335,15 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               // forward if we're seeing something unexpected.
               .emitStatement("jp.skipChildren()")
               .endControlFlow()
+              .emitEmptyLine()
+              .emitWithGenerator(
+                  new JavaWriter.JavaGenerator() {
+                    @Override
+                    public void emitJava(JavaWriter writer) throws IOException {
+                      JsonParserClassData.this.writeValidateNonNullFields(
+                          simpleClassName, messager, writer);
+                    }
+                  })
               .emitEmptyLine()
               .emitWithGenerator(
                   new JavaWriter.JavaGenerator() {
@@ -531,6 +544,26 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     }
   }
 
+  private void writeValidateNonNullFields(
+      String simpleClassName, Messager messager, JavaWriter writer) throws IOException {
+    if (mOmitSomeMethodBodies) {
+      return;
+    }
+
+    writer.beginControlFlow("if (jp instanceof JsonCallback.Provider)");
+    writer.emitStatement("JsonCallback callback = ((JsonCallback.Provider)jp).getJsonCallback()");
+    for (Map.Entry<String, TypeData> entry : getIterator()) {
+      TypeData data = entry.getValue();
+      if (!data.isNullable() && data.getDeserializeType() == TypeData.DeserializeType.PARAM) {
+        writer.beginControlFlow("if (" + data.getFieldName() + " == null)");
+        writer.emitStatement(
+            "callback.onUnexpectedNull(\"%s\", \"%s\");", data.getFieldName(), simpleClassName);
+        writer.endControlFlow();
+      }
+    }
+    writer.endControlFlow();
+  }
+
   private void writeCreateInstance(String simpleClassName, Messager messager, JavaWriter writer)
       throws IOException {
     if (mOmitSomeMethodBodies) {
@@ -563,12 +596,15 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     List<String> args = new ArrayList<>();
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       TypeData data = entry.getValue();
+
+      writer.beginControlFlow("if (" + data.getFieldName() + " != null)");
       if (data.getDeserializeType() == TypeData.DeserializeType.FIELD) {
         args.add(data.getFieldName());
         writer.emitStatement("instance.%s = %s", data.getMemberVariableName(), data.getFieldName());
       } else if (data.getDeserializeType() == TypeData.DeserializeType.SETTER) {
         writer.emitStatement("instance.%s(%s)", data.getSetterName(), data.getFieldName());
       }
+      writer.endControlFlow();
     }
   }
 

@@ -105,6 +105,8 @@ class TypeData {
   private String mSetterName;
   private String mGetterName;
 
+  private boolean mIsNullable;
+
   DeserializeType getDeserializeType() {
     return mDeserializeType;
   }
@@ -318,5 +320,13 @@ class TypeData {
 
   public void setIsWildcard(boolean wildcard) {
     mIsWildcard = wildcard;
+  }
+
+  public boolean isNullable() {
+    return mIsNullable;
+  }
+
+  public void setIsNullable(boolean nullable) {
+    mIsNullable = nullable;
   }
 }

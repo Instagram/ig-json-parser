@@ -43,6 +43,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -338,6 +339,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     TypeData data = injector.getOrCreateRecord(annotation.fieldName().toString());
 
+    boolean isNullable = !isStrict || isFieldElementNullable(element);
+
     if (isStrict && element.getKind() == PARAMETER) {
       data.setDeserializeType(TypeData.DeserializeType.PARAM);
       data.setSerializeType(TypeData.SerializeType.GETTER);
@@ -363,6 +366,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     }
 
     data.setFieldName(annotation.fieldName());
+    data.setIsNullable(isNullable);
     data.setAlternateFieldNames(annotation.alternateFieldNames());
     data.setMapping(annotation.mapping());
     data.setValueExtractFormatter(VALUE_EXTRACT.forString(annotation.valueExtractFormatter()));
@@ -532,6 +536,22 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
       }
     }
     return skipEnumValidationCheck;
+  }
+
+  private boolean isFieldElementNullable(Element element) {
+    for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
+      // Support a variety of Nullable annotations (Android, Java, JetBrains, ...) by just checking
+      // the name
+      if (annotationMirror
+          .getAnnotationType()
+          .asElement()
+          .getSimpleName()
+          .toString()
+          .equals("Nullable")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isFieldAnnotationValid(Element element) {
