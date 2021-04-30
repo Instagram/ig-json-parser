@@ -33,7 +33,6 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
@@ -341,29 +340,26 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     boolean isNullable = !isStrict || isFieldElementNullable(element);
 
-    if (isStrict && element.getKind() == PARAMETER) {
-      data.setDeserializeType(TypeData.DeserializeType.PARAM);
-      data.setSerializeType(TypeData.SerializeType.GETTER);
-      String getterName = getGetterName(element.getSimpleName().toString(), isKotlin);
-      data.setGetterName(getterName);
-    } else if (isKotlin) {
-      data.setDeserializeType(TypeData.DeserializeType.SETTER);
-      String setterName = getSetterName(element.getSimpleName().toString(), isKotlin);
-      data.setSetterName(setterName);
-      data.setSerializeType(TypeData.SerializeType.GETTER);
-      String getterName = getGetterName(element.getSimpleName().toString(), isKotlin);
-      data.setGetterName(getterName);
-    } else {
-      data.setDeserializeType(TypeData.DeserializeType.FIELD);
-      data.setMemberVariableName(element.getSimpleName().toString());
-      if (jsonTypeAnnotation.useGetters()) {
-        data.setSerializeType(TypeData.SerializeType.GETTER);
-        String getterName = getGetterName(element.getSimpleName().toString(), isKotlin);
-        data.setGetterName(getterName);
-      } else {
-        data.setSerializeType(TypeData.SerializeType.FIELD);
-      }
+    AccessorMetadata accessorMetadata =
+        AccessorMetadata.create(
+            element.getSimpleName().toString(),
+            isStrict,
+            isKotlin,
+            jsonTypeAnnotation.useGetters(),
+            element.getKind());
+
+    if (accessorMetadata.checkMetadataMismatch(data)) {
+      error(
+          element,
+          "%s: Detected multiple annotations with the same field name. Field names must be unique within given class.",
+          classElement);
     }
+
+    data.setSerializeType(accessorMetadata.serializeType);
+    data.setDeserializeType(accessorMetadata.deserializeType);
+    data.setGetterName(accessorMetadata.getterName);
+    data.setSetterName(accessorMetadata.setterName);
+    data.setMemberVariableName(accessorMetadata.memberVariableName);
 
     data.setFieldName(annotation.fieldName());
     data.setIsNullable(isNullable);
@@ -605,7 +601,8 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     if (maybeCheckGetter && ((JsonType) annotation).generateSerializer() != JsonType.TriState.NO) {
       boolean isKotlin = isTypeElementKotlin(classElement);
-      String getterName = getGetterName(element.getSimpleName().toString(), isKotlin);
+      String getterName =
+          AccessorMetadata.getGetterName(element.getSimpleName().toString(), isKotlin);
       boolean foundGetter = false;
       for (Element enclosedElement : classElement.getEnclosedElements()) {
         if (enclosedElement.getSimpleName().toString().equals(getterName)) {
@@ -634,33 +631,6 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
     }
 
     return true;
-  }
-
-  private String getGetterName(String fieldName, boolean isKotlin) {
-    if (isKotlinIsSpecialPrefixCase(fieldName, isKotlin)) {
-      return fieldName;
-    } else {
-      return "get" + capitalize(fieldName);
-    }
-  }
-
-  private String getSetterName(String fieldName, boolean isKotlin) {
-    if (isKotlinIsSpecialPrefixCase(fieldName, isKotlin)) {
-      return "set" + capitalize(fieldName.substring(2));
-    } else {
-      return "set" + capitalize(fieldName);
-    }
-  }
-
-  private boolean isKotlinIsSpecialPrefixCase(String fieldName, boolean isKotlin) {
-    return isKotlin
-        && fieldName.length() > 2
-        && fieldName.startsWith("is")
-        && Character.isUpperCase(fieldName.charAt(2));
-  }
-
-  private static String capitalize(String str) {
-    return String.valueOf(str.charAt(0)).toUpperCase(Locale.getDefault()) + str.substring(1);
   }
 
   private void error(String message, Object... args) {
