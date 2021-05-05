@@ -7,6 +7,7 @@
 
 package com.instagram.common.json.annotation.processor;
 
+import com.facebook.infer.annotation.Nullsafe;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -19,6 +20,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
 /** Convenience methods for dealing with {@link AnnotationMirror} */
+@Nullsafe(Nullsafe.Mode.LOCAL)
 public class AnnotationMirrorUtils {
 
   @Nullable
