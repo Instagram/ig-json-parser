@@ -7,9 +7,6 @@
 
 package com.instagram.common.json.annotation.processor;
 
-import com.facebook.infer.annotation.Nullsafe;
-
-@Nullsafe(Nullsafe.Mode.LOCAL)
 public class StringUtil {
 
   /** We don't want to pull in guava strings just for this one function. */

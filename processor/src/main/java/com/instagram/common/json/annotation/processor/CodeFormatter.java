@@ -7,13 +7,11 @@
 
 package com.instagram.common.json.annotation.processor;
 
-import com.facebook.infer.annotation.Nullsafe;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-@Nullsafe(Nullsafe.Mode.LOCAL)
 public class CodeFormatter {
   public static final Factory VALUE_EXTRACT =
       new Factory(
