@@ -266,9 +266,13 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       // Add any additional imports from this class's annotations.
       imports.addAll(Arrays.asList(mAnnotation.imports()));
 
+      int count = 0;
+
       // Generate the set of imports from the parsable objects referenced.
       for (Map.Entry<String, TypeData> entry : getIterator()) {
         TypeData typeData = entry.getValue();
+        typeData.setFieldIndex(count);
+        count++;
         if (typeData.needsImportFrom(mClassPackage)) {
           imports.add(typeData.getPackageName() + "." + typeData.getParsableType());
           if (typeData.hasParserHelperClass()) {
@@ -312,13 +316,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
               .emitStatement("jp.skipChildren()")
               .emitStatement("return null")
               .endControlFlow()
-              .emitWithGenerator(
-                  new JavaWriter.JavaGenerator() {
-                    @Override
-                    public void emitJava(JavaWriter writer) throws IOException {
-                      JsonParserClassData.this.writeDeclareFields(messager, writer);
-                    }
-                  })
+              .emitEmptyLine()
+              .emitStatement("Object[] parsedProperties = new Object[%d];", count)
               .emitEmptyLine()
               .beginControlFlow("while (jp.nextToken() != JsonToken.END_OBJECT)")
               .emitStatement("String fieldName = jp.getCurrentName()")
@@ -510,40 +509,6 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     return sw.toString();
   }
 
-  /**
-   * This writes the if-else block for the fields in this class.
-   *
-   * <p>NOTE: This could be optimized further by building a radix trie, and building out the if-else
-   * block from traversing the radix trie.
-   */
-  private void writeDeclareFields(Messager messager, JavaWriter writer) throws IOException {
-    if (mOmitSomeMethodBodies) {
-      return;
-    }
-
-    for (Map.Entry<String, TypeData> entry : getIterator()) {
-      TypeData data = entry.getValue();
-      String typeExpression = null;
-      if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
-        if (TypeUtils.isMapType(data.getCollectionType())) {
-          TypeData keyTypeData = new TypeData();
-          keyTypeData.setParseType(TypeUtils.ParseType.STRING);
-          String keyType = getJavaType(keyTypeData);
-          String valueType = getJavaType(data);
-          String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
-          writer.emitStatement(
-              "%s<%s, %s> %s = null;", interfaceType, keyType, valueType, data.getFieldName());
-        } else {
-          String innerType = getJavaType(data);
-          String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
-          writer.emitStatement("%s<%s> %s = null;", interfaceType, innerType, data.getFieldName());
-        }
-      } else {
-        writer.emitStatement("%s %s = null;", getJavaType(data), data.getFieldName());
-      }
-    }
-  }
-
   private void writeValidateNonNullFields(
       String simpleClassName, Messager messager, JavaWriter writer) throws IOException {
     if (mOmitSomeMethodBodies) {
@@ -555,7 +520,8 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       TypeData data = entry.getValue();
       if (!data.isNullable() && data.getDeserializeType() == TypeData.DeserializeType.PARAM) {
-        writer.beginControlFlow("if (" + data.getFieldName() + " == null)");
+        writer.beginControlFlow(
+            "if (parsedProperties[" + Integer.toString(data.getFieldIndex()) + "] == null)");
         writer.emitStatement(
             "callback.onUnexpectedNull(\"%s\", \"%s\");", data.getFieldName(), simpleClassName);
         writer.endControlFlow();
@@ -578,7 +544,12 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
         if (hasFirst) {
           args.append(",");
         }
-        args.append(data.getFieldName());
+        args.append(
+            "("
+                + getTypeForField(data)
+                + ")parsedProperties["
+                + Integer.toString(data.getFieldIndex())
+                + "]");
         hasFirst = true;
       }
     }
@@ -593,18 +564,42 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
       return;
     }
 
-    List<String> args = new ArrayList<>();
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       TypeData data = entry.getValue();
 
-      writer.beginControlFlow("if (" + data.getFieldName() + " != null)");
       if (data.getDeserializeType() == TypeData.DeserializeType.FIELD) {
-        args.add(data.getFieldName());
-        writer.emitStatement("instance.%s = %s", data.getMemberVariableName(), data.getFieldName());
+        writer.beginControlFlow(
+            "if (parsedProperties[" + Integer.toString(data.getFieldIndex()) + "] != null)");
+        writer.emitStatement(
+            "instance.%s = (%s)%s",
+            data.getMemberVariableName(),
+            getTypeForField(data),
+            "parsedProperties[" + Integer.toString(data.getFieldIndex()) + "]");
+        writer.endControlFlow();
       } else if (data.getDeserializeType() == TypeData.DeserializeType.SETTER) {
-        writer.emitStatement("instance.%s(%s)", data.getSetterName(), data.getFieldName());
+        writer.beginControlFlow(
+            "if (parsedProperties[" + Integer.toString(data.getFieldIndex()) + "] != null)");
+        writer.emitStatement(
+            "instance.%s((%s)%s)",
+            data.getSetterName(),
+            getTypeForField(data),
+            "parsedProperties[" + Integer.toString(data.getFieldIndex()) + "]");
+        writer.endControlFlow();
       }
-      writer.endControlFlow();
+    }
+  }
+
+  private String getTypeForField(TypeData data) {
+    if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
+      String innerType = getJavaType(data);
+      String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());
+      if (TypeUtils.isMapType(data.getCollectionType())) {
+        return interfaceType + "<String, " + innerType + ">";
+      } else {
+        return interfaceType + "<" + innerType + ">";
+      }
+    } else {
+      return getJavaType(data);
     }
   }
 
@@ -642,7 +637,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
             data.getAssignmentFormatter().orIfEmpty(LOCAL_ASSIGNMENT_FORMATTER);
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
-                .addParam("local_varname", data.getFieldName())
+                .addParam(
+                    "local_varname",
+                    "parsedProperties[" + Integer.toString(data.getFieldIndex()) + "]")
                 .addParam("extracted_value", "results")
                 .format());
       } else {
@@ -650,7 +647,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
             data.getAssignmentFormatter().orIfEmpty(LOCAL_ASSIGNMENT_FORMATTER);
         writer.emitStatement(
             StrFormat.createStringFormatter(assignmentFormatter)
-                .addParam("local_varname", data.getFieldName())
+                .addParam(
+                    "local_varname",
+                    "parsedProperties[" + Integer.toString(data.getFieldIndex()) + "]")
                 .addParam("extracted_value", generateExtractRvalue(data, messager, member))
                 .format());
       }

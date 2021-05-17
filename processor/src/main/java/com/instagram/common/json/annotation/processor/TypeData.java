@@ -107,6 +107,8 @@ class TypeData {
 
   private boolean mIsNullable;
 
+  private int mFieldIndex;
+
   DeserializeType getDeserializeType() {
     return mDeserializeType;
   }
@@ -129,6 +131,14 @@ class TypeData {
 
   void setFieldName(String fieldName) {
     this.mFieldName = fieldName;
+  }
+
+  int getFieldIndex() {
+    return mFieldIndex;
+  }
+
+  void setFieldIndex(int fieldIndex) {
+    this.mFieldIndex = fieldIndex;
   }
 
   String getMemberVariableName() {
