@@ -545,7 +545,7 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
           args.append(",");
         }
         args.append(
-            "("
+            "\n      ("
                 + getTypeForField(data)
                 + ")parsedProperties["
                 + Integer.toString(data.getFieldIndex())
