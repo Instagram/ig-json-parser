@@ -21,12 +21,8 @@ class MainActivity : Activity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.main_activity)
 
-    playground.setOnClickListener {
-      startActivity(Intent(this, PlaygroundActivity::class.java))
-    }
+    playground.setOnClickListener { startActivity(Intent(this, PlaygroundActivity::class.java)) }
 
-    benchmark.setOnClickListener {
-      startActivity(Intent(this, BenchmarkActivity::class.java))
-    }
+    benchmark.setOnClickListener { startActivity(Intent(this, BenchmarkActivity::class.java)) }
   }
 }

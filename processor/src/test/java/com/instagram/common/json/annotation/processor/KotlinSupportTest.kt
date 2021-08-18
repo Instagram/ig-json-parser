@@ -16,16 +16,14 @@ import org.junit.Test
  */
 class KotlinSupportTest {
 
-  private val stuff = SomeKotlinStuff(
-      data = "my data",
-      isFun = Nested(
-          foo = 1,
-          bar = "my bar"
-      ),
-      someMap = hashMapOf("first" to 1, "second" to 2)
-  )
+  private val stuff =
+      SomeKotlinStuff(
+          data = "my data",
+          isFun = Nested(foo = 1, bar = "my bar"),
+          someMap = hashMapOf("first" to 1, "second" to 2))
 
-  private val stuffJson = """
+  private val stuffJson =
+      """
     {"data":"my data","fun":{"foo":1,"bar":"my bar"},"some_map":{"first":1,"second":2}}
     """.trimIndent()
 

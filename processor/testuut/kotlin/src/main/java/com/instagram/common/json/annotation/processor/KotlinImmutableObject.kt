@@ -15,5 +15,5 @@ data class KotlinImmutableObject(
     @JsonField(fieldName = "data1") val data1: String,
     @JsonField(fieldName = "data2") val data2: Int
 ) {
-    @JsonField(fieldName = "data3") var data3: String? = null
+  @JsonField(fieldName = "data3") var data3: String? = null
 }

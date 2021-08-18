@@ -13,13 +13,13 @@ import com.google.testing.compile.JavaFileObjects
 import javax.tools.JavaFileObject
 import org.junit.Test
 
-/**
- * Testing [AnnotationMirrorUtils]
- */
+/** Testing [AnnotationMirrorUtils] */
 class JsonAdapterValidationsTest {
 
   private val myClass: JavaFileObject =
-      JavaFileObjects.forSourceLines("test.MyClass", """
+      JavaFileObjects.forSourceLines(
+          "test.MyClass",
+          """
     
     package test;
     
@@ -36,8 +36,11 @@ class JsonAdapterValidationsTest {
 
   @Test
   fun succeedsWhenCorrectAnnotationUsage() {
-    val compilation = compile(
-        JavaFileObjects.forSourceLines("test.MyEnum", """
+    val compilation =
+        compile(
+            JavaFileObjects.forSourceLines(
+                "test.MyEnum",
+                """
           
           package test;
           
@@ -80,8 +83,11 @@ class JsonAdapterValidationsTest {
 
   @Test
   fun warningWhenEnumDoesNotHaveJsonAdapterAnnotation() {
-    val compilation = compile(
-        JavaFileObjects.forSourceLines("test.MyEnum", """
+    val compilation =
+        compile(
+            JavaFileObjects.forSourceLines(
+                "test.MyEnum",
+                """
           
           package test;
           
@@ -128,8 +134,11 @@ class JsonAdapterValidationsTest {
 
   @Test
   fun warningWhenMissingFromJsonAnnotatedMethod() {
-    val compilation = compile(
-        JavaFileObjects.forSourceLines("test.MyEnum", """
+    val compilation =
+        compile(
+            JavaFileObjects.forSourceLines(
+                "test.MyEnum",
+                """
           
           package test;
           
@@ -167,14 +176,16 @@ class JsonAdapterValidationsTest {
         """.trimIndent()))
 
     assertThat(compilation)
-        .hadWarningContaining(
-            "test.MyEnum: method with @FromJson annotation must be present")
+        .hadWarningContaining("test.MyEnum: method with @FromJson annotation must be present")
   }
 
   @Test
   fun warningWhenFromJsonMethodHasIncorrectReturnType() {
-    val compilation = compile(
-        JavaFileObjects.forSourceLines("test.MyEnum", """
+    val compilation =
+        compile(
+            JavaFileObjects.forSourceLines(
+                "test.MyEnum",
+                """
           
           package test;
           
@@ -214,14 +225,16 @@ class JsonAdapterValidationsTest {
 
     assertThat(compilation)
         .hadWarningContaining(
-            "@FromJson must return the correct type, expected type: " +
-                "test.MyEnum")
+            "@FromJson must return the correct type, expected type: " + "test.MyEnum")
   }
 
   @Test
   fun warningWhenFromJsonMethodHasMoreThanOneArgument() {
-    val compilation = compile(
-        JavaFileObjects.forSourceLines("test.MyEnum", """
+    val compilation =
+        compile(
+            JavaFileObjects.forSourceLines(
+                "test.MyEnum",
+                """
           
           package test;
           
@@ -261,14 +274,16 @@ class JsonAdapterValidationsTest {
 
     assertThat(compilation)
         .hadWarningContaining(
-            "test.MyEnum: @FromJson must have exactly one parameter, " +
-                "the json type expected")
+            "test.MyEnum: @FromJson must have exactly one parameter, " + "the json type expected")
   }
 
   @Test
   fun warningWhenMissingToJsonAnnotatedMethod() {
-    val compilation = compile(
-        JavaFileObjects.forSourceLines("test.MyEnum", """
+    val compilation =
+        compile(
+            JavaFileObjects.forSourceLines(
+                "test.MyEnum",
+                """
           
           package test;
           
@@ -306,14 +321,16 @@ class JsonAdapterValidationsTest {
         """.trimIndent()))
 
     assertThat(compilation)
-        .hadWarningContaining(
-            "test.MyEnum: method with @ToJson annotation must be present")
+        .hadWarningContaining("test.MyEnum: method with @ToJson annotation must be present")
   }
 
   @Test
   fun warningWhenToJsonMethodHasMoreThanOneArgument() {
-    val compilation = compile(
-        JavaFileObjects.forSourceLines("test.MyEnum", """
+    val compilation =
+        compile(
+            JavaFileObjects.forSourceLines(
+                "test.MyEnum",
+                """
           
           package test;
           
@@ -353,14 +370,16 @@ class JsonAdapterValidationsTest {
 
     assertThat(compilation)
         .hadWarningContaining(
-            "test.MyEnum: @ToJson must have exactly one parameter, " +
-                "the type of the field.")
+            "test.MyEnum: @ToJson must have exactly one parameter, " + "the type of the field.")
   }
 
   @Test
   fun warningWhenToJsonMethodHasWrongReturnType() {
-    val compilation = compile(
-        JavaFileObjects.forSourceLines("test.MyEnum", """
+    val compilation =
+        compile(
+            JavaFileObjects.forSourceLines(
+                "test.MyEnum",
+                """
           
           package test;
           
@@ -400,11 +419,9 @@ class JsonAdapterValidationsTest {
 
     assertThat(compilation)
         .hadWarningContaining(
-            "@ToJson must return the correct type, expected type: " +
-                "java.lang.String")
+            "@ToJson must return the correct type, expected type: " + "java.lang.String")
   }
 
-  private fun compile(file: JavaFileObject) = Compiler.javac()
-      .withProcessors(JsonAnnotationProcessor())
-      .compile(myClass, file)
+  private fun compile(file: JavaFileObject) =
+      Compiler.javac().withProcessors(JsonAnnotationProcessor()).compile(myClass, file)
 }

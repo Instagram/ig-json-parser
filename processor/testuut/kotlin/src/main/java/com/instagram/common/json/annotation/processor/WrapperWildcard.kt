@@ -14,15 +14,14 @@ import com.instagram.common.json.annotation.processor.parent.DynamicDispatchAdap
 /** Used for testing collection of generics */
 @JsonType
 class WrapperAnimal {
-  @JsonField(fieldName = "animals")
-  lateinit var animals: List<Animal<*>>
+  @JsonField(fieldName = "animals") lateinit var animals: List<Animal<*>>
 }
 
 @JsonType(
     valueExtractFormatter =
-    "com.instagram.common.json.annotation.processor.WrapperWildcardHelper.Companion.getDISPATCHER().parseFromJson(\${parser_object})",
+        "com.instagram.common.json.annotation.processor.WrapperWildcardHelper.Companion.getDISPATCHER().parseFromJson(\${parser_object})",
     serializeCodeFormatter =
-    "com.instagram.common.json.annotation.processor.WrapperWildcardHelper.Companion.getDISPATCHER().serializeToJson(\${generator_object}, \${subobject})")
+        "com.instagram.common.json.annotation.processor.WrapperWildcardHelper.Companion.getDISPATCHER().serializeToJson(\${generator_object}, \${subobject})")
 interface Animal<T> : DynamicDispatchAdapter.TypeNameProvider {
   var name: String
 
@@ -41,8 +40,7 @@ class Dog : Animal<DogParams> {
     const val TYPE_NAME: String = "Dog"
   }
 
-  @JsonField(fieldName = "name")
-  override var name: String = "dog"
+  @JsonField(fieldName = "name") override var name: String = "dog"
 
   override fun getId(): String {
     return Dog::class.simpleName + name

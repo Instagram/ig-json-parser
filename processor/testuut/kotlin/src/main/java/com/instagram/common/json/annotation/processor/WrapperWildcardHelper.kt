@@ -29,8 +29,7 @@ class WrapperWildcardHelper {
             override fun serializeToJson(generator: JsonGenerator?, obj: Animal<*>?) {
               Dog__JsonHelper.serializeToJson(generator, obj as Dog, true)
             }
-          }
-      )
+          })
     }
   }
 }

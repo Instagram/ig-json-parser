@@ -11,8 +11,8 @@ import org.junit.Assert
 import org.junit.Test
 
 /**
- * Testing whether the [JsonAnnotationProcessor] generates valid Java code when
- * using a [JsonAdapter].
+ * Testing whether the [JsonAnnotationProcessor] generates valid Java code when using a
+ * [JsonAdapter].
  */
 class JsonAdapterTest {
 

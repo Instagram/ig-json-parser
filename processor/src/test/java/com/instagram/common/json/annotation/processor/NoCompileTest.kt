@@ -7,14 +7,15 @@
 
 package com.instagram.common.json.annotation.processor
 
-import com.google.testing.compile.Compiler.javac
-import org.junit.Test
 import com.google.testing.compile.CompilationSubject
+import com.google.testing.compile.Compiler.javac
 import com.google.testing.compile.JavaFileObjects
+import org.junit.Test
 
 class NoCompileTest {
 
-  var reuseFieldName = """
+  var reuseFieldName =
+      """
 import com.instagram.common.json.annotation.JsonField;
 import com.instagram.common.json.annotation.JsonType;
 
@@ -33,9 +34,11 @@ public class ReuseFieldName {
   fun reuseFieldNameDoesNotCompile() {
     val compilation =
         javac()
-        .withProcessors(JsonAnnotationProcessor())
-        .compile(JavaFileObjects.forSourceString("ReuseFieldName", reuseFieldName))
-    CompilationSubject.assertThat(compilation).hadErrorContainingMatch("Errors were encountered during annotation processing.")
-    CompilationSubject.assertThat(compilation).hadWarningContaining("Detected multiple annotations with the same field name.")
+            .withProcessors(JsonAnnotationProcessor())
+            .compile(JavaFileObjects.forSourceString("ReuseFieldName", reuseFieldName))
+    CompilationSubject.assertThat(compilation)
+        .hadErrorContainingMatch("Errors were encountered during annotation processing.")
+    CompilationSubject.assertThat(compilation)
+        .hadWarningContaining("Detected multiple annotations with the same field name.")
   }
 }

@@ -11,9 +11,7 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.util.JsonParserDelegate
 import com.instagram.common.json.JsonCallback
 
-class CallbackContainingJsonParser(
-    jsonParser: JsonParser,
-    val callback: JsonCallback
-) : JsonParserDelegate(jsonParser), JsonCallback.Provider {
+class CallbackContainingJsonParser(jsonParser: JsonParser, val callback: JsonCallback) :
+    JsonParserDelegate(jsonParser), JsonCallback.Provider {
   override fun getJsonCallback(): JsonCallback = callback
 }

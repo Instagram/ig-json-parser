@@ -17,14 +17,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Testing [AnnotationMirrorUtils]
- */
+/** Testing [AnnotationMirrorUtils] */
 class AnnotationMirrorUtilsTest {
 
-  @Rule
-  @JvmField
-  var compilationRule = CompilationRule()
+  @Rule @JvmField var compilationRule = CompilationRule()
 
   private lateinit var elements: Elements
   private lateinit var types: Types
@@ -39,12 +35,9 @@ class AnnotationMirrorUtilsTest {
   fun getAnnotationValueAsTypeElementReturnsClassFromAnnotation() {
     val element = elements.getTypeElement(MyClass::class.java.canonicalName)
 
-    val typeElement = AnnotationMirrorUtils.getAnnotationValueAsTypeElement(
-        element,
-        types,
-        MyAnnotation::class.java,
-        "elementName"
-    )
+    val typeElement =
+        AnnotationMirrorUtils.getAnnotationValueAsTypeElement(
+            element, types, MyAnnotation::class.java, "elementName")
 
     assertEquals(ExpectedClass::class.java.name, typeElement!!.qualifiedName.toString())
   }
@@ -53,12 +46,9 @@ class AnnotationMirrorUtilsTest {
   fun getAnnotationValueAsTypeElementReturnsNullIfElementNameIsWrong() {
     val element = elements.getTypeElement(MyClass::class.java.canonicalName)
 
-    val typeElement = AnnotationMirrorUtils.getAnnotationValueAsTypeElement(
-        element,
-        types,
-        MyAnnotation::class.java,
-        "wrongElementName"
-    )
+    val typeElement =
+        AnnotationMirrorUtils.getAnnotationValueAsTypeElement(
+            element, types, MyAnnotation::class.java, "wrongElementName")
 
     assertNull(typeElement)
   }
@@ -68,5 +58,4 @@ class ExpectedClass
 
 annotation class MyAnnotation(val elementName: KClass<*>)
 
-@MyAnnotation(elementName = ExpectedClass::class)
-class MyClass
+@MyAnnotation(elementName = ExpectedClass::class) class MyClass

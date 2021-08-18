@@ -7,12 +7,12 @@
 
 package com.instagram.common.json.annotation.processor
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import com.instagram.common.json.JsonCallback
 import com.instagram.common.json.JsonFactoryHolder
-import org.junit.rules.ExpectedException
+import org.junit.Assert.assertEquals
 import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.ExpectedException
 
 /**
  * Testing whether the [JsonAnnotationProcessor] generates valid Java code when reading annotations
@@ -74,10 +74,8 @@ class JavaStrictSupportTest {
   fun deserializeNullableFieldHasNoLogs() {
     // data2 is the only non null required field
     val json = """{"data2":2}"""
-    val jp = CallbackContainingJsonParser(
-      JsonFactoryHolder.APP_FACTORY.createParser(json),
-      callback
-    )
+    val jp =
+        CallbackContainingJsonParser(JsonFactoryHolder.APP_FACTORY.createParser(json), callback)
     // jackson needs to be advanced to the first token before parsing
     jp.nextToken()
     ImmutableObject__JsonHelper.parseFromJson(jp)
@@ -88,10 +86,8 @@ class JavaStrictSupportTest {
   @Test
   fun deserializeNonNullableFieldHasLogs() {
     val json = """{"data3":[3],"data1":"my data"}"""
-    val jp = CallbackContainingJsonParser(
-      JsonFactoryHolder.APP_FACTORY.createParser(json),
-      callback
-    )
+    val jp =
+        CallbackContainingJsonParser(JsonFactoryHolder.APP_FACTORY.createParser(json), callback)
     // jackson needs to be advanced to the first token before parsing
     jp.nextToken()
     ImmutableObject__JsonHelper.parseFromJson(jp)
@@ -105,14 +101,14 @@ class JavaStrictSupportTest {
   fun deserializeNonNullableFieldThrowsException() {
     val json = """{"data3":[3],"data1":"my data"}"""
     expectedException.expect(JsonCallback.JsonDeserializationException::class.java)
-    val jp = CallbackContainingJsonParser(
-      JsonFactoryHolder.APP_FACTORY.createParser(json),
-      object : JsonCallback {
-        override fun onUnexpectedNull(fld: String, cls: String) {
-          throw JsonCallback.JsonDeserializationException()
-        }
-      }
-    )
+    val jp =
+        CallbackContainingJsonParser(
+            JsonFactoryHolder.APP_FACTORY.createParser(json),
+            object : JsonCallback {
+              override fun onUnexpectedNull(fld: String, cls: String) {
+                throw JsonCallback.JsonDeserializationException()
+              }
+            })
     // jackson needs to be advanced to the first token before parsing
     jp.nextToken()
     ImmutableObject__JsonHelper.parseFromJson(jp)

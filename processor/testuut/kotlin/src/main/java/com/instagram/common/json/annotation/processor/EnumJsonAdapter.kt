@@ -14,10 +14,7 @@ import com.instagram.common.json.annotation.JsonType
 import com.instagram.common.json.annotation.ToJson
 
 @JsonType
-data class MyEnumHolder(
-    @JsonField(fieldName = "my_enum")
-    var myEnum: MyEnum = MyEnum.NONE
-)
+data class MyEnumHolder(@JsonField(fieldName = "my_enum") var myEnum: MyEnum = MyEnum.NONE)
 
 @JsonAdapter(adapterClass = MyEnumAdapter::class)
 enum class MyEnum(val serverValue: String) {
@@ -34,7 +31,5 @@ object MyEnumAdapter {
   @FromJson
   fun fromJson(serverValue: String?): MyEnum = reverseMap[serverValue] ?: MyEnum.NONE
 
-  @JvmStatic
-  @ToJson
-  fun toJson(value: MyEnum): String? = value.serverValue
+  @JvmStatic @ToJson fun toJson(value: MyEnum): String? = value.serverValue
 }
