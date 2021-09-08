@@ -31,7 +31,23 @@ public interface JsonCallback {
    * and reject the deserialized objects. For instance it may allow the calling code to treat the
    * exception as an issue similar to a network error when a network response is being deserialized.
    */
-  public static class JsonDeserializationException extends IOException {}
+  public static class JsonDeserializationException extends IOException {
+    public JsonDeserializationException() {
+      super();
+    }
+
+    public JsonDeserializationException(String message) {
+      super(message);
+    }
+
+    public JsonDeserializationException(String message, Throwable cause) {
+      super(message, cause);
+    }
+
+    public JsonDeserializationException(Throwable cause) {
+      super(cause);
+    }
+  }
 
   /**
    * This will be called when the json payload does not match the type annotations of the class. It
