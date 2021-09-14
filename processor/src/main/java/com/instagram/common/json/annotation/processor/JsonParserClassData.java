@@ -242,27 +242,26 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     try {
       writer.emitPackage(mClassPackage);
 
-      writer.emitImports(
-          IOException.class,
-          StringWriter.class,
-          ArrayList.class,
-          ArrayDeque.class,
-          HashSet.class,
-          HashMap.class,
-          List.class,
-          Map.class,
-          Queue.class,
-          Set.class,
-          JsonGenerator.class,
-          JsonParser.class,
-          JsonToken.class,
-          JsonFactoryHolder.class,
-          JsonHelper.class);
+      Set<String> imports = new HashSet<String>();
+      imports.add(IOException.class.getName());
+      imports.add(StringWriter.class.getName());
+      imports.add(ArrayList.class.getName());
+      imports.add(ArrayDeque.class.getName());
+      imports.add(HashSet.class.getName());
+      imports.add(HashMap.class.getName());
+      imports.add(List.class.getName());
+      imports.add(Map.class.getName());
+      imports.add(Queue.class.getName());
+      imports.add(Set.class.getName());
+      imports.add(JsonGenerator.class.getName());
+      imports.add(JsonParser.class.getName());
+      imports.add(JsonToken.class.getName());
+      imports.add(JsonFactoryHolder.class.getName());
+      imports.add(JsonHelper.class.getName());
       if (mIsStrict) {
-        writer.emitImports(JsonCallback.class);
+        imports.add(JsonCallback.class.getName());
       }
 
-      Set<String> imports = new HashSet<String>();
       // Add any additional imports from this class's annotations.
       imports.addAll(Arrays.asList(mAnnotation.imports()));
 
@@ -589,7 +588,16 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     }
   }
 
+  /** this should only be used for casting from a parsed instance to the required type */
   private String getTypeForField(TypeData data) {
+    if (data.getParseType() == TypeUtils.ParseType.UNSUPPORTED) {
+      StringBuilder sb = new StringBuilder();
+      sb.append(data.getParsableType());
+      if (data.isWildcard() && data.isInterface() && mIsKotlin) {
+        sb.append("<?>");
+      }
+      return sb.toString();
+    }
     if (data.getCollectionType() != TypeUtils.CollectionType.NOT_A_COLLECTION) {
       String innerType = getJavaType(data);
       String interfaceType = mapCollectionTypeToInterfaceType(data.getCollectionType());

@@ -381,7 +381,28 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     boolean skipEnumValidationCheck = setJsonAdapterIfApplicable(type, injector, data, annotation);
 
-    if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
+    /**
+     * UNSUPPORTED can be parsed if valueExtractFormatter and or serializeCodeFormatter have been
+     * provided
+     */
+    if (data.getParseType() == TypeUtils.ParseType.UNSUPPORTED) {
+      TypeMirror erasedType = mTypes.erasure(type);
+      DeclaredType declaredType = (DeclaredType) erasedType;
+      TypeElement typeElement = (TypeElement) declaredType.asElement();
+
+      String packageName = mTypeUtils.getPackageName(mElements, typeElement);
+
+      data.setPackageName(packageName);
+      data.setParsableType(mTypeUtils.getClassName(typeElement, packageName));
+
+      CodeFormatter.Factory serializeCodeType =
+          typeElement.getKind() == INTERFACE
+              ? CodeFormatter.CLASS_CODE_SERIALIZATION
+              : CodeFormatter.INTERFACE_CODE_SERIALIZATION;
+
+      data.setIsInterface(typeElement.getKind() == INTERFACE);
+      data.setIsWildcard(type != null && type.getKind() == TypeKind.WILDCARD);
+    } else if (data.getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT) {
       TypeMirror erasedType = mTypes.erasure(type);
       DeclaredType declaredType = (DeclaredType) erasedType;
       TypeElement typeElement = (TypeElement) declaredType.asElement();

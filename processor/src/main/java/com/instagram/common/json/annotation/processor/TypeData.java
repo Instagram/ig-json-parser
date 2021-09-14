@@ -300,7 +300,9 @@ class TypeData {
   }
 
   public boolean needsImportFrom(String packageName) {
-    return getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT
+    return (getParseType() == TypeUtils.ParseType.PARSABLE_OBJECT
+            || getParseType() == TypeUtils.ParseType.UNSUPPORTED)
+        && getPackageName() != null
         && !getPackageName().equals(packageName);
   }
 
