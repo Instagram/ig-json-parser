@@ -518,7 +518,9 @@ public class JsonParserClassData extends ProcessorClassData<String, TypeData> {
     writer.emitStatement("JsonCallback callback = ((JsonCallback.Provider)jp).getJsonCallback()");
     for (Map.Entry<String, TypeData> entry : getIterator()) {
       TypeData data = entry.getValue();
-      if (!data.isNullable() && data.getDeserializeType() == TypeData.DeserializeType.PARAM) {
+      if (mIsStrict
+          && !data.isNullable()
+          && data.getDeserializeType() == TypeData.DeserializeType.PARAM) {
         writer.beginControlFlow(
             "if (parsedProperties[" + Integer.toString(data.getFieldIndex()) + "] == null)");
         writer.emitStatement(

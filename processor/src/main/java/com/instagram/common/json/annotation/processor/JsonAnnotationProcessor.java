@@ -338,7 +338,7 @@ public class JsonAnnotationProcessor extends AbstractProcessor {
 
     TypeData data = injector.getOrCreateRecord(annotation.fieldName().toString());
 
-    boolean isNullable = !isStrict || isFieldElementNullable(element);
+    boolean isNullable = isFieldElementNullable(element);
 
     AccessorMetadata accessorMetadata =
         AccessorMetadata.create(
