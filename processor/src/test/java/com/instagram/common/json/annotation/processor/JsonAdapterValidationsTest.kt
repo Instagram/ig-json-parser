@@ -32,7 +32,8 @@ class JsonAdapterValidationsTest {
       MyEnum myEnum;
     }
     
-  """.trimIndent())
+  """
+              .trimIndent())
 
   @Test
   fun succeedsWhenCorrectAnnotationUsage() {
@@ -76,7 +77,8 @@ class JsonAdapterValidationsTest {
             }
           }
           
-        """.trimIndent()))
+        """
+                    .trimIndent()))
 
     assertThat(compilation).succeeded()
   }
@@ -122,7 +124,8 @@ class JsonAdapterValidationsTest {
             }
           }
           
-        """.trimIndent()))
+        """
+                    .trimIndent()))
 
     assertThat(compilation)
         .hadWarningContaining(
@@ -173,7 +176,8 @@ class JsonAdapterValidationsTest {
             }
           }
           
-        """.trimIndent()))
+        """
+                    .trimIndent()))
 
     assertThat(compilation)
         .hadWarningContaining("test.MyEnum: method with @FromJson annotation must be present")
@@ -221,7 +225,8 @@ class JsonAdapterValidationsTest {
             }
           }
           
-        """.trimIndent()))
+        """
+                    .trimIndent()))
 
     assertThat(compilation)
         .hadWarningContaining(
@@ -270,7 +275,8 @@ class JsonAdapterValidationsTest {
             }
           }
           
-        """.trimIndent()))
+        """
+                    .trimIndent()))
 
     assertThat(compilation)
         .hadWarningContaining(
@@ -318,7 +324,8 @@ class JsonAdapterValidationsTest {
             }
           }
           
-        """.trimIndent()))
+        """
+                    .trimIndent()))
 
     assertThat(compilation)
         .hadWarningContaining("test.MyEnum: method with @ToJson annotation must be present")
@@ -366,7 +373,8 @@ class JsonAdapterValidationsTest {
             }
           }
           
-        """.trimIndent()))
+        """
+                    .trimIndent()))
 
     assertThat(compilation)
         .hadWarningContaining(
@@ -415,7 +423,8 @@ class JsonAdapterValidationsTest {
             }
           }
           
-        """.trimIndent()))
+        """
+                    .trimIndent()))
 
     assertThat(compilation)
         .hadWarningContaining(

@@ -18,9 +18,11 @@ class JsonAdapterTest {
 
   private val myEnumHolder = MyEnumHolder(myEnum = MyEnum.BAR)
 
-  private val myEnumHolderJson = """
+  private val myEnumHolderJson =
+      """
     {"my_enum":"bar"}
-    """.trimIndent()
+    """
+          .trimIndent()
 
   @Test
   fun serializeEnumWithJsonAdapter() {

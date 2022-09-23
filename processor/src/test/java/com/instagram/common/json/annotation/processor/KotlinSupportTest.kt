@@ -25,7 +25,8 @@ class KotlinSupportTest {
   private val stuffJson =
       """
     {"data":"my data","fun":{"foo":1,"bar":"my bar"},"some_map":{"first":1,"second":2}}
-    """.trimIndent()
+    """
+          .trimIndent()
 
   @Test
   fun handlesKotlinDataClassToJson() {
